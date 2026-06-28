@@ -158,7 +158,7 @@ We checked whether Jaga could be more than a weekend project — whether it coul
 
 A hard technical review pressure-tested the plan as a skeptical, informed judge would. Most of it was valid (we verified the disputed facts), and we revised:
 - **Deployment: online, not offline.** The original "fully offline / on-device, nothing leaves the device" story was incoherent alongside AMD-Cloud + FastAPI + Fireworks, and true on-device inference (incl. full HeAR, which is too large for phones) wasn't credible in a 5-day sprint. **Decision: serve inference online in the cloud on AMD; train on MI300X.** On-prem "edge" is a future roadmap, not the MVP.
-- **Scope: cough + clinical core; CXR optional.** CODA (cough+clinical, same patients) and the CXR sets (different patients) share no paired data, so a *fused* validated metric is impossible. **Decision: cough+clinical is the evidence-backed research core; CXR is an independent optional/stretch signal; never claim a fused or clinically validated metric.**
+- **Scope: two co-equal MVP signals — cough+clinical (Gema) and digital-CXR (Prisma).** CODA (cough+clinical, same patients) and the CXR sets (different patients) share no paired data, so a *fused* validated metric is impossible. **Decision: cough+clinical and digital-CXR are co-equal `[MVP]` signals built in parallel and evaluated independently; never fuse them or claim a fused or clinically validated metric.** (Supersedes the earlier "CXR optional/stretch" scope; see 2026-06-28 log entry.)
 - **Honest metrics.** Published CODA experiments report cough-only and cough+clinical performance ranges, but Jaga must report only results produced by its own reproducible evaluation. The old universal WHO ≥90%/≥70% benchmark was replaced by the 2025 tiered screening profiles. Report subject-level/site-held-out evaluation, calibration, subgroup metrics, and limitations.
 - **Claim corrections.** "1/3 of cases missed" → WHO 2025: ~10.7M estimated vs 8.3M notified (~2.4M / ~22% gap). "Incumbents need a radiologist" is false — WHO permits AI-CAD to *replace* readers (6 products approved Jun 2025). "Cough on a phone" isn't a moat — Swaasa already does cough+clinical phone screening. A photographed X-ray ≠ a digital CXR.
 - **"Confidence always rises with more input" removed** — a calibrated probability can go up or down; conflicting inputs can reduce certainty.
@@ -196,8 +196,8 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 | **Cough plus supported clinical variables is the [MVP] research core** | CODA pairs these inputs at participant level; CXR data is not paired and cannot support a fused evaluation. |
 | **Use five solicited coughs** | This matches the documented CODA collection protocol and gives the quality gate a concrete contract. |
 | **Every symptomatic adult receives confirmatory evaluation** | Jaga may prioritize urgency but must never determine who is denied confirmatory testing. |
-| **CXR stays isolated [Stretch] work** | It may be demonstrated independently but cannot alter the MVP risk result or create a fused performance claim. |
-| **Name the two signals Gema (cough+clinical) and Prisma (CXR)** | Distinct names reinforce that the signals are separate and never fused. Both stay inside the Jaga "watch over" brand: *Gema* = "echo" (the acoustic core that listens), *Prisma* = "prism" (the imaging stretch). |
+| **CXR (Prisma) is a co-equal [MVP] signal, kept isolated** | The CXR research framework is built and runs in parallel with Gema; it has its own pipeline, metrics, and panel, but cannot alter the cough result or create a fused performance claim. (Supersedes the earlier "isolated [Stretch]" decision; see 2026-06-28 log.) |
+| **Name the two signals Gema (cough+clinical) and Prisma (CXR)** | Distinct names reinforce that the signals are separate and never fused. Both stay inside the Jaga "watch over" brand: *Gema* = "echo" (the acoustic core that listens), *Prisma* = "prism" (the imaging signal). |
 | **Attention views are non-causal artifacts** | A saliency or attention visualization can support inspection but cannot be presented as the model's reasoning. |
 | **Serve transient inference online on AMD** | It is coherent with hackathon infrastructure; offline and edge-appliance deployment remain outside the MVP. |
 | **Use CODA under controlled access** | CODA is not a public download. Access, retention, and redistribution must follow its data-use terms. |
@@ -241,7 +241,7 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 
 **Gema** — the `[MVP]` cough-plus-clinical research signal (Indonesian for "echo"). The acoustic core that listens to five guided coughs plus supported clinical inputs. Never fused with Prisma.
 
-**Prisma** — the `[Stretch]` digital-CXR research signal (Indonesian for "prism"). An isolated imaging module with its own pipeline, metrics, and result panel. Never fused with Gema.
+**Prisma** — the `[MVP]` digital-CXR research signal (Indonesian for "prism"). An isolated, co-equal imaging module with its own pipeline, metrics, and result panel, built in parallel with Gema. Never fused with Gema.
 
 **Triage research output** — a calibrated risk category and uncertainty statement that may prioritize urgency. It never determines whether a symptomatic adult receives confirmatory evaluation.
 
@@ -267,7 +267,7 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 
 ## 19. The Conceptual Through-Line
 
-> Jaga began with a requirement to make AI work visible, useful, evidence-backed, and meaningfully dependent on AMD compute. The team chose tuberculosis because the global burden is high and access to screening and confirmatory pathways remains uneven. The resulting MVP is intentionally narrow: a CHW records five solicited coughs and supported clinical variables; an AMD-hosted research pipeline applies quality checks and returns a calibrated risk-prioritization result with uncertainty and a clear confirmatory-evaluation instruction. Every symptomatic adult continues to confirmatory evaluation. Jaga is an investigational research prototype, not a diagnosis or validated clinical product. CXR fusion, offline deployment, causal explanation claims, and unsupported performance promises are outside the MVP.
+> Jaga began with a requirement to make AI work visible, useful, evidence-backed, and meaningfully dependent on AMD compute. The team chose tuberculosis because the global burden is high and access to screening and confirmatory pathways remains uneven. The resulting MVP is intentionally narrow: a CHW records five solicited coughs and supported clinical variables; an AMD-hosted research pipeline applies quality checks and returns a calibrated risk-prioritization result with uncertainty and a clear confirmatory-evaluation instruction. Every symptomatic adult continues to confirmatory evaluation. Jaga is an investigational research prototype, not a diagnosis or validated clinical product. A separate, never-fused digital-CXR estimate (**Prisma**) is a co-equal MVP signal alongside the cough core (**Gema**), each shown in its own panel. CXR–cough fusion, offline deployment, causal explanation claims, and unsupported performance promises are outside the MVP.
 
 ---
 

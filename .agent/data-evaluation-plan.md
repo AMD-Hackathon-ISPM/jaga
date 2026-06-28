@@ -38,11 +38,11 @@ Primary risks are selection bias, device/environment shift, country/site shift, 
 >
 > **Completion rule:** replace this block with a dated dataset manifest and link its non-sensitive path; do not download data into a tracked directory
 
-### 2.2 Digital CXR — Prisma [Stretch]
+### 2.2 Digital CXR — Prisma [MVP]
 
 The digital-CXR signal is the **Prisma** module, kept entirely separate from the **Gema** cough-plus-clinical core. Any CXR data comes from different participants and sources than CODA. It receives a separate pipeline, model, calibration, evaluation, result panel, and limitations. Source-specific artifacts are a known leakage risk; photographed films are out of scope.
 
-No Prisma work starts before the P0 Gema (cough-plus-clinical) loop passes.
+Prisma and Gema are co-equal MVP pipelines built in parallel; each ships and is evaluated independently and their outputs are never fused.
 
 ### 2.3 Demo fixtures [MVP]
 
@@ -59,7 +59,7 @@ No Prisma work starts before the P0 Gema (cough-plus-clinical) loop passes.
 4. **Repeated segments:** participant aggregation occurs before participant-level scoring; segment count cannot overweight a participant without an explicit documented rule.
 5. **Site/country feature:** site/country is excluded as a predictive feature unless the decision and external-validity consequence are documented.
 6. **Clinical leakage:** exclude variables derived from reference-standard testing, diagnosis, treatment, or post-enrolment information.
-7. **CXR source leakage:** if stretch work begins, evaluate by dataset/source and inspect borders, text, compression, and acquisition artifacts; preprocessing reduces but cannot prove removal of leakage.
+7. **CXR source leakage:** evaluate Prisma by dataset/source and inspect borders, text, compression, and acquisition artifacts; preprocessing reduces but cannot prove removal of leakage.
 
 > **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
 >
@@ -106,6 +106,20 @@ Benchmark one pretrained health/audio encoder, such as HeAR, only after confirmi
 > **Affected documents:** `data-evaluation-plan.md`, `project-architecture.md`, `evidence-register.md`, `implementation-plan.md`
 >
 > **Completion rule:** replace this block with the signed gate before candidate training; ties default to the simpler baseline
+
+### 5.3 Prisma CXR models [MVP]
+
+The digital-CXR classifier is a separate model family with its own evidence gate. The implemented research framework (`backend/python/project`) provides interchangeable backbones — **DenseNet121, EfficientNet-B0, BiomedCLIP, and Rad-DINO** — emitting unified `embedding` + `logits`, with **retrieval-augmented inspection** (FAISS k-nearest-neighbour over saved embeddings with evidence aggregation) and **Grad-CAM** overlays. Backbone promotion uses the same source-grouped, leakage-aware evidence standard as Gema; the chosen Prisma backbone, calibration, and thresholds are versioned independently of Gema and never fused with it.
+
+> **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
+>
+> **Blocks:** `ML-5`, Prisma artifact packaging, and the `POST /api/v1/cxr` contract
+>
+> **Required output:** name the CXR dataset(s), source-grouped split, and non-redistribution status; select the Prisma backbone and checkpoint/license; define preprocessing (incl. CLAHE option), calibration partition, and band thresholds; define retrieval/Grad-CAM inspection limits and their non-causal disclaimer; set promotion thresholds and the fallback backbone
+>
+> **Affected documents:** `data-evaluation-plan.md`, `project-architecture.md`, `evidence-register.md`, `implementation-plan.md`
+>
+> **Completion rule:** replace this block with the signed Prisma model/evaluation gate; Prisma evidence is reported separately from Gema and never combined
 
 ## 6. Calibration, bands, and urgency
 

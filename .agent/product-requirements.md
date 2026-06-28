@@ -23,7 +23,7 @@ Requirement IDs are stable and map to architecture sections and implementation t
 2. The documented cohort is symptomatic adults aged 18+.
 3. Every participant is directed to confirmatory evaluation regardless of the estimate or band.
 4. The MVP core is cough plus model-supported clinical inputs.
-5. CXR, if built, is independent and never fused with the cough score.
+5. CXR (Prisma) is an independent co-equal signal and is never fused with the cough score.
 6. Patient inputs are processed transiently and are not retained or request-body logged.
 7. Published evidence and actual Jaga results are labelled separately.
 8. Attention/saliency is described as model inspection, not reasoning or causal explanation.
@@ -192,10 +192,10 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 - Automated checks find no patient input in browser persistence, application storage, analytics, or request logs.
 - Reset, acknowledgement, and session timeout each remove form, audio, result, and request-identifier state.
 
-### 3.9 Independent CXR — Prisma [Stretch] · PRD-09
+### 3.9 Independent CXR — Prisma [MVP] · PRD-09
 
-- The CXR `[Stretch]` module is named **Prisma**; the cough-plus-clinical `[MVP]` core is named **Gema**. The two are separate signals and are never fused.
-- Accept digital CXR only after the complete P0 workflow passes.
+- The CXR `[MVP]` module is named **Prisma**; the cough-plus-clinical `[MVP]` core is named **Gema**. The two are co-equal, separate signals and are never fused.
+- Prisma and Gema are delivered in parallel; neither blocks the other, and either may degrade independently without affecting the other.
 - Display a separate Prisma (CXR) research estimate, model/version, metrics, limitations, and inspection heatmap.
 - Never combine scores, bands, calibration, or referral language with the Gema (cough-plus-clinical) result.
 - Photographed films are rejected.
@@ -278,7 +278,7 @@ The MVP is done only when:
 | PRD-06 Result | Model metadata · result schema | ML-3 · BE-3 · FE-5 |
 | PRD-07 Localization | Frontend string contract | UX-1 · FE-1–FE-5 |
 | PRD-08 Privacy/reset | Security · logging · state model | ARCH-2 · BE-4 · FE-4 |
-| PRD-09 CXR stretch | Independent stretch pipeline | ML-5 · FE-7 |
+| PRD-09 CXR (Prisma) | Independent co-equal pipeline | ML-5 · FE-7 |
 | PRD-10 Fireworks stretch | Sanitized generation boundary | BE-6 |
 | PRD-11 Fixtures | Test data strategy | QA-1 |
 | PRD-12 Accessibility | Frontend/design specification | UX-1 · QA-2 |

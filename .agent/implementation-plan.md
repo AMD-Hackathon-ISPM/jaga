@@ -512,7 +512,7 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 - Five-minute demo follows the product-brief timing.
 - Submission is completed before 11 July 15:00 UTC / 22:00 WIB.
 
-## 7. Optional tickets
+## 7. Parallel and optional tickets
 
 ### ML-4 · Pretrained encoder evidence gate [P1]
 
@@ -540,15 +540,15 @@ Motion must preserve the locked hierarchy and reduced-motion behavior.
 
 Use sanitized structured output only; deterministic safety/referral copy remains authoritative.
 
-### ML-5 / FE-7 · Independent CXR module [P2]
+### ML-5 / FE-7 · Independent CXR module — Prisma [P0]
 
 **Owners:** Daffa / Kei
 
 **Reviewers:** Billy + Fransisco
 
-**Depends on:** every P0 ticket passing with submission buffer intact
+**Depends on:** Prisma model artifact and the `POST /api/v1/cxr` contract; built in parallel with the Gema core, not gated behind it
 
-Separate pipeline, schema, evaluation, panel, limitations, and metrics. No fusion or photographed-film input.
+Separate pipeline, schema, evaluation, panel, limitations, and metrics. Co-equal MVP signal; never fused with Gema and no photographed-film input.
 
 ## 8. Ticket delivery contracts
 
@@ -587,7 +587,7 @@ This matrix supplies the affected interfaces, concrete deliverable, and fallback
 | ML-4 | Candidate encoder, license, promotion gates | Candidate comparison and promotion decision | Retain ML-1 baseline |
 | UX-2 | Result transition and reduced-motion path | Optional result-reveal polish | Ship static result |
 | BE-6 | Sanitized structured output and optional generated note | Isolated Fireworks explanation path | Deterministic bilingual copy only |
-| ML-5 / FE-7 | Separate CXR pipeline, schema, evaluation, panel | Independent CXR research module | Drop the module completely |
+| ML-5 / FE-7 | Separate CXR pipeline, schema, evaluation, panel | Independent co-equal CXR (Prisma) module | Mark Prisma unavailable in its own panel; Gema core is unaffected and never fused |
 
 ## 9. Daily milestone summary
 
@@ -622,7 +622,7 @@ This matrix supplies the affected interfaces, concrete deliverable, and fallback
 | Quality gate unreliable | Use stricter deterministic rejection and show retry; never score rejected audio | Daffa |
 | AMD serving is unstable | Reduce model complexity to the verified fallback artifact; keep AMD deployment | Daffa + Zeddin |
 | Fireworks fails | Deterministic bilingual copy only | Zeddin |
-| CXR slips | Drop all CXR work | Daffa |
+| CXR (Prisma) slips | Ship Prisma as a separate, clearly-labeled estimate; degrade its panel independently; never fuse with Gema | Daffa |
 | Result motion slips | Ship static accessible result | Billy |
 | Internet/demo instability | Keep local container smoke path and pre-recorded video; do not fake live inference | Zeddin + Fransisco |
 | Submission time pressure | Freeze P0 on 9 July; no P1/P2 after freeze | Fransisco |

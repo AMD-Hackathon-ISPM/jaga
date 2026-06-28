@@ -28,7 +28,7 @@ Jaga explores whether cough acoustics plus routinely available clinical informat
 | Mandatory next step | Direct every symptomatic participant to confirmatory evaluation |
 | Model inspection | Show a spectrogram, non-causal attention/saliency overlay, and supported contributing factors |
 | Privacy | Process inputs transiently without request-body logging or patient-data persistence |
-| `[Stretch]` CXR (**Prisma**) | Show a separate digital-CXR estimate with separate metrics; never fuse scores |
+| Digital-CXR (**Prisma**) | Show a separate digital-CXR estimate with separate metrics; never fuse scores |
 
 ## Planned stack
 
@@ -37,7 +37,8 @@ Jaga explores whether cough acoustics plus routinely available clinical informat
 | Frontend | Next.js PWA and Tailwind CSS; final frontend contract owned by Billy |
 | Backend | FastAPI and Docker; architecture owned by Daffa and implemented by Zeddin |
 | AI training | PyTorch on AMD ROCm / Instinct MI300X |
-| Core model | Evidence-gated cough-plus-clinical model; final pipeline owned by Daffa |
+| Core model (Gema) | Evidence-gated cough-plus-clinical model; final pipeline owned by Daffa |
+| CXR model (Prisma) | Separate digital-CXR classifier (DenseNet121 / EfficientNet-B0 / BiomedCLIP / Rad-DINO) with retrieval-augmented inspection and Grad-CAM; never fused with Gema |
 | Optional generation | Fireworks API for richer copy only; deterministic bilingual referral remains the default |
 
 The detailed contracts are intentionally assigned in the [architecture](.agent/project-architecture.md), [data and evaluation plan](.agent/data-evaluation-plan.md), and [implementation plan](.agent/implementation-plan.md). Product and medical-safety rules are already fixed and are not placeholders.

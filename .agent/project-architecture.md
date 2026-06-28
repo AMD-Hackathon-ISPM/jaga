@@ -92,7 +92,7 @@ Billy owns frontend architecture, UX, accessibility, and review. Kei implements 
 - Validate content type, byte limits, encoding, field schema, contract version, and model availability before inference.
 - Return structured error codes; never return partial or stale estimates.
 - Model loading, preprocessing, inference, calibration, inspection, and result composition are separate modules with versioned boundaries.
-- The two research signals are named modules: **Gema** (cough-plus-clinical core, `[MVP]`) and **Prisma** (digital-CXR, `[Stretch]`). They are trained, served, evaluated, and displayed separately and are never fused into one score.
+- The two research signals are co-equal `[MVP]` named modules: **Gema** (cough-plus-clinical core) and **Prisma** (digital-CXR). They are trained, served, evaluated, and displayed separately, built in parallel, and are never fused into one score.
 - Health endpoints disclose service/model readiness without exposing secrets or participant information.
 
 > **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
@@ -138,14 +138,15 @@ The logical pipeline is fixed even though Daffa must select its implementations:
 
 ## 6. Shared interface contract [MVP]
 
-The contract version is carried in every request and response. The primary inference operation is fixed as `POST /api/v1/triage`; Daffa must define its complete contract before backend or frontend integration. Health/readiness paths may be finalized in the signed contract.
+The contract version is carried in every request and response. The Gema inference operation is fixed as `POST /api/v1/triage`; the Prisma (digital-CXR) operation is a **separate** endpoint (`POST /api/v1/cxr`) that returns its own estimate and never merges with the cough result. Daffa must define both complete contracts before backend or frontend integration. Health/readiness paths may be finalized in the signed contract.
 
 | Operation | Required responsibility |
 |---|---|
 | Service health | Process availability without claiming model readiness |
 | Service readiness | Model, calibration, preprocessing, and schema compatibility |
-| `POST /api/v1/triage` | Five cough attempts plus signed clinical payload in one versioned request; performs validation, quality gating, inference, and result composition |
-| Result | Request ID, quality result, estimate/band/urgency, mandatory referral, model metadata, limitations, and inspection metadata |
+| `POST /api/v1/triage` | Gema: five cough attempts plus signed clinical payload in one versioned request; performs validation, quality gating, inference, and result composition |
+| `POST /api/v1/cxr` | Prisma: one digital-CXR image in a versioned request; performs validation, inference, and a separate result composition; never fused with `POST /api/v1/triage` |
+| Result | Request ID, quality result, estimate/band/urgency, mandatory referral, model metadata, limitations, and inspection metadata (per signal, kept separate) |
 
 > **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
 >
@@ -258,12 +259,12 @@ tests/
 | Contract mismatch | Terminal technical error; deploy versions must be reconciled |
 | Inspection generation fails | Result may proceed only if estimate, safety copy, and metadata are valid; inspection is marked unavailable |
 
-### 12.1 Stretch failure isolation [Stretch]
+### 12.1 Independent-module failure isolation
 
 | Failure | Required behavior |
 |---|---|
-| Fireworks fails | Deterministic copy remains; no effect on estimate/referral |
-| Prisma (CXR) fails | Gema core result remains independent and unchanged |
+| Prisma (CXR) fails `[MVP]` | Gema core result remains independent and unchanged; Prisma panel marked unavailable |
+| Fireworks fails `[Stretch]` | Deterministic copy remains; no effect on estimate/referral |
 
 ## 13. Architecture acceptance
 

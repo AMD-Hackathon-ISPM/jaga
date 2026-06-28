@@ -52,7 +52,7 @@ When two current documents disagree, add a visible contradiction block, stop the
 - **[Stretch]** starts only after every P0 acceptance criterion passes.
 - **[OUT]** must not be implemented.
 - The MVP core is **cough + supported clinical inputs**. It is evidence-backed, not clinically validated for deployment.
-- Chest X-ray is an isolated `[Stretch]` signal with separate metrics. Never fuse it with the cough score because no paired dataset supports that claim.
+- Chest X-ray (**Prisma**) is an isolated `[MVP]` signal with separate metrics, co-equal with the cough core (**Gema**) and built in parallel. Never fuse it with the cough score because no paired dataset supports that claim.
 - Do not retain patient inputs, log request bodies, scrape patient information, or use real patient data in the demo.
 - Model-attention and saliency artifacts show where a model focused; they are not causal explanations or clinical reasoning.
 - All factual and medical claims must trace to `evidence-register.md`.
@@ -116,7 +116,7 @@ No developer implements a blocked interface before its owner-input block is comp
 
 ## 8. Current status and first tasks
 
-Idea, name, research framing, cohort boundary, online AMD serving, cough-plus-clinical MVP core, and isolated CXR stretch are locked. CODA is controlled-access and Daffa has access; dataset redistribution is prohibited.
+Idea, name, research framing, cohort boundary, online AMD serving, and two co-equal `[MVP]` signals — cough-plus-clinical (Gema) and isolated digital-CXR (Prisma), never fused — are locked. CODA is controlled-access and Daffa has access; dataset redistribution is prohibited.
 
 - **Daffa:** complete the owner blocks in [`.agent/project-architecture.md`](.agent/project-architecture.md) and [`.agent/data-evaluation-plan.md`](.agent/data-evaluation-plan.md) by 29 June.
 - **Zeddin:** read [`.agent/project-architecture.md`](.agent/project-architecture.md) and start ticket `BE-0` only after Daffa signs the contract block.
