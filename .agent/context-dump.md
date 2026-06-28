@@ -1,8 +1,18 @@
 # Jaga · Full Context Dump
 
-**Purpose:** A complete record of how Jaga was conceived — from first principles about what we wanted to build, through every idea we explored and discarded, to the product we committed to. This exists so anyone (future Claude instances, new teammates, your future self) can reconstruct not just *what* Jaga is but *why every decision was made the way it was*.
+| Field | Value |
+|---|---|
+| Document type | Historical decision record |
+| Audience | Contributors, reviewers, and future maintainers |
+| Status | Historical; current revision and decisions are summarized in Sections 15–20 |
+| Owner | Billy |
+| Updated | 2026-06-28 |
+| Canonical for | Product history, superseded ideas, and decision rationale |
+| Companion documents | [`evidence-register.md`](evidence-register.md), [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md) |
 
-**Format:** Roughly chronological, organized by phase. Each phase shows the question we were wrestling with, the key insights, the decisions made, and what we set aside. Indices at the end give fast lookup.
+## How to read this document
+
+Sections 1–14 preserve the project discussion as it happened. They are historical evidence, not the current implementation specification. A `SUPERSEDED` comment immediately follows any historical passage that contradicts the current plan. Section 15 records the evidence and implementation revision completed on 28 June 2026. For current behavior, follow the companion documents according to the precedence in [`../AGENT.md`](../AGENT.md).
 
 ---
 
@@ -21,12 +31,13 @@
 11. [Phase 10 — Designing the Experience](#11-phase-10--designing-the-experience)
 12. [Phase 11 — The Product and Its Name: Jaga](#12-phase-11--the-product-and-its-name-jaga)
 13. [Phase 12 — Building Something That Can Last](#13-phase-12--building-something-that-can-last)
-14. [Phase 13 — Review & Honest Revision](#135-phase-13--review--honest-revision-2026-06-27)
-15. [Decisions Index](#14-decisions-index)
-15. [Set-Aside Ideas Index](#15-set-aside-ideas-index)
-16. [Glossary of Concepts](#16-glossary-of-concepts)
-17. [The Conceptual Through-Line](#17-the-conceptual-through-line)
-18. [What This Document Is For](#18-what-this-document-is-for)
+14. [Phase 13 — Review and Honest Revision](#14-phase-13--review-and-honest-revision-2026-06-27)
+15. [Phase 14 — Evidence and Implementation Revision](#15-phase-14--evidence-and-implementation-revision-2026-06-28)
+16. [Decisions Index](#16-decisions-index)
+17. [Set-Aside Ideas Index](#17-set-aside-ideas-index)
+18. [Glossary of Concepts](#18-glossary-of-concepts)
+19. [The Conceptual Through-Line](#19-the-conceptual-through-line)
+20. [What This Document Is For](#20-what-this-document-is-for)
 
 ---
 
@@ -115,17 +126,23 @@ We compared four concrete directions — car-damage assessment, a clinician know
 
 **Tuberculosis screening won, clearly.** TB is the world's deadliest infectious disease and a third of cases are missed every year — a **global** crisis across the high-burden belt (India, Indonesia, Philippines, Pakistan, sub-Saharan Africa). We frame Jaga as a global tool and **start in Indonesia as our beachhead** — the world's #2 burden country and our home, so we build with real ground truth and authenticity before scaling out. The root cause is brutally practical everywhere: first-line screening needs X-ray machines, sputum labs, and radiologists that the hardest-hit communities simply don't have. A **cough is a free, instantly-available signal**, and a phone-first screen needs none of that equipment. Public datasets (cough with paired clinical data) let us build and validate it for real. *(See Phase 13 for the scientific/deployment corrections we made after a hard technical review.)*
 
+> **SUPERSEDED — current decision:** WHO's 2025 estimate implies an approximately 22% notification gap, not one third. CODA is controlled-access, not a public download. Jaga is an investigational research prototype and does not claim clinical validation. See [`evidence-register.md`](evidence-register.md).
+
 ---
 
 ## 11. Phase 10 — Designing the Experience
 
 We worried at first that "just a cough" couldn't show much. It turns out a cough is *rich*: a mel-spectrogram with a saliency overlay, an embedding plot placing the case among healthy vs TB clusters, acoustic-feature readouts. And because public chest-X-ray data exists too, we went **multimodal** — cough plus an optional X-ray (with a Grad-CAM heatmap), fused into one risk score. The design principle that fell out: **X-ray where a clinic has the machine, a phone cough where it doesn't.** We mapped the full journey — demographics, optional symptoms, optional X-ray, a required 10-second cough — ending in an explainable result, with confidence rising as more inputs are added.
 
+> **SUPERSEDED — current decision:** The MVP uses five solicited coughs plus supported clinical variables. CXR is isolated P2 stretch work because no paired cough/CXR cohort supports fusion. Attention and saliency views are non-causal inspection artifacts, not model reasoning. More inputs do not necessarily increase confidence.
+
 ---
 
 ## 12. Phase 11 — The Product and Its Name: Jaga
 
 **The product:** a phone-first **TB triage** tool. A community health worker records a cough plus a few clinical details; an AI model **trained on AMD and served online** returns an explainable, calibrated TB-risk result in seconds — no X-ray machine, lab, or on-site radiologist — to decide who needs a confirmatory test. Chest X-ray is an optional/stretch signal. It's **triage, never diagnosis**: a human always stays in the loop and real cases go for confirmatory testing.
+
+> **SUPERSEDED — current decision:** Every symptomatic adult in the intended workflow receives confirmatory evaluation. Jaga's research output may help prioritize urgency; it must never decide whether confirmatory evaluation happens.
 
 **The name: Jaga** — Indonesian for *"to watch over / to guard."* It says the mission in one word: something that watches over your lungs and your community. We deliberately avoided "breath"-type names (they echo existing tools) in favor of something authentic to us and easy for anyone to say.
 
@@ -137,100 +154,128 @@ The full project plan lives in the four spec docs (`product-brief.md`, `product-
 
 We checked whether Jaga could be more than a weekend project — whether it could actually sustain itself and reach people at scale. It can: TB screening is a funded, global public-health effort (the Global Fund alone moves billions into TB), real companies in this space are venture- and foundation-backed, and there's an established path for tools like this to be adopted by national programs and NGOs. Our model — a free app for community health workers, a local AMD "edge" box for clinics, and program licensing — fits how this work actually gets funded, and the same pipeline can later extend to other respiratory diseases. We're being honest that this is an impact-driven, slower-moving market, not a viral consumer app — but it's one where the work genuinely matters.
 
+> **SUPERSEDED — current decision:** The business model is a hypothesis, not a validated result. Offline and edge-appliance deployment are outside the MVP. The current plan uses transient cloud inference on AMD infrastructure.
+
 ---
 
-## 13.5 Phase 13 — Review & Honest Revision (2026-06-27)
+## 14. Phase 13 — Review and Honest Revision (2026-06-27)
 
 A hard technical review pressure-tested the plan as a skeptical, informed judge would. Most of it was valid (we verified the disputed facts), and we revised:
 - **Deployment: online, not offline.** The original "fully offline / on-device, nothing leaves the device" story was incoherent alongside AMD-Cloud + FastAPI + Fireworks, and true on-device inference (incl. full HeAR, which is too large for phones) wasn't credible in a 5-day sprint. **Decision: serve inference online in the cloud on AMD; train on MI300X.** On-prem "edge" is a future roadmap, not the MVP.
-- **Scope: cough + clinical core; CXR optional.** CODA (cough+clinical, same patients) and the CXR sets (different patients) share no paired data, so a *fused* validated metric is impossible. **Decision: cough+clinical is the validated core; CXR is an independent optional/stretch signal; never claim a fused metric.**
-- **Honest metrics.** Real CODA results are cough-only AUROC ~0.69–0.74 and cough+clinical ~0.78–0.83 — not the 0.85–0.90 we'd written. WHO ≥90%/≥70% is an *aspiration*, not a promised result. Report subject-level/site-held-out eval, calibration, subgroup metrics, and limitations.
+- **Scope: cough + clinical core; CXR optional.** CODA (cough+clinical, same patients) and the CXR sets (different patients) share no paired data, so a *fused* validated metric is impossible. **Decision: cough+clinical is the evidence-backed research core; CXR is an independent optional/stretch signal; never claim a fused or clinically validated metric.**
+- **Honest metrics.** Published CODA experiments report cough-only and cough+clinical performance ranges, but Jaga must report only results produced by its own reproducible evaluation. The old universal WHO ≥90%/≥70% benchmark was replaced by the 2025 tiered screening profiles. Report subject-level/site-held-out evaluation, calibration, subgroup metrics, and limitations.
 - **Claim corrections.** "1/3 of cases missed" → WHO 2025: ~10.7M estimated vs 8.3M notified (~2.4M / ~22% gap). "Incumbents need a radiologist" is false — WHO permits AI-CAD to *replace* readers (6 products approved Jun 2025). "Cough on a phone" isn't a moat — Swaasa already does cough+clinical phone screening. A photographed X-ray ≠ a digital CXR.
 - **"Confidence always rises with more input" removed** — a calibrated probability can go up or down; conflicting inputs can reduce certainty.
 - **Privacy wording fixed** — from "no PHI / nothing leaves the device" to "minimize + don't retain patient data; transient cloud inference."
-- **Logistics:** Unicorn track + its criteria *are* confirmed (the reviewer conflated the prior AMD hackathon's four criteria); but the event likely runs as a **~5-day sprint ending 11 Jul** — our 10-day plan was cut to 5. Containerization to confirm.
-- **Hygiene:** added an MIT `LICENSE`; reconciled "Stack TBD" (now "proposed in architecture"); fixed the dangling `plan-jaga.md` reference.
+- **Logistics:** Unicorn track, its four criteria, the 6–11 July event window, containerization, and a public runnable repository are confirmed. Preparation and prototyping begin 29 June, before the official event.
+- **Hygiene:** added an MIT `LICENSE`; reconciled the proposed stack; fixed the dangling `plan-jaga.md` reference.
 
 What the review got wrong: it said the track/criteria were "TBA" — they're not; and its "2/10 dev readiness" judged a deliberately pre-build docs stage as if it were a codebase.
 
 ---
 
-## 14. Decisions Index
+## 15. Phase 14 — Evidence and Implementation Revision (2026-06-28)
+
+The team reviewed every Markdown plan against Trellis's `.agent` documentation depth and converted the repository from a concept outline into an implementation-ready documentation set. The revision:
+
+- made [`../AGENT.md`](../AGENT.md) the sole entry point and removed the conflicting secondary agent pointer;
+- resolved public evidence, CODA cohort/protocol details, WHO 2025 tiered screening profiles, and hackathon requirements in [`evidence-register.md`](evidence-register.md);
+- separated the research prototype from any claim of a validated clinical product;
+- required confirmatory evaluation for every symptomatic adult and limited risk output to urgency prioritization;
+- established five solicited coughs as the capture protocol;
+- documented Daffa's backend/AI architecture ownership, Zeddin's backend implementation ownership, Billy's frontend/design ownership, and Kei's capture/result implementation ownership;
+- introduced explicit owner blocks for unresolved private-data, model, backend, API, frontend, and design decisions;
+- split preparation from the official 6–11 July hackathon window; and
+- added ticket-level dependencies, acceptance criteria, fallbacks, and PRD-to-ticket traceability.
+
+This phase supersedes the current-state summaries written before 28 June. Earlier text remains above only as a historical record.
+
+---
+
+## 16. Decisions Index
 
 | Decision | Reasoning |
 |---|---|
-| **Build a real product (Unicorn track)** | We wanted to make something useful, not run a benchmark |
-| **Tuberculosis early-screening triage** | Deadly, under-served, authentic (Indonesia = #2 burden); a phone-first cough+clinical screen reaches places that lack X-ray/lab/radiologist |
-| **Cough + clinical as the core (X-ray optional)** | *(Revised in Phase 13 — originally a fused cough+X-ray+clinical model.)* No paired data to validate fusion; cough+clinical is the evidence-backed core, CXR is a separate optional signal |
-| **Triage, NOT diagnosis** | Safety and integrity — a human stays in the loop; real cases go for confirmatory testing |
-| **Online cloud serving on AMD (not offline/on-device)** | Honest + buildable in a short sprint; avoids the on-device/HeAR-size and incoherence problems flagged in review (Phase 13). On-prem "edge" is a future roadmap, not the MVP |
-| **Train the model on the MI300X (ROCm); serve online** | Training on GPU is the real, defensible AMD usage; serving on AMD too |
-| **Validated core = cough + clinical; CXR optional/stretch** | No paired cough+X-ray data exists, so a fused metric can't be validated; cough+clinical is the evidence-backed approach (CODA) |
-| **Honest metrics (no overclaiming)** | Report real CODA numbers (cough+clinical AUROC ~0.78–0.83) with WHO 90/70 as an aspiration; a technical judge can dismantle inflated claims |
-| **Name: Jaga** | "To watch over / guard" — says the mission, authentic to us, distinct from existing tools |
-| **Global tool; beachhead = community health workers in Indonesia** | Market is the worldwide high-burden belt; we start in Indonesia (#2 burden, our home) for ground truth + authenticity, then expand |
-| **Controlled-access CODA (Daffa has it via ORCID) + public CXR** | *(Corrected — CODA is NOT a public download; it's Synapse controlled-access.)* Honest, reproducible, no scraping; honor CODA data-use terms |
-| **Keep `CLAUDE.md` as a thin pointer (not sole `AGENT.md`)** | A reviewer asked to delete it for a single entry point; we keep it because **Claude Code auto-loads `CLAUDE.md`** — removing it means the coding agent loses project conventions on load. `AGENT.md` remains canonical; `CLAUDE.md` points to it + holds the maintenance ritual, so no real duplication/drift |
-| **No live web scraping** | A craft lesson from ConsumerIQ — robust products don't depend on fragile pipelines |
-| **Clarity + decisive output as our signature** | It's what we're best at and what makes a tool trustworthy |
-| **Design treated as substance** | Clear, polished UX is how people trust and adopt a health tool |
+| **Build an investigational research prototype for the Unicorn track** | The sprint can demonstrate a technically meaningful product without implying clinical validation or deployment readiness. |
+| **Cough plus supported clinical variables is the [MVP] research core** | CODA pairs these inputs at participant level; CXR data is not paired and cannot support a fused evaluation. |
+| **Use five solicited coughs** | This matches the documented CODA collection protocol and gives the quality gate a concrete contract. |
+| **Every symptomatic adult receives confirmatory evaluation** | Jaga may prioritize urgency but must never determine who is denied confirmatory testing. |
+| **CXR stays isolated [Stretch] work** | It may be demonstrated independently but cannot alter the MVP risk result or create a fused performance claim. |
+| **Attention views are non-causal artifacts** | A saliency or attention visualization can support inspection but cannot be presented as the model's reasoning. |
+| **Serve transient inference online on AMD** | It is coherent with hackathon infrastructure; offline and edge-appliance deployment remain outside the MVP. |
+| **Use CODA under controlled access** | CODA is not a public download. Access, retention, and redistribution must follow its data-use terms. |
+| **Apply WHO's 2025 tiered screening profiles** | The earlier universal 90% sensitivity/70% specificity shorthand is outdated and cannot be used as Jaga's single promotion gate. |
+| **Prepare from 29 June; implement the official MVP from 6 July** | This preserves the distinction between pre-event contracts/prototypes and the official 6–11 July sprint. |
+| **Make `AGENT.md` the sole repository entry point** | A single router removes conflicting instructions and establishes source precedence. |
+| **Daffa architects backend and AI; Zeddin implements them** | This separates technical contract ownership from implementation responsibility. |
+| **Billy leads frontend and design; Kei implements capture and result flows** | This gives the frontend a clear specification handoff and implementer. |
+| **No live web scraping** | The project should depend on user input and stable, permitted data sources. |
+| **Design is part of safety** | Clear hierarchy, accessible states, and precise copy prevent a research risk output from being mistaken for a diagnosis. |
 
 ---
 
-## 15. Set-Aside Ideas Index
+## 17. Set-Aside Ideas Index
 
-Things we explored and chose not to build, with the honest reason:
-
-| Idea | Why we set it aside |
+| Idea | Why it is set aside |
 |---|---|
-| **Sovereign/private assistant (standalone)** | Its value is invisible — hard to show, hard to feel |
-| **Creator video studio / AI brand studio** | Fun, but not a problem we cared deeply about; generation quality was risky in the window |
-| **Private second brain (teacher/clinician/research)** | Too close to existing knowledge tools; we wanted something more distinctly ours and more clearly needed |
-| **AI visual-guide browser extension** | The AI was lightweight — the hardware wouldn't really matter |
-| **AI course generator** | The most over-built idea in the space; little room to do something new |
-| **AI grading tool** | Crowded; class-analytics already widely exists |
-| **Synthetic focus groups** | A mature, saturated category |
-| **Car-damage / repair-cost AI** | Crowded; no real reason it needs this hardware; not a mission we cared about |
-| **Insurance denial-appeals** | A strong, humane idea — but the model would just run in the cloud; the hardware wasn't essential |
-| **Live web scraping** | Fragile and slow; a craft mistake we won't repeat |
-| **Diagnosis (vs triage)** | Unsafe to claim and not the responsible thing to build |
-| **Offline / on-device deployment (for MVP)** | *(Set aside in Phase 13.)* Incoherent with cloud/AMD/Fireworks; on-device models too large for cheap phones in a 5-day sprint. On-prem "edge" kept as a future roadmap only |
-| **Fused cough+X-ray validated score** | No paired data exists to train/validate fusion; would be dismantled by a technical judge. CXR kept as an independent optional signal |
-| **Scoring a photographed X-ray film** | Not equivalent to the digital CXR the models are trained/evaluated on |
-| **Overstated metrics (0.85–0.90 cough; fused ≥90/70)** | Not supported by CODA evidence; replaced with honest ranges + WHO 2025 TPP as aspiration |
-| **Quantum image processing / quantum ML for the X-ray (or cough)** | Research-stage with **no demonstrated advantage** over classical CNNs (classical TB-CXR ~94%); wouldn't use AMD ROCm (uses a quantum SDK/simulator → weakens the AMD criterion); reads as buzzword-padding against our honesty posture; needs heavy downsampling; a time sink in a 5-day sprint. Only conceivable as a clearly-labelled research sidebar (not the MVP). |
+| **Sovereign/private assistant** | Its value was hard to demonstrate and it did not match the chosen health problem. |
+| **Creator video or AI brand studio** | It was not a problem the team wanted to pursue and generation quality was risky in the window. |
+| **Private second brain** | It was close to existing knowledge tools and less clearly needed. |
+| **AI visual-guide browser extension** | The hardware would not be load-bearing. |
+| **AI course generator, grading, and synthetic focus groups** | These are crowded categories without a distinct Jaga advantage. |
+| **Car-damage assessment** | It lacked mission fit and a defensible need for AMD compute. |
+| **Insurance-denial appeals** | It was humane but did not make the supplied hardware central. |
+| **Diagnosis** | It is outside the evidence, safety, regulatory, and sprint boundaries. |
+| **Offline or on-device MVP** | It conflicts with the selected AMD cloud architecture and the sprint's constraints. |
+| **Local edge appliance** | It remains a future research direction, not a current commitment. |
+| **Fused cough/CXR score** | No paired cohort supports training or evaluation of that fusion. |
+| **Photographed X-ray film scoring** | A photograph is not equivalent to the digital CXR distribution used by candidate models. |
+| **Universal WHO 90%/70% gate** | WHO's 2025 guidance defines tiered profiles instead of one universal benchmark. |
+| **Rising confidence with more inputs** | Additional or conflicting evidence may raise or lower a calibrated probability and its uncertainty. |
+| **Attention as model reasoning** | The visualization is not a causal explanation. |
+| **Validated-product language** | Jaga has not completed prospective clinical validation, regulatory review, or deployment evaluation. |
+| **Quantum image or audio processing** | It has no demonstrated advantage here, does not strengthen the AMD story, and creates schedule risk. |
 
 ---
 
-## 16. Glossary of Concepts
+## 18. Glossary of Concepts
 
-**Jaga** — the product. A phone-first AI tuberculosis triage tool (cough + clinical core; CXR optional), trained on AMD and served online. Indonesian for "to watch over / guard."
-**Triage (not diagnosis)** — Jaga flags *who should get a confirmatory test* (e.g. GeneXpert/sputum); it never diagnoses. Core safety principle.
-**Multimodal fusion** — combining cough audio + chest X-ray + demographics + symptoms into one calibrated risk score; confidence rises as optional inputs are added.
-**The hero visual** — a mel-spectrogram with a saliency overlay (audio) and a Grad-CAM heatmap on the X-ray; the moment the AI's reasoning becomes visible.
-**Online cloud serving** — Jaga's inference runs in the cloud on AMD (Dev Cloud, MI300X); the phone is a client. (Offline/on-prem "edge" is a set-aside future option, not the MVP.)
-**Honest metrics** — we report real CODA numbers (cough+clinical AUROC ~0.78–0.83) with subgroup metrics + limitations; the WHO ≥90%/≥70% target is an aspiration, not a promised result. Never claim a fused cough+X-ray metric (no paired data).
-**WHO TB-triage target** — ≥90% sensitivity / ≥70% specificity; our accuracy goalpost.
-**CODA TB dataset** — public cough corpus (700k+ sounds, 2,143 people) for the cough model.
-**Kaggle TB CXR / Shenzhen / Montgomery** — public chest-X-ray datasets for the imaging model.
-**CHW** — community health worker; Jaga's primary user, doing active case-finding in the field.
-**ConsumerIQ** — our prior project (finalist; won its track); taught us our strengths (clean, deep, decisive, local-GPU) and the no-scraping craft lesson.
-**Plan template** — `plan-template.md`, the documentation depth standard we hold ourselves to.
+**Jaga** — an investigational, phone-first TB risk-prioritization research prototype. It is not a diagnostic or clinically validated product.
+
+**Triage research output** — a calibrated risk category and uncertainty statement that may prioritize urgency. It never determines whether a symptomatic adult receives confirmatory evaluation.
+
+**Confirmatory evaluation** — the clinical pathway used to establish or exclude TB. Every symptomatic adult in the intended Jaga workflow is directed to it.
+
+**Five-cough protocol** — five solicited cough recordings, individually checked before submission.
+
+**Quality gate** — deterministic checks that accept or reject captured audio before model inference, with an actionable reason when rejected.
+
+**CODA TB dataset** — a controlled-access dataset of 2,143 symptomatic adults, split into 1,105 training and 1,038 held-out participants, with five solicited coughs and paired clinical variables.
+
+**Non-causal inspection artifact** — a spectrogram, saliency, attention, or embedding visualization that helps inspect a model but does not expose causal reasoning.
+
+**WHO 2025 screening profiles** — tiered target product profiles for TB screening tests; they replace the old single 90%/70% shorthand.
+
+**Transient cloud inference** — request data is processed by the service without intentional persistence beyond operationally necessary logs that exclude raw audio and clinical payloads.
+
+**CHW** — community health worker; the MVP's primary operator persona.
+
+**Owner input block** — a visible, dated contract for a decision that only its named owner can complete. Each block states what it blocks, its output, affected documents, and its completion rule.
 
 ---
 
-## 17. The Conceptual Through-Line
+## 19. The Conceptual Through-Line
 
-> We set out to build something genuinely useful, honest, and ours — a tool where the AI does visible work, the claims are backed by real data, and the hardware actually matters. We explored widely (assistants, creator tools, vertical second brains, screening ideas) and kept refusing the me-too options, because a crowded space isn't worth our two weeks. What kept pulling us back was real-world impact, and one problem stood out as both meaningful and reachable: **tuberculosis** — the world's deadliest infectious disease, a third of cases missed every year across a high-burden belt spanning India, Indonesia, the Philippines, Pakistan, and sub-Saharan Africa. It's a **global** problem, and we start where we have ground truth and proximity — Indonesia, the world's #2 burden and our home — as the beachhead, then scale out. The reason cases are missed is painfully practical everywhere: screening needs labs and X-ray machines the hardest-hit communities don't have. A **cough is a free signal** and the AMD MI300X lets us train an accurate cough+clinical model — so we're building **Jaga**: cough into a phone, answer a few questions, get an explainable, calibrated TB-risk result in seconds, deciding who needs a confirmatory test. No X-ray machine, lab, or radiologist required. It plays to our strengths, it uses the hardware for real (we train on AMD), and it's something we'd be proud to keep building. *(After a hard technical review we corrected course — online serving, cough+clinical core, honest metrics; see Phase 13.)*
+> Jaga began with a requirement to make AI work visible, useful, evidence-backed, and meaningfully dependent on AMD compute. The team chose tuberculosis because the global burden is high and access to screening and confirmatory pathways remains uneven. The resulting MVP is intentionally narrow: a CHW records five solicited coughs and supported clinical variables; an AMD-hosted research pipeline applies quality checks and returns a calibrated risk-prioritization result with uncertainty and a clear confirmatory-evaluation instruction. Every symptomatic adult continues to confirmatory evaluation. Jaga is an investigational research prototype, not a diagnosis or validated clinical product. CXR fusion, offline deployment, causal explanation claims, and unsupported performance promises are outside the MVP.
 
 ---
 
-## 18. What This Document Is For
+## 20. What This Document Is For
 
-1. **Onboard new contributors** without replaying the whole session.
-2. **Resolve ambiguity** by showing decisions *and* the reasoning behind them.
-3. **Prevent us from circling back** to ideas we already explored and set aside.
-4. **Ground AI agents** working in this repo.
-5. **Preserve the mission and the "why"** once build details start to crowd out the strategy.
+1. Onboard contributors without replaying the full project discussion.
+2. Preserve the reasoning behind current and rejected decisions.
+3. Mark contradictions instead of silently rewriting project history.
+4. Prevent superseded ideas from returning as current requirements.
+5. Direct implementation work to the canonical companion documents.
 
-**Source-of-truth companions:** `product-brief.md`, `product-requirements.md`, `project-architecture.md`, and `design-guidelines.md` (the four spec docs), plus `plan-template.md` (our documentation standard). The Notion page "AMD Act II Hackathon" mirrors the plan for the team.
+Current implementation behavior is defined by [`product-requirements.md`](product-requirements.md), interfaces and boundaries by [`project-architecture.md`](project-architecture.md), model work by [`data-evaluation-plan.md`](data-evaluation-plan.md), frontend behavior by [`design-guidelines.md`](design-guidelines.md), evidence by [`evidence-register.md`](evidence-register.md), and execution by [`implementation-plan.md`](implementation-plan.md).

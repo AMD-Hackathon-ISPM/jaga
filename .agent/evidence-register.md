@@ -1,56 +1,104 @@
 # Jaga · Evidence Register
 
-**Type:** Evidence ledger · **Audience:** all
-**Canonical for:** every factual/medical claim used anywhere in the repo.
-> Companions: `product-brief.md` · `product-requirements.md` · `project-architecture.md` · `data-evaluation-plan.md` · `context-dump.md`.
+| Field | Value |
+|---|---|
+| Document type | Evidence register |
+| Audience | Product, engineering, design, ML, reviewers, and pitch team |
+| Status | Active · pre-development |
+| Owner | Daffa (technical evidence) · Fransisco (pitch traceability) |
+| Updated | 2026-06-28 |
+| Canonical for | Every external factual, medical, dataset, market, hardware, and hackathon claim |
+| Companion documents | [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`context-dump.md`](context-dump.md) |
 
-**Rule:** any number or claim in the brief, README, PRD, architecture, or pitch must trace to a row here. If it's not in this table, don't state it as fact. Review dates show when we last verified.
+## How to read this document
 
----
+Use the claim IDs when repeating facts in another document or presentation. Prefer the canonical wording and preserve the listed limitation. A new factual claim must be added here before it appears elsewhere. Product behavior and safety live in the PRD; this register supplies evidence but does not create clinical authorization.
 
-## Epidemiology & problem
-| Claim | Verified value | Source | Last checked | Limitations / notes |
+## 1. Epidemiology and screening
+
+| ID | Canonical claim | Primary source | Checked | Limitation / permitted wording |
 |---|---|---|---|---|
-| TB is the world's deadliest infectious disease again | Yes (2024) | [WHO GTB 2025 news](https://www.who.int/news/item/12-11-2025-global-gains-in-tuberculosis-response-endangered-by-funding-challenges) | 2026-06-27 | — |
-| Global detection gap | ~10.7M estimated vs ~8.3M notified = **~2.4M (~22%) gap** in 2024 | [WHO GTB 2025](https://www.who.int/news/item/12-11-2025-global-gains-in-tuberculosis-response-endangered-by-funding-challenges) | 2026-06-27 | Gap = under-diagnosis **and** under-reporting. **Do NOT say "1/3 of cases missed"** (outdated). |
-| Indonesia burden | #2 globally; ~8.8% of the global detection gap | [WHO 2025 SEARO](https://www.who.int/southeastasia/news/detail/18-11-2025-south-east-asia-leads-global-tb-cases-who-urges-swift-action-to-address-gaps-and-boost-progress) | 2026-06-27 | Use "#2 burden / top gap contributor," not "~10% of cases." |
-| Access barrier | X-ray needs machines + trained readers; sputum microscopy low-sensitivity; rural facilities lack power/staff | [diagnosis-delay study](https://pmc.ncbi.nlm.nih.gov/articles/PMC9803213/) | 2026-06-27 | Basis for the "needs only a phone" framing. |
+| EPI-01 | TB was the world's leading cause of death from a single infectious agent in 2024. | [WHO Global TB Report 2025 factsheet](https://cdn.who.int/media/docs/default-source/global-tuberculosis-report-2025/global-tb-report-2025_factsheet.pdf) | 2026-06-28 | Prefer WHO's wording; do not imply TB is the leading cause of death overall. |
+| EPI-02 | WHO estimated 10.7 million incident TB cases and 8.3 million notified diagnoses in 2024, leaving approximately 2.4 million people undiagnosed or unreported. | [WHO Global TB Report 2025](https://www.who.int/publications/b/81626) | 2026-06-28 | The gap combines underdiagnosis and underreporting. Do not call it “one third missed.” |
+| EPI-03 | Indonesia accounted for about 10% of global incident TB cases in 2024, second after India. | [WHO 2025 TB incidence](https://www.who.int/teams/global-programme-on-tuberculosis-and-lung-health/tb-reports/global-tuberculosis-report-2025/tb-disease-burden/1-1-tb-incidence) | 2026-06-28 | “Second-highest burden” and “about 10% of incident cases” are supported. |
+| EPI-04 | A positive TB screen is not a diagnosis and should be followed by confirmatory evaluation. | [WHO systematic screening Q&A](https://www.who.int/news-room/questions-and-answers/item/systematic-screening-for-tb) | 2026-06-28 | Jaga is not a WHO-recommended screening test. |
+| EPI-05 | WHO's 2025 TPP identifies community health workers as an important target user group for future TB screening tests. | [WHO 2025 screening-test TPP](https://tbksp.who.int/sites/default/files/2025-08/9789240113572-eng.pdf) | 2026-06-28 | A target product profile guides development; it is not approval of Jaga. |
 
-## Model performance (what we can honestly claim)
-| Claim | Verified value | Source | Last checked | Limitations / notes |
+## 2. WHO performance profiles
+
+The 2025 TPP replaced the older universal 90% sensitivity / 70% specificity shorthand with three use-case profiles.
+
+| ID | Test profile | Minimum | Optimal | Product implication |
 |---|---|---|---|---|
-| Cough-only TB triage AUROC | **0.69–0.74** | [CODA challenge results](https://pmc.ncbi.nlm.nih.gov/articles/PMC12502651/) | 2026-06-27 | Independent validation across 7 countries. |
-| Cough + clinical AUROC | **0.78–0.83** (our target) | [CODA challenge](https://pmc.ncbi.nlm.nih.gov/articles/PMC12502651/) | 2026-06-27 | Best model ~73.8% specificity @ 80% sensitivity. This is our **core** target. Internal validation only. |
-| **External validation (Peru)** — performance drops sharply out-of-distribution | CODA models fell to **AUC 0.48–0.615** on 303 Lima adults (vs 0.69–0.74 internal); best stayed best; better in ≥35y + prior-TB | [Scientific Reports, May 2026](https://www.nature.com/articles/s41598-026-50492-4) | 2026-06-27 | **Critical honesty point** — internal AUROC does not transfer; state this limitation prominently. Justifies triage-not-diagnosis + local re-calibration. |
-| Classical TB-CXR AUROC | ~0.90+ in-dataset | [TB CXR DL study](https://pmc.ncbi.nlm.nih.gov/articles/PMC10406978/) | 2026-06-27 | **In-dataset only; drops out-of-distribution** (source-leakage risk — see data-evaluation-plan). CXR = optional/independent. |
-| WHO accuracy targets | **2025 TPPs** (13 Aug 2025): tiered — high-sensitivity ≥90% sens, high-specificity ≥98% spec; moderate acceptable in high-prevalence | [WHO 2025 TPP news](https://www.who.int/news/item/13-08-2025-who-releases-new-target-product-profiles-for-tuberculosis-screening-tests) · [TPP PDF](https://tbksp.who.int/sites/default/files/2025-08/9789240113572-eng.pdf) | 2026-06-27 | **Replaces the old single "90%/70% triage" benchmark.** Frame as an aspiration, not an expected result. |
+| WHO-01 | High-sensitivity and high-specificity single-step screen | 90% sensitivity / 80% specificity | 95% / 95% | Comparison only; Jaga does not claim to meet it. |
+| WHO-02 | High-sensitivity test used in a two-step screen | 90% sensitivity / 60% specificity | 95% / 85% | Closest aspirational comparison if Jaga is followed by another screen. |
+| WHO-03 | Moderate-sensitivity, high-specificity single-step screen | 60% sensitivity / 98% specificity | 70% / 98% | Intended for specific hard-to-reach contexts; not automatically Jaga's profile. |
 
-## Dataset
-| Claim | Verified value | Source | Last checked | Limitations / notes |
+Source for WHO-01 through WHO-03: [WHO 2025 target product profiles for tuberculosis screening tests](https://tbksp.who.int/sites/default/files/2025-08/9789240113572-eng.pdf).
+
+## 3. CODA dataset and published performance
+
+| ID | Canonical claim | Primary source | Checked | Limitation / permitted wording |
 |---|---|---|---|---|
-| CODA access | **Controlled-access via Synapse** (Certified+Validated user, ORCID, Intended Data Use Statement, no-sharing). **Daffa has access via ORCID.** | [CODA dataset paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC10996751/) · [Synapse syn31472953](https://www.synapse.org/Synapse:syn31472953) | 2026-06-27 | Not a free download — keep credentials/terms in mind; don't redistribute. |
-| CODA size & cohort | ~2,143 adults, 7 countries (India, Madagascar, Philippines, South Africa, Tanzania, Uganda, Vietnam); **733,756 cough sounds**; **even split → ~1,105 train / ~1,038 held-out**; enrolled adults with **≥2 weeks of cough (symptomatic)** | [CODA dataset paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC10996751/) | 2026-06-27 | Cohort = **symptomatic adults 18+** = our documented MVP cohort. Confirm exact split labels on Synapse. |
-| Cough protocol | **Five solicited coughs** per participant (60–90cm from mic); retained if **≥3 coughs**; extra coughs from fits also kept | [CODA dataset paper](https://pmc.ncbi.nlm.nih.gov/articles/PMC10996751/) | 2026-06-27 | Our capture must replicate this (5 guided coughs). |
-| TB CXR dataset (stretch) | Qatar/Dhaka "TB Chest Radiography Database" (cleaned), digital CXR, binary TB/normal (~700 TB + ~3,500 normal) | [Kaggle cleaned set](https://www.kaggle.com/datasets/scipygaurav/tuberculosis-tb-chest-x-ray-cleaned-database) | 2026-06-27 | **Different patients from CODA → no fusion.** TB vs normal from different sources → **source-leakage risk**; digital only (not photographed films). |
+| CODA-01 | CODA contains 733,756 cough events from 2,143 adults across India, Madagascar, the Philippines, South Africa, Tanzania, Uganda, and Vietnam. | [CODA dataset paper](https://www.nature.com/articles/s41597-024-03972-z) | 2026-06-28 | This describes the full dataset, not the downloadable training partition. |
+| CODA-02 | Participants were adults aged 18+ with a new or worsening cough lasting at least two weeks, recruited through outpatient clinics. | [CODA dataset paper](https://www.nature.com/articles/s41597-024-03972-z) | 2026-06-28 | Models trained here cannot be claimed for children, asymptomatic screening, or the general population. |
+| CODA-03 | The participant-level split is 1,105 training and 1,038 held-out validation participants. | [CODA dataset paper](https://www.nature.com/articles/s41597-024-03972-z) | 2026-06-28 | Held-out data is evaluated through the Synapse process rather than downloaded. |
+| CODA-04 | Participants were asked to cough five times, standing 60–90 cm from a clinic phone; participants producing at least three coughs were retained. | [CODA dataset paper](https://www.nature.com/articles/s41597-024-03972-z) | 2026-06-28 | Jaga uses five guided coughs, but field-device and background-noise generalization remains unproven. |
+| CODA-05 | The released audio uses 0.5-second cough segments recorded at 44.1 kHz with 32-bit floating-point precision. | [CODA dataset paper](https://www.nature.com/articles/s41597-024-03972-z) | 2026-06-28 | Runtime capture may differ; Daffa must document preprocessing compatibility. |
+| CODA-06 | Training data is controlled-access through Synapse: users must be certified and validated, submit intended use, accept terms, and not redistribute data. | [CODA dataset paper](https://www.nature.com/articles/s41597-024-03972-z) · [Synapse project](https://www.synapse.org/Synapse:syn31472953) | 2026-06-28 | Do not call CODA a public download or commit its data/audio to this repository. |
+| CODA-07 | In held-out CODA evaluation, cough-only AUROC ranged 0.69–0.74 and cough-plus-clinical AUROC ranged 0.78–0.83; the best combined model reached 73.8% specificity at 80% sensitivity. | [CODA challenge results](https://pubmed.ncbi.nlm.nih.gov/41064697/) | 2026-06-28 | These are published benchmark ranges, not Jaga's results. |
+| CODA-08 | External validation in 303 coughing adults in Peru produced AUCs of 0.480–0.615 for the CODA cough-only models, below their internal 0.689–0.743 range. | [2026 Peru external validation](https://www.nature.com/articles/s41598-026-50492-4) | 2026-06-28 | This result concerns cough-only challenge models; it demonstrates generalization risk but does not directly evaluate Jaga or CODA cough-plus-clinical entries. |
+| CODA-09 | The documented CODA training variables are sex, age, height, weight, reported cough duration, prior TB diagnosis and type, haemoptysis, heart rate, temperature, weight loss, smoking in the last week, fever, and night sweats. | [CODA dataset paper](https://www.nature.com/articles/s41597-024-03972-z) | 2026-06-28 | Availability does not mean every variable must be predictive; Daffa must declare the exact signed subset and missing-value representation. Known TB contact is not in this documented list. |
 
-## Competitive / market
-| Claim | Verified value | Source | Last checked | Limitations / notes |
+## 4. Hardware and model references
+
+| ID | Canonical claim | Primary source | Checked | Limitation / permitted wording |
 |---|---|---|---|---|
-| CAD can replace radiologists | WHO permits AI-CAD in place of human readers (15+); 6 products approved Jun 2025 | [WHO CAD approval](https://www.who.int/news/item/11-06-2025-who-approves-six-software-products-for-computer-aided-detection-of-tb-on-chest-x-ray) | 2026-06-27 | **Do NOT claim "incumbents still need a radiologist."** |
-| Closest comparable | Swaasa — phone cough + clinical screening, already deployed | [Swaasa (SSIR)](https://ssir.org/articles/entry/coughing-app-tuberculosis-detection) | 2026-06-27 | "Cough on a phone" is **not** a differentiator by itself. |
-| Funding proof | Qure.ai raised ~$156M, ~$16.4M revenue (2024), Gates-backed | [PitchBook](https://pitchbook.com/profiles/company/227468-62) | 2026-06-27 | Category is fundable + real. |
-| Market size | TB diagnostics ~$2.7B (2026) → $4.08B (2034) | [Precedence Research](https://www.precedenceresearch.com/tuberculosis-diagnostics-market) | 2026-06-27 | — |
-| Funding pool | Global Fund ~$4B/yr; $10.5B into TB; 73% of intl TB financing | [Global Fund](https://www.theglobalfund.org/en/tuberculosis/) | 2026-06-27 | — |
+| AMD-01 | AMD Instinct MI300X has 192 GB HBM3 and 5.3 TB/s peak theoretical memory bandwidth. | [AMD MI300X product page](https://www.amd.com/en/products/accelerators/instinct/mi300.html) | 2026-06-28 | Hardware capacity does not by itself prove product performance. |
+| AMD-02 | ROCm supports PyTorch training and inference on MI300X and provides prebuilt PyTorch containers. | [ROCm PyTorch installation](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/3rd-party/pytorch-install.html) | 2026-06-28 | Daffa must pin the actual image and verify the selected model. |
+| MODEL-01 | HeAR is a ViT-L health-acoustic encoder for two-second 16 kHz clips; its model card says the current model is too large for on-device deployment. | [HeAR model card](https://huggingface.co/google/hear) | 2026-06-28 | HeAR is a candidate, not the selected Jaga model. License, ROCm behavior, latency, and evaluation must pass the evidence gate. |
 
-## Hackathon logistics
-| Claim | Verified value | Source | Last checked | Limitations / notes |
+## 5. Competition and market evidence
+
+| ID | Canonical claim | Primary source | Checked | Limitation / permitted wording |
 |---|---|---|---|---|
-| Event window | **Starts 6 Jul, ends 11 Jul 2026** (~5-day sprint) | [ACT II event page](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii) | 2026-06-27 | Exact 15:00 UTC boundary **to confirm** on the schedule tab. |
-| Track + criteria | **Unicorn track** — judged on **creativity, originality, product potential** | [ACT II event page](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii) | 2026-06-27 | (A prior review wrongly cited the *previous* AMD hackathon's 4 criteria.) |
-| Containerization / repo / MIT | Containerization + public repo + MIT **to confirm** against the live page | [ACT II event page](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii) | 2026-06-27 | Treat as likely-required; confirm before relying. |
+| COMP-01 | Swaasa has published a cough-plus-symptom TB screening study on 567 participants, reporting 90.36% sensitivity and 84.67% specificity in its study. | [Scientific Reports / PubMed](https://pubmed.ncbi.nlm.nih.gov/36959347/) | 2026-06-28 | Single-study results do not establish universal performance; “cough on a phone” is not Jaga's differentiator. |
+| COMP-02 | WHO approved six CAD products in June 2025 for TB screening from chest X-rays in people aged 15+. | [WHO CAD announcement](https://www.who.int/news/item/11-06-2025-who-approves-six-software-products-for-computer-aided-detection-of-tb-on-chest-x-ray) | 2026-06-28 | Do not claim all competing CXR products require radiologist interpretation. |
+| FUND-01 | As of June 2025, the Global Fund reported providing 73% of international TB financing and investing US$10.5 billion in TB programmes since 2002. | [Global Fund TB page](https://www.theglobalfund.org/en/tuberculosis/) | 2026-06-28 | Do not repeat the unsupported “US$4B per year” statement. |
+| MARKET-01 | Commercial TB-diagnostics market estimates are secondary research and vary by vendor. | [Precedence Research estimate](https://www.precedenceresearch.com/tuberculosis-diagnostics-market) | 2026-06-28 | If used, label it a vendor estimate rather than an authoritative market fact. |
 
-## To verify (open)
-- Confirm exact CODA train/held-out split labels on Synapse (even split ≈ 1,105/1,038; verify the exact numbers).
-- Confirm which clinical variables CODA actually provides (drives the API field list — Daffa, on access).
-- Exact submission deadline time (UTC) and whether containerization/MIT are mandatory.
-- *(Resolved: five-cough protocol ✓; Peru external-validation paper ✓ — both now in the tables above.)*
+## 6. Hackathon logistics
+
+| ID | Canonical claim | Primary source | Checked | Limitation / permitted wording |
+|---|---|---|---|---|
+| EVENT-01 | The official event runs 6 July 2026, 15:00 UTC to 11 July 2026, 15:00 UTC. | [ACT II live page](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii/live) | 2026-06-28 | Jakarta time is 22:00 WIB on both dates. |
+| EVENT-02 | Unicorn Track judging covers creativity and originality, completeness, use of AMD platforms, and product/market potential. | [ACT II event page](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii) | 2026-06-28 | Include all four categories in planning and pitch review. |
+| EVENT-03 | Submissions must be containerized, use a public repository with setup/usage instructions, and be runnable from those instructions. | [ACT II submission requirements](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii) | 2026-06-28 | This is mandatory, not an open question. |
+| EVENT-04 | Required submission assets include title/descriptions/tags, cover image, video, slide presentation, public repository, demo platform, and application URL. | [ACT II submission requirements](https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii) | 2026-06-28 | Fransisco owns the completeness checklist. |
+
+## 7. Removed or prohibited claims
+
+Do not use these statements in current specifications, README copy, or pitch material:
+
+- “Validated product,” “validated core,” or any claim of validated field performance.
+- “CODA is public data” or “public CODA corpus.”
+- “One third of TB cases are missed.”
+- A universal WHO target of 90% sensitivity / 70% specificity.
+- “More inputs always increase confidence.”
+- “Attention shows the model's reasoning.”
+- “No lab is required” without immediately stating that confirmatory evaluation is still required.
+- “Cough on a phone is unique.”
+- A fused cough-plus-CXR performance number.
+- Jaga diagnoses, rules out, clears, or confirms tuberculosis.
+
+## 8. Owner evidence required
+
+> **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
+>
+> **Blocks:** completion of `ML-0`, `ML-1`, and the production inference contract
+>
+> **Required output:** confirm accessible Synapse files and variables; record data-use restrictions accepted by the team; provide the pinned ROCm image; document the baseline and candidate model identifiers; define promotion thresholds; and add actual Jaga metrics only after a reproducible run
+>
+> **Affected documents:** `evidence-register.md`, `data-evaluation-plan.md`, `project-architecture.md`, `implementation-plan.md`
+>
+> **Completion rule:** replace this block with dated evidence rows linking the run manifest/model card, then append the decision to `log.md`
