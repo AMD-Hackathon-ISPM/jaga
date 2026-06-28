@@ -3,8 +3,6 @@
 **Document type:** Product requirements document
 **Audience:** Product, design, frontend, backend, ML, QA, and demo team
 **Status:** Active · pre-development
-**Owner:** Fransisco
-**Updated:** 2026-06-28
 **Canonical for:** User-visible behavior, safety, feature scope, failure states, localization, and acceptance criteria
 **Companion documents:** [`product-brief.md`](product-brief.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
@@ -171,7 +169,7 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 
 ### 3.7 Localization [MVP] · PRD-07
 
-- Bahasa Indonesia is the default field language; English is always available.
+- English is the default field language; Bahasa Indonesia is always available via a one-tap toggle. Both are complete, reviewed, and equivalent. *(Changed 2026-06-28 for the English-judged hackathon demo; supersedes the earlier "Bahasa default".)*
 - Safety, consent, validation, quality, result, and error copy must be deterministic and reviewed as paired strings.
 - Changing language preserves the current step and entered values.
 - Do not machine-generate the mandatory referral or limitation copy at runtime.
@@ -194,16 +192,17 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 - Automated checks find no patient input in browser persistence, application storage, analytics, or request logs.
 - Reset, acknowledgement, and session timeout each remove form, audio, result, and request-identifier state.
 
-### 3.9 Independent CXR [Stretch] · PRD-09
+### 3.9 Independent CXR — Prisma [Stretch] · PRD-09
 
+- The CXR `[Stretch]` module is named **Prisma**; the cough-plus-clinical `[MVP]` core is named **Gema**. The two are separate signals and are never fused.
 - Accept digital CXR only after the complete P0 workflow passes.
-- Display a separate CXR research estimate, model/version, metrics, limitations, and inspection heatmap.
-- Never combine scores, bands, calibration, or referral language with the cough-plus-clinical result.
+- Display a separate Prisma (CXR) research estimate, model/version, metrics, limitations, and inspection heatmap.
+- Never combine scores, bands, calibration, or referral language with the Gema (cough-plus-clinical) result.
 - Photographed films are rejected.
 
 **Acceptance**
 
-- The CXR module can fail or be removed without changing the cough-plus-clinical request, result, or next step.
+- Prisma can fail or be removed without changing the Gema request, result, or next step.
 - Its evaluation, calibration, metadata, limitations, and panel remain visibly separate.
 
 ### 3.10 Fireworks richer note [Stretch] · PRD-10

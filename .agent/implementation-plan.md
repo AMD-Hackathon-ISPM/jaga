@@ -3,8 +3,6 @@
 **Document type:** Implementation plan and ticket board
 **Audience:** Whole team
 **Status:** Active · preparation starts 2026-06-29
-**Owner:** Fransisco
-**Updated:** 2026-06-28
 **Canonical for:** Work sequence, ticket ownership, dependencies, milestones, merge order, fallbacks, and submission completeness
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`evidence-register.md`](evidence-register.md)
 
@@ -111,7 +109,7 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 
 **Owner:** Billy
 
-**Due:** 30 June
+**Status:** Signed 2026-06-28 — screen map + state machine in `design-guidelines.md` §3 and `project-architecture.md` §3.2. (API codes pin on `ARCH-1`.)
 
 **Blocks:** FE-0 through FE-5
 
@@ -131,7 +129,7 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 
 **Owner:** Billy
 
-**Due:** 30 June
+**Status:** Design/token/component/motion/localization-rules drafted 2026-06-28 in `design-guidelines.md` §4–§10 (verified contrast evidence in §4.6). Open: final paired EN/ID string table; API mapping pins on `ARCH-1`.
 
 **Depends on:** UX-0; ARCH-1 for API mapping
 

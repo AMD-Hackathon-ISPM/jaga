@@ -3,8 +3,6 @@
 **Document type:** ML data and evaluation plan
 **Audience:** ML, backend, product, reviewers, and pitch team
 **Status:** Active · Daffa inputs required before model implementation
-**Owner:** Daffa
-**Updated:** 2026-06-28
 **Canonical for:** Controlled data use, preprocessing, leakage controls, model selection, calibration, evaluation, reproducibility, artifacts, and metric reporting
 **Companion documents:** [`evidence-register.md`](evidence-register.md), [`project-architecture.md`](project-architecture.md), [`product-requirements.md`](product-requirements.md), [`implementation-plan.md`](implementation-plan.md)
 
@@ -40,11 +38,11 @@ Primary risks are selection bias, device/environment shift, country/site shift, 
 >
 > **Completion rule:** replace this block with a dated dataset manifest and link its non-sensitive path; do not download data into a tracked directory
 
-### 2.2 Digital CXR [Stretch]
+### 2.2 Digital CXR — Prisma [Stretch]
 
-Any CXR data comes from different participants and sources than CODA. It receives a separate pipeline, model, calibration, evaluation, result panel, and limitations. Source-specific artifacts are a known leakage risk; photographed films are out of scope.
+The digital-CXR signal is the **Prisma** module, kept entirely separate from the **Gema** cough-plus-clinical core. Any CXR data comes from different participants and sources than CODA. It receives a separate pipeline, model, calibration, evaluation, result panel, and limitations. Source-specific artifacts are a known leakage risk; photographed films are out of scope.
 
-No CXR work starts before the P0 cough-plus-clinical loop passes.
+No Prisma work starts before the P0 Gema (cough-plus-clinical) loop passes.
 
 ### 2.3 Demo fixtures [MVP]
 

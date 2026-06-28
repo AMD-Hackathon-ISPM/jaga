@@ -3,8 +3,6 @@
 **Document type:** Product brief
 **Audience:** Team, hackathon judges, prospective programme partners, and reviewers
 **Status:** Active · pre-development
-**Owner:** Fransisco
-**Updated:** 2026-06-28
 **Canonical for:** Product thesis, target customer, positioning, business hypothesis, phased scope, pitch, and demo narrative
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`evidence-register.md`](evidence-register.md), [`implementation-plan.md`](implementation-plan.md), [`design-guidelines.md`](design-guidelines.md)
 
@@ -43,8 +41,8 @@ Jaga does not diagnose TB, rule TB out, decide whether someone deserves testing,
 
 | Phase | Included | Explicit boundary |
 |---|---|---|
-| **[MVP] Hackathon** | Adult eligibility; supported clinical form; five guided coughs; quality gate; AMD-hosted cough-plus-clinical inference; calibration; bilingual result; limitations; mandatory confirmatory-evaluation copy; containerized public demo | Research prototype only; no real patient-care use |
-| **[Stretch]** | Independent digital-CXR estimate; Fireworks-generated richer explanation; result-reveal polish | Separate metrics and panel; never fused with cough score; deterministic copy remains default |
+| **[MVP] Hackathon** | Adult eligibility; supported clinical form; five guided coughs; quality gate; AMD-hosted cough-plus-clinical inference (**Gema**); calibration; bilingual result; limitations; mandatory confirmatory-evaluation copy; containerized public demo | Research prototype only; no real patient-care use |
+| **[Stretch]** | Independent digital-CXR estimate (**Prisma**); Fireworks-generated richer explanation; result-reveal polish | Separate metrics and panel; never fused with cough score; deterministic copy remains default |
 | **[V1]** | Prospective Indonesian validation plan; programme administration; accounts; audit trail; deployment hardening; offline/on-prem feasibility; regulatory and ethics work | Requires partners, representative data, prospective evaluation, privacy review, and regulatory strategy |
 | **[OUT]** | Diagnosis, treatment advice, drug-resistance typing, real-patient demo, data retention, photographed-film scoring, unsupported cohorts, fused CXR+cough claim | Must not be implemented |
 

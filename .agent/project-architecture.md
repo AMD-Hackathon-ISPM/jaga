@@ -3,8 +3,6 @@
 **Document type:** Project architecture
 **Audience:** Backend, frontend, ML, platform, QA, and technical reviewers
 **Status:** Active · owner contracts required before feature implementation
-**Owner:** Daffa
-**Updated:** 2026-06-28
 **Canonical for:** System boundaries, planned runtime components, shared interfaces, privacy, security, observability, deployment, and technical ownership
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
@@ -61,17 +59,27 @@ The MVP has no user account, patient database, case history, queue, background j
 - Browser audio is converted only according to the signed upload contract.
 - Every loading, error, retry, offline, reset, language, and reduced-motion state in PRD-01 through PRD-08 must be represented.
 
-> **OWNER INPUT REQUIRED — Billy — due 2026-06-30**
->
-> **Blocks:** `FE-0` through `FE-5` and Kei's frontend implementation
->
-> **Required output:** select the final frontend libraries; define the route/screen map; define the state machine and reset/session-timeout behavior; map every API state and error code to UI behavior; define the in-memory form/audio model; define accessibility and responsive implementation rules; provide the planned frontend folder structure
->
-> **Affected documents:** `project-architecture.md`, `design-guidelines.md`, `implementation-plan.md`, `product-requirements.md` if behavior changes
->
-> **Completion rule:** replace this block with a signed frontend architecture section, update ticket dependencies, and append the decision to `log.md`
+### 3.2 Signed frontend architecture (Billy, 2026-06-28)
 
-### 3.2 Frontend implementation boundary
+- **Libraries:** Next.js (App Router) PWA + React; **Tailwind CSS** with the §4 OKLCH tokens declared as CSS custom properties (the provisional `components/ClinicalCaptureForm.jsx` already uses Tailwind utilities). No global state library — the step machine is local React state / `useReducer`, all in memory. Audio uses the **Web Audio API + `<canvas>`** for the recorder/waveform (no audio dependency). Motion is CSS-first (transform/opacity); add a small motion library only if a specific transition needs it.
+- **Route / screen map and state machine:** defined once in [`design-guidelines.md`](design-guidelines.md) §3 (gate → clinical → coughs → review → processing → result → limitations, with reset/error). Not duplicated here.
+- **API state/error mapping:** `design-guidelines.md` §3.3; exact codes pin on Daffa's `ARCH-1` contract (§6).
+- **In-memory form/audio model:** clinical values + five decoded cough buffers + result + request-id held in React state only; cleared on reset, success acknowledgement, or session timeout (PRD-08). No `localStorage`/`IndexedDB`/service-worker cache/analytics may contain them.
+- **Accessibility & responsive:** `design-guidelines.md` §5–§9 (320 px floor, AA contrast evidence, reduced-motion, text alternatives).
+- **Planned folder structure** (under the `apps/web/` of §11):
+
+```text
+apps/web/
+├── app/                # routes: / (gate), /clinical, /coughs, /review, /result
+├── components/         # reusable + screen-specific (re-skinned from ClinicalCaptureForm.jsx)
+├── lib/                # step state machine, in-memory session model, audio capture/quality
+├── locales/            # keyed/versioned EN + ID string bundles (UX-1)
+└── styles/             # token CSS variables + Tailwind config
+```
+
+> Open dependencies: the exact `POST /api/v1/triage` schema and error codes pin on Daffa's `ARCH-1` (§6, due 2026-06-29); the paired EN/ID string table pins on `UX-1`.
+
+### 3.3 Frontend implementation boundary
 
 Billy owns frontend architecture, UX, accessibility, and review. Kei implements the signed specification. Kei may propose changes, but any change to behavior, safety, state, or contract must be accepted in the canonical document before implementation.
 
@@ -84,6 +92,7 @@ Billy owns frontend architecture, UX, accessibility, and review. Kei implements 
 - Validate content type, byte limits, encoding, field schema, contract version, and model availability before inference.
 - Return structured error codes; never return partial or stale estimates.
 - Model loading, preprocessing, inference, calibration, inspection, and result composition are separate modules with versioned boundaries.
+- The two research signals are named modules: **Gema** (cough-plus-clinical core, `[MVP]`) and **Prisma** (digital-CXR, `[Stretch]`). They are trained, served, evaluated, and displayed separately and are never fused into one score.
 - Health endpoints disclose service/model readiness without exposing secrets or participant information.
 
 > **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
@@ -254,7 +263,7 @@ tests/
 | Failure | Required behavior |
 |---|---|
 | Fireworks fails | Deterministic copy remains; no effect on estimate/referral |
-| CXR fails | Core result remains independent and unchanged |
+| Prisma (CXR) fails | Gema core result remains independent and unchanged |
 
 ## 13. Architecture acceptance
 

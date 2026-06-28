@@ -24,11 +24,11 @@ Jaga explores whether cough acoustics plus routinely available clinical informat
 |---|---|
 | Guided capture | Record five coughs and reject unusable audio before inference |
 | Clinical inputs | Collect only variables supported by the approved model contract |
-| Research estimate | Return a calibrated probability and relative urgency band |
+| Research estimate (**Gema**) | The cough-plus-clinical core returns a calibrated probability and relative urgency band |
 | Mandatory next step | Direct every symptomatic participant to confirmatory evaluation |
 | Model inspection | Show a spectrogram, non-causal attention/saliency overlay, and supported contributing factors |
 | Privacy | Process inputs transiently without request-body logging or patient-data persistence |
-| `[Stretch]` CXR | Show a separate digital-CXR estimate with separate metrics; never fuse scores |
+| `[Stretch]` CXR (**Prisma**) | Show a separate digital-CXR estimate with separate metrics; never fuse scores |
 
 ## Planned stack
 

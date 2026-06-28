@@ -3,8 +3,6 @@
 **Document type:** Repository task router
 **Audience:** All contributors and coding agents
 **Status:** Active · pre-development
-**Owner:** Billy
-**Updated:** 2026-06-28
 **Canonical for:** Repository navigation, source precedence, working rules, ownership, and current status
 **Companion documents:** [`.agent/product-requirements.md`](.agent/product-requirements.md), [`.agent/project-architecture.md`](.agent/project-architecture.md), [`.agent/implementation-plan.md`](.agent/implementation-plan.md)
 

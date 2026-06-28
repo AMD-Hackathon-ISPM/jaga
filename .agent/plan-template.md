@@ -3,8 +3,6 @@
 **Document type:** Reference template
 **Audience:** Authors and reviewers of Jaga planning documents
 **Status:** Active reference; not a product specification
-**Owner:** Billy
-**Updated:** 2026-06-28
 **Canonical for:** Required document depth, evidence handling, owner blocks, and acceptance criteria
 **Companion documents:** [`../AGENT.md`](../AGENT.md), [`evidence-register.md`](evidence-register.md), [`implementation-plan.md`](implementation-plan.md)
 

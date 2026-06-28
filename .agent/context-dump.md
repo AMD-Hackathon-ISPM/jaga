@@ -3,8 +3,6 @@
 **Document type:** Historical decision record
 **Audience:** Contributors, reviewers, and future maintainers
 **Status:** Historical; current revision and decisions are summarized in Sections 15–20
-**Owner:** Billy
-**Updated:** 2026-06-28
 **Canonical for:** Product history, superseded ideas, and decision rationale
 **Companion documents:** [`evidence-register.md`](evidence-register.md), [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`log.md`](log.md)
 
@@ -199,6 +197,7 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 | **Use five solicited coughs** | This matches the documented CODA collection protocol and gives the quality gate a concrete contract. |
 | **Every symptomatic adult receives confirmatory evaluation** | Jaga may prioritize urgency but must never determine who is denied confirmatory testing. |
 | **CXR stays isolated [Stretch] work** | It may be demonstrated independently but cannot alter the MVP risk result or create a fused performance claim. |
+| **Name the two signals Gema (cough+clinical) and Prisma (CXR)** | Distinct names reinforce that the signals are separate and never fused. Both stay inside the Jaga "watch over" brand: *Gema* = "echo" (the acoustic core that listens), *Prisma* = "prism" (the imaging stretch). |
 | **Attention views are non-causal artifacts** | A saliency or attention visualization can support inspection but cannot be presented as the model's reasoning. |
 | **Serve transient inference online on AMD** | It is coherent with hackathon infrastructure; offline and edge-appliance deployment remain outside the MVP. |
 | **Use CODA under controlled access** | CODA is not a public download. Access, retention, and redistribution must follow its data-use terms. |
@@ -239,6 +238,10 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 ## 18. Glossary of Concepts
 
 **Jaga** — an investigational, phone-first TB risk-prioritization research prototype. It is not a diagnostic or clinically validated product.
+
+**Gema** — the `[MVP]` cough-plus-clinical research signal (Indonesian for "echo"). The acoustic core that listens to five guided coughs plus supported clinical inputs. Never fused with Prisma.
+
+**Prisma** — the `[Stretch]` digital-CXR research signal (Indonesian for "prism"). An isolated imaging module with its own pipeline, metrics, and result panel. Never fused with Gema.
 
 **Triage research output** — a calibrated risk category and uncertainty statement that may prioritize urgency. It never determines whether a symptomatic adult receives confirmatory evaluation.
 
