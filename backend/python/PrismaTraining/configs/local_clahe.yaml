@@ -1,0 +1,121 @@
+seed: 42
+deterministic: true
+
+dataset:
+  root: data/Preprocessed Data/Preprocessed Data/CLAHE
+  split_dirs:
+    train: Train
+    val: Val
+    test: Test
+  class_names:
+    - Normal
+    - Tuberculosis
+  file_extensions:
+    - .png
+    - .jpg
+    - .jpeg
+    - .bmp
+    - .tif
+    - .tiff
+  max_samples_per_class: null
+
+dataloader:
+  train_batch_size: 16
+  eval_batch_size: 32
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+  drop_last: false
+
+augmentation:
+  train_resize_scale:
+    - 0.8
+    - 1.0
+  horizontal_flip_prob: 0.5
+  rotation_degrees: 5.0
+  color_jitter_brightness: 0.1
+  color_jitter_contrast: 0.1
+
+model:
+  name: densenet121
+  pretrained: true
+  model_id: null
+  embedding_dim: 256
+  dropout: 0.2
+  freeze_backbone: false
+  normalize_embeddings: true
+  image_size: null
+  mean: null
+  std: null
+
+optimizer:
+  name: adamw
+  lr: 0.0001
+  weight_decay: 0.0001
+
+scheduler:
+  name: cosine
+  min_lr: 0.000001
+
+loss:
+  name: weighted_bce
+  auto_pos_weight: true
+  pos_weight: null
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+
+training:
+  epochs: 20
+  amp: true
+  early_stopping_patience: 5
+  monitor: roc_auc
+  monitor_mode: max
+  threshold: 0.5
+  grad_clip_norm: 1.0
+
+logging:
+  use_tensorboard: true
+  use_wandb: false
+  wandb_project: jaga-tb-cxr
+  log_every_n_steps: 10
+
+checkpoint:
+  resume_path: null
+  save_best_only: false
+
+evaluation:
+  split: test
+  save_curves: true
+
+embeddings:
+  splits:
+    - train
+    - val
+    - test
+  normalize: true
+  output_name: local_clahe
+
+retrieval:
+  enabled: true
+  k: 5
+  metric: cosine
+  index_path: null
+  embeddings_path: null
+  labels_path: null
+  paths_path: null
+  metadata_path: null
+
+quantum:
+  enabled: true
+  pca_dim: 4
+  max_samples: 300
+  test_size: 0.2
+  random_state: 42
+  shots: null
+  n_layers: 1
+  output_dir: quantum
+
+output:
+  root: outputs
+  experiment_name: tb_cxr
+  run_name: local_clahe

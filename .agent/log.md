@@ -1,16 +1,19 @@
 # Jaga · Change & Decision Log
 
-Chronological record of decisions and significant changes. **Newest at top.** One line each: `YYYY-MM-DD — what changed (who)`. When you make a decision, also record it in `context-dump.md` (Decisions Index §14, or Set-Aside Ideas §15 if rejected).
+Chronological record of decisions and significant changes. Newest at top.
 
----
-
-- 2026-06-27 — **Documentation & evidence overhaul.** Added `evidence-register.md` (single source of truth for facts), `data-evaluation-plan.md` (datasets/splits/leakage/model-gate/metrics), `implementation-plan.md` (5-day board + API contract). Upgraded `AGENT.md` into a task router with source precedence (kept `CLAUDE.md`). Verified facts: **CODA is controlled-access (Daffa has it via ORCID)**; cohort = symptomatic adults 18+, guided coughs; **WHO 2025 screening TPPs** replace the old 90/70; **event window 6–11 Jul 2026**. Reframed as an **investigational research prototype** while keeping the product/market ambition. Set aside **quantum image processing** (no advantage, weakens AMD story). (Billy)
-- 2026-06-27 — **Phase 13 honest revision** (after a hard technical review, facts verified): switched to **online cloud serving on AMD** (dropped offline/on-device claims, kept on-prem edge as roadmap); **cough+clinical = validated core, CXR optional/stretch** (no paired data → no fused metric); **honest metrics** (cough+clinical AUROC ~0.78–0.83, WHO 90/70 as aspiration); corrected stats (WHO 2025 ~2.4M detection gap, CAD may replace radiologists, Swaasa parity); removed "confidence always rises"; fixed privacy wording; cut plan to ~5-day sprint; added MIT LICENSE; reconciled "Stack TBD"; fixed dangling plan-jaga.md ref. (Billy)
-- 2026-06-27 — Reframed positioning **global-first** (TB high-burden belt worldwide) with Indonesia as the named beachhead/authenticity anchor, not the ceiling. Updated product-brief, README, pitch messages, and context-dump. (Billy)
-- 2026-06-27 — Added governance layer: scope tags + Do-Not-Build in the PRD, Rules for Agents in `AGENT.md`, per-doc status headers, this log, and a maintenance ritual in `CLAUDE.md`. (Billy)
-- 2026-06-27 — Added README.md (Trellis-style) and AGENT.md entry point; removed stale `plan-medical.md`. (Billy)
-- 2026-06-27 — Split the project plan into four spec docs: `product-brief.md`, `product-requirements.md`, `project-architecture.md`, `design-guidelines.md`. (Billy)
-- 2026-06-27 — Added Fransisco to the team (PM, presentation, video). (Billy)
-- 2026-06-27 — Validated business model (TB diagnostics market + Global Fund + Qure.ai comparable). (Billy)
-- 2026-06-27 — **Locked name: Jaga** ("to watch over / guard"). (Billy)
-- 2026-06-27 — **Locked idea: offline multimodal TB triage** (cough required + optional symptoms/X-ray → on-device verdict). Triage, not diagnosis. See `context-dump.md` §12, §14. (Billy)
+- 2026-06-29 - Removed Ollama from the semantic-memory path and kept Cognee local while using Featherless for generation. (Codex)
+- 2026-06-29 - Synced `.agent` to the current runtime layout: `PrismaTraining` for research, `PrismaServer` for serving, stack-first Swarm deployment, bundled `local_clahe` server artifacts, and optional Cognee semantic memory in the Go backend. (Codex)
+- 2026-06-28 - Added `/infra` as a Docker Swarm deployment plane with NGINX ingress, replicated `go-api`, internal `prisma-worker`, Redis, PostgreSQL, and MinIO; recorded Featherless as an OpenAI-compatible integration target. (Codex)
+- 2026-06-28 - Added a Go-only patient intake module at `POST /api/v1/patient/intake` to validate and normalize metadata before any future Prisma cough or CXR inference; no persistence or ML calls yet. (Codex)
+- 2026-06-28 - Added an independent, embedding-first TB-CXR research scaffold under `backend/python/PrismaTraining` with interchangeable backbones, training/eval pipelines, embedding export, retrieval over saved embeddings, and a post-training quantum branch; added a thin `backend/go` service scaffold; documented it as a stretch CXR track that does not alter the cough+clinical MVP invariant. (Codex)
+- 2026-06-27 - Documentation and evidence overhaul. Added `evidence-register.md`, `data-evaluation-plan.md`, and `implementation-plan.md`. Upgraded `AGENT.md` into a task router with source precedence and kept `CLAUDE.md`. Verified CODA access, WHO 2025 screening TPPs, and the event window. (Billy)
+- 2026-06-27 - Honest revision after technical review: online serving on AMD, cough+clinical as the validated core, CXR as optional/stretch, and honest metrics with WHO targets treated as aspiration rather than promise. (Billy)
+- 2026-06-27 - Reframed positioning global-first with Indonesia as the beachhead. (Billy)
+- 2026-06-27 - Added governance layer, status headers, the change log, and the maintenance ritual in `CLAUDE.md`. (Billy)
+- 2026-06-27 - Added README and AGENT entry point; removed stale `plan-medical.md`. (Billy)
+- 2026-06-27 - Split the project plan into `product-brief.md`, `product-requirements.md`, `project-architecture.md`, and `design-guidelines.md`. (Billy)
+- 2026-06-27 - Added Fransisco to the team. (Billy)
+- 2026-06-27 - Validated business model and comparable market context. (Billy)
+- 2026-06-27 - Locked name: Jaga. (Billy)
+- 2026-06-27 - Locked the original TB-triage direction, later refined by the honest revision above. (Billy)
