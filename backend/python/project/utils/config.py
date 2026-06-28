@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -10,8 +10,10 @@ import yaml
 @dataclass
 class DatasetConfig:
     root: str
+    split_dirs: dict[str, str]
     class_names: list[str]
     file_extensions: list[str]
+    max_samples_per_class: int | None = None
 
 
 @dataclass
@@ -108,6 +110,18 @@ class EmbeddingConfig:
 
 
 @dataclass
+class RetrievalConfig:
+    enabled: bool
+    k: int
+    metric: str
+    index_path: str | None
+    embeddings_path: str | None
+    labels_path: str | None
+    paths_path: str | None
+    metadata_path: str | None
+
+
+@dataclass
 class OutputConfig:
     root: str
     experiment_name: str
@@ -130,6 +144,7 @@ class ExperimentConfig:
     checkpoint: CheckpointConfig
     evaluation: EvaluationConfig
     embeddings: EmbeddingConfig
+    retrieval: RetrievalConfig
     output: OutputConfig
 
 
@@ -142,7 +157,18 @@ class RuntimePaths:
     tensorboard_dir: Path
     metrics_dir: Path
     embeddings_dir: Path
+    retrieval_dir: Path
     logs_dir: Path
+
+
+@dataclass(frozen=True)
+class RetrievalPaths:
+    index_path: Path
+    embeddings_path: Path
+    labels_path: Path
+    paths_path: Path
+    metadata_path: Path
+    output_dir: Path
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -171,6 +197,7 @@ def load_experiment_config(path: str | Path) -> ExperimentConfig:
         checkpoint=CheckpointConfig(**data['checkpoint']),
         evaluation=EvaluationConfig(**data['evaluation']),
         embeddings=EmbeddingConfig(**data['embeddings']),
+        retrieval=RetrievalConfig(**data['retrieval']),
         output=OutputConfig(**data['output']),
     )
 
@@ -186,6 +213,7 @@ def resolve_runtime_paths(project_root: Path, config: ExperimentConfig) -> Runti
         tensorboard_dir=run_dir / 'tensorboard',
         metrics_dir=run_dir / 'metrics',
         embeddings_dir=run_dir / 'embeddings',
+        retrieval_dir=run_dir / 'retrieval',
         logs_dir=run_dir / 'logs',
     )
     for path in (
@@ -195,6 +223,7 @@ def resolve_runtime_paths(project_root: Path, config: ExperimentConfig) -> Runti
         paths.tensorboard_dir,
         paths.metrics_dir,
         paths.embeddings_dir,
+        paths.retrieval_dir,
         paths.logs_dir,
     ):
         path.mkdir(parents=True, exist_ok=True)
@@ -212,3 +241,22 @@ def _resolve_path(project_root: Path, raw_path: str) -> Path:
     if path.is_absolute():
         return path
     return (project_root / path).resolve()
+
+
+def resolve_retrieval_paths(runtime_paths: RuntimePaths, config: ExperimentConfig) -> RetrievalPaths:
+    embedding_root = runtime_paths.embeddings_dir / config.embeddings.output_name
+    output_dir = runtime_paths.retrieval_dir
+    return RetrievalPaths(
+        index_path=_resolve_optional_path(runtime_paths.project_root, config.retrieval.index_path, output_dir / 'faiss.index'),
+        embeddings_path=_resolve_optional_path(runtime_paths.project_root, config.retrieval.embeddings_path, embedding_root / 'embeddings.npy'),
+        labels_path=_resolve_optional_path(runtime_paths.project_root, config.retrieval.labels_path, embedding_root / 'labels.npy'),
+        paths_path=_resolve_optional_path(runtime_paths.project_root, config.retrieval.paths_path, embedding_root / 'paths.npy'),
+        metadata_path=_resolve_optional_path(runtime_paths.project_root, config.retrieval.metadata_path, embedding_root / 'metadata.csv'),
+        output_dir=output_dir,
+    )
+
+
+def _resolve_optional_path(project_root: Path, raw_path: str | None, default_path: Path) -> Path:
+    if raw_path is None:
+        return default_path
+    return _resolve_path(project_root, raw_path)

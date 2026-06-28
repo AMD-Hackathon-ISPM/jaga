@@ -1,23 +1,20 @@
 from __future__ import annotations
 
+from importlib import import_module
 from collections.abc import Callable
 
 from project.models.base import BaseEmbeddingModel, ModelSpec
-from project.models.biomedclip import build_biomedclip
-from project.models.densenet import build_densenet121
-from project.models.efficientnet import build_efficientnet_b0
-from project.models.raddino import build_raddino
 from project.utils.config import ModelConfig
 
 
 ModelBuilder = Callable[[ModelConfig], tuple[BaseEmbeddingModel, ModelSpec]]
 
 
-MODEL_REGISTRY: dict[str, ModelBuilder] = {
-    'densenet121': build_densenet121,
-    'efficientnet_b0': build_efficientnet_b0,
-    'biomedclip': build_biomedclip,
-    'raddino': build_raddino,
+MODEL_REGISTRY: dict[str, tuple[str, str]] = {
+    'densenet121': ('project.models.densenet', 'build_densenet121'),
+    'efficientnet_b0': ('project.models.efficientnet', 'build_efficientnet_b0'),
+    'biomedclip': ('project.models.biomedclip', 'build_biomedclip'),
+    'raddino': ('project.models.raddino', 'build_raddino'),
 }
 
 MODEL_ALIASES: dict[str, str] = {
@@ -41,4 +38,6 @@ def build_model(config: ModelConfig) -> tuple[BaseEmbeddingModel, ModelSpec]:
         supported = ', '.join(sorted(MODEL_REGISTRY))
         raise KeyError(f'Unknown model {config.name}. Supported models: {supported}')
     config.name = resolved_name
-    return MODEL_REGISTRY[resolved_name](config)
+    module_name, builder_name = MODEL_REGISTRY[resolved_name]
+    builder = getattr(import_module(module_name), builder_name)
+    return builder(config)

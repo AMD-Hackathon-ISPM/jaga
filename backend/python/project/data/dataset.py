@@ -23,20 +23,24 @@ class TbCxrDataset(Dataset[tuple[Tensor, int, str]]):
         self,
         root: str | Path,
         split: str,
+        split_dirs: dict[str, str],
         class_names: Sequence[str],
         file_extensions: Sequence[str],
+        max_samples_per_class: int | None = None,
         transform: Callable[[Image.Image], Tensor] | None = None,
     ) -> None:
         self.root = Path(root)
         self.split = split
+        self.split_dirs = dict(split_dirs)
         self.class_names = list(class_names)
         self.file_extensions = tuple(extension.lower() for extension in file_extensions)
+        self.max_samples_per_class = max_samples_per_class
         self.transform = transform
         self.class_to_index = {name: index for index, name in enumerate(self.class_names)}
         self.records = self._build_records()
 
     def _build_records(self) -> list[ImageRecord]:
-        split_root = self.root / self.split
+        split_root = self._resolve_split_root()
         if not split_root.exists():
             raise FileNotFoundError(f'Missing split directory: {split_root}')
         records: list[ImageRecord] = []
@@ -44,7 +48,14 @@ class TbCxrDataset(Dataset[tuple[Tensor, int, str]]):
             class_dir = split_root / class_name
             if not class_dir.exists():
                 raise FileNotFoundError(f'Missing class directory: {class_dir}')
-            for path in sorted(class_dir.rglob('*')):
+            class_paths = [
+                path
+                for path in sorted(class_dir.rglob('*'))
+                if path.is_file() and path.suffix.lower() in self.file_extensions
+            ]
+            if self.max_samples_per_class is not None:
+                class_paths = class_paths[: self.max_samples_per_class]
+            for path in class_paths:
                 if path.is_file() and path.suffix.lower() in self.file_extensions:
                     records.append(
                         ImageRecord(
@@ -56,6 +67,21 @@ class TbCxrDataset(Dataset[tuple[Tensor, int, str]]):
         if not records:
             raise ValueError(f'No image files found in {split_root}')
         return records
+
+    def _resolve_split_root(self) -> Path:
+        configured_name = self.split_dirs.get(self.split, self.split)
+        candidates = [
+            configured_name,
+            self.split,
+            self.split.lower(),
+            self.split.upper(),
+            self.split.capitalize(),
+        ]
+        for candidate in candidates:
+            split_root = self.root / candidate
+            if split_root.exists():
+                return split_root
+        return self.root / configured_name
 
     def __len__(self) -> int:
         return len(self.records)
@@ -82,22 +108,28 @@ def create_dataloaders(
         'train': TbCxrDataset(
             root=config.dataset.root,
             split='train',
+            split_dirs=config.dataset.split_dirs,
             class_names=config.dataset.class_names,
             file_extensions=config.dataset.file_extensions,
+            max_samples_per_class=config.dataset.max_samples_per_class,
             transform=train_transform,
         ),
         'val': TbCxrDataset(
             root=config.dataset.root,
             split='val',
+            split_dirs=config.dataset.split_dirs,
             class_names=config.dataset.class_names,
             file_extensions=config.dataset.file_extensions,
+            max_samples_per_class=config.dataset.max_samples_per_class,
             transform=eval_transform,
         ),
         'test': TbCxrDataset(
             root=config.dataset.root,
             split='test',
+            split_dirs=config.dataset.split_dirs,
             class_names=config.dataset.class_names,
             file_extensions=config.dataset.file_extensions,
+            max_samples_per_class=config.dataset.max_samples_per_class,
             transform=eval_transform,
         ),
     }

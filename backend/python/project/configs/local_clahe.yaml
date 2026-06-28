@@ -2,14 +2,14 @@ seed: 42
 deterministic: true
 
 dataset:
-  root: ../../../../dataset
+  root: data/Preprocessed Data/Preprocessed Data/CLAHE
   split_dirs:
-    train: train
-    val: val
-    test: test
+    train: Train
+    val: Val
+    test: Test
   class_names:
     - Normal
-    - TB
+    - Tuberculosis
   file_extensions:
     - .png
     - .jpg
@@ -93,10 +93,10 @@ embeddings:
     - val
     - test
   normalize: true
-  output_name: default
+  output_name: local_clahe
 
 retrieval:
-  enabled: false
+  enabled: true
   k: 5
   metric: cosine
   index_path: null
@@ -108,4 +108,4 @@ retrieval:
 output:
   root: outputs
   experiment_name: tb_cxr
-  run_name: densenet121_baseline
+  run_name: local_clahe

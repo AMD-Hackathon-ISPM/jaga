@@ -2,14 +2,14 @@ seed: 42
 deterministic: true
 
 dataset:
-  root: ../../../../dataset
+  root: data/Preprocessed Data/Preprocessed Data/CLAHE
   split_dirs:
-    train: train
-    val: val
-    test: test
+    train: Train
+    val: Val
+    test: Test
   class_names:
     - Normal
-    - TB
+    - Tuberculosis
   file_extensions:
     - .png
     - .jpg
@@ -17,12 +17,12 @@ dataset:
     - .bmp
     - .tif
     - .tiff
-  max_samples_per_class: null
+  max_samples_per_class: 32
 
 dataloader:
   train_batch_size: 16
   eval_batch_size: 32
-  num_workers: 4
+  num_workers: 2
   pin_memory: true
   persistent_workers: true
   drop_last: false
@@ -38,9 +38,9 @@ augmentation:
 
 model:
   name: densenet121
-  pretrained: true
+  pretrained: false
   model_id: null
-  embedding_dim: 256
+  embedding_dim: 64
   dropout: 0.2
   freeze_backbone: false
   normalize_embeddings: true
@@ -50,7 +50,7 @@ model:
 
 optimizer:
   name: adamw
-  lr: 0.0001
+  lr: 0.0003
   weight_decay: 0.0001
 
 scheduler:
@@ -65,16 +65,16 @@ loss:
   focal_gamma: 2.0
 
 training:
-  epochs: 20
+  epochs: 1
   amp: true
-  early_stopping_patience: 5
-  monitor: roc_auc
-  monitor_mode: max
+  early_stopping_patience: 1
+  monitor: loss
+  monitor_mode: min
   threshold: 0.5
   grad_clip_norm: 1.0
 
 logging:
-  use_tensorboard: true
+  use_tensorboard: false
   use_wandb: false
   wandb_project: jaga-tb-cxr
   log_every_n_steps: 10
@@ -85,7 +85,7 @@ checkpoint:
 
 evaluation:
   split: test
-  save_curves: true
+  save_curves: false
 
 embeddings:
   splits:
@@ -93,10 +93,10 @@ embeddings:
     - val
     - test
   normalize: true
-  output_name: default
+  output_name: local_cuda_smoke
 
 retrieval:
-  enabled: false
+  enabled: true
   k: 5
   metric: cosine
   index_path: null
@@ -108,4 +108,4 @@ retrieval:
 output:
   root: outputs
   experiment_name: tb_cxr
-  run_name: densenet121_baseline
+  run_name: local_cuda_smoke
