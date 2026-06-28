@@ -1,14 +1,12 @@
 # Jaga · Data and Evaluation Plan
 
-| Field | Value |
-|---|---|
-| Document type | ML data and evaluation plan |
-| Audience | ML, backend, product, reviewers, and pitch team |
-| Status | Active · Daffa inputs required before model implementation |
-| Owner | Daffa |
-| Updated | 2026-06-28 |
-| Canonical for | Controlled data use, preprocessing, leakage controls, model selection, calibration, evaluation, reproducibility, artifacts, and metric reporting |
-| Companion documents | [`evidence-register.md`](evidence-register.md), [`project-architecture.md`](project-architecture.md), [`product-requirements.md`](product-requirements.md), [`implementation-plan.md`](implementation-plan.md) |
+**Document type:** ML data and evaluation plan
+**Audience:** ML, backend, product, reviewers, and pitch team
+**Status:** Active · Daffa inputs required before model implementation
+**Owner:** Daffa
+**Updated:** 2026-06-28
+**Canonical for:** Controlled data use, preprocessing, leakage controls, model selection, calibration, evaluation, reproducibility, artifacts, and metric reporting
+**Companion documents:** [`evidence-register.md`](evidence-register.md), [`project-architecture.md`](project-architecture.md), [`product-requirements.md`](product-requirements.md), [`implementation-plan.md`](implementation-plan.md)
 
 ## How to read this document
 

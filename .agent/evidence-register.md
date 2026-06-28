@@ -1,14 +1,12 @@
 # Jaga · Evidence Register
 
-| Field | Value |
-|---|---|
-| Document type | Evidence register |
-| Audience | Product, engineering, design, ML, reviewers, and pitch team |
-| Status | Active · pre-development |
-| Owner | Daffa (technical evidence) · Fransisco (pitch traceability) |
-| Updated | 2026-06-28 |
-| Canonical for | Every external factual, medical, dataset, market, hardware, and hackathon claim |
-| Companion documents | [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`context-dump.md`](context-dump.md) |
+**Document type:** Evidence register
+**Audience:** Product, engineering, design, ML, reviewers, and pitch team
+**Status:** Active · pre-development
+**Owner:** Daffa (technical evidence) · Fransisco (pitch traceability)
+**Updated:** 2026-06-28
+**Canonical for:** Every external factual, medical, dataset, market, hardware, and hackathon claim
+**Companion documents:** [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`context-dump.md`](context-dump.md)
 
 ## How to read this document
 

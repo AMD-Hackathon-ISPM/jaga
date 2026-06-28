@@ -1,14 +1,12 @@
 # Jaga · Product Brief
 
-| Field | Value |
-|---|---|
-| Document type | Product brief |
-| Audience | Team, hackathon judges, prospective programme partners, and reviewers |
-| Status | Active · pre-development |
-| Owner | Fransisco |
-| Updated | 2026-06-28 |
-| Canonical for | Product thesis, target customer, positioning, business hypothesis, phased scope, pitch, and demo narrative |
-| Companion documents | [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`evidence-register.md`](evidence-register.md), [`implementation-plan.md`](implementation-plan.md), [`design-guidelines.md`](design-guidelines.md) |
+**Document type:** Product brief
+**Audience:** Team, hackathon judges, prospective programme partners, and reviewers
+**Status:** Active · pre-development
+**Owner:** Fransisco
+**Updated:** 2026-06-28
+**Canonical for:** Product thesis, target customer, positioning, business hypothesis, phased scope, pitch, and demo narrative
+**Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`evidence-register.md`](evidence-register.md), [`implementation-plan.md`](implementation-plan.md), [`design-guidelines.md`](design-guidelines.md)
 
 ## How to read this document
 

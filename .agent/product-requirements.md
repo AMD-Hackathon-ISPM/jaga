@@ -1,14 +1,12 @@
 # Jaga · Product Requirements Document
 
-| Field | Value |
-|---|---|
-| Document type | Product requirements document |
-| Audience | Product, design, frontend, backend, ML, QA, and demo team |
-| Status | Active · pre-development |
-| Owner | Fransisco |
-| Updated | 2026-06-28 |
-| Canonical for | User-visible behavior, safety, feature scope, failure states, localization, and acceptance criteria |
-| Companion documents | [`product-brief.md`](product-brief.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md) |
+**Document type:** Product requirements document
+**Audience:** Product, design, frontend, backend, ML, QA, and demo team
+**Status:** Active · pre-development
+**Owner:** Fransisco
+**Updated:** 2026-06-28
+**Canonical for:** User-visible behavior, safety, feature scope, failure states, localization, and acceptance criteria
+**Companion documents:** [`product-brief.md`](product-brief.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
 ## How to read this document
 

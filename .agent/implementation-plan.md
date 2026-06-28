@@ -1,14 +1,12 @@
 # Jaga · Implementation Plan and Ticket Board
 
-| Field | Value |
-|---|---|
-| Document type | Implementation plan and ticket board |
-| Audience | Whole team |
-| Status | Active · preparation starts 2026-06-29 |
-| Owner | Fransisco |
-| Updated | 2026-06-28 |
-| Canonical for | Work sequence, ticket ownership, dependencies, milestones, merge order, fallbacks, and submission completeness |
-| Companion documents | [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`evidence-register.md`](evidence-register.md) |
+**Document type:** Implementation plan and ticket board
+**Audience:** Whole team
+**Status:** Active · preparation starts 2026-06-29
+**Owner:** Fransisco
+**Updated:** 2026-06-28
+**Canonical for:** Work sequence, ticket ownership, dependencies, milestones, merge order, fallbacks, and submission completeness
+**Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`evidence-register.md`](evidence-register.md)
 
 ## How to read this document
 

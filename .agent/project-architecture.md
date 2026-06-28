@@ -1,14 +1,12 @@
 # Jaga · Project Architecture
 
-| Field | Value |
-|---|---|
-| Document type | Project architecture |
-| Audience | Backend, frontend, ML, platform, QA, and technical reviewers |
-| Status | Active · owner contracts required before feature implementation |
-| Owner | Daffa |
-| Updated | 2026-06-28 |
-| Canonical for | System boundaries, planned runtime components, shared interfaces, privacy, security, observability, deployment, and technical ownership |
-| Companion documents | [`product-requirements.md`](product-requirements.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md) |
+**Document type:** Project architecture
+**Audience:** Backend, frontend, ML, platform, QA, and technical reviewers
+**Status:** Active · owner contracts required before feature implementation
+**Owner:** Daffa
+**Updated:** 2026-06-28
+**Canonical for:** System boundaries, planned runtime components, shared interfaces, privacy, security, observability, deployment, and technical ownership
+**Companion documents:** [`product-requirements.md`](product-requirements.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
 ## How to read this document
 

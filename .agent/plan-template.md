@@ -1,14 +1,12 @@
 # Planning Template and Depth Standard
 
-| Field | Value |
-|---|---|
-| Document type | Reference template |
-| Audience | Authors and reviewers of Jaga planning documents |
-| Status | Active reference; not a product specification |
-| Owner | Billy |
-| Updated | 2026-06-28 |
-| Canonical for | Required document depth, evidence handling, owner blocks, and acceptance criteria |
-| Companion documents | [`../AGENT.md`](../AGENT.md), [`evidence-register.md`](evidence-register.md), [`implementation-plan.md`](implementation-plan.md) |
+**Document type:** Reference template
+**Audience:** Authors and reviewers of Jaga planning documents
+**Status:** Active reference; not a product specification
+**Owner:** Billy
+**Updated:** 2026-06-28
+**Canonical for:** Required document depth, evidence handling, owner blocks, and acceptance criteria
+**Companion documents:** [`../AGENT.md`](../AGENT.md), [`evidence-register.md`](evidence-register.md), [`implementation-plan.md`](implementation-plan.md)
 
 ## How to read this document
 
@@ -16,19 +14,19 @@ Use this template when creating or materially revising a planning document. It s
 
 ## 1. Required metadata
 
-Every canonical planning document begins with this table:
+Every canonical planning document begins with these bold-label fields, one per line (not a table):
 
-| Field | Required value |
-|---|---|
-| Document type | The document's function |
-| Audience | Who uses it to make or implement decisions |
-| Status | Draft, Owner input required, Approved, Active, or Historical |
-| Owner | One accountable person |
-| Updated | ISO date: `YYYY-MM-DD` |
-| Canonical for | The decisions this document controls |
-| Companion documents | Relative Markdown links |
+```md
+**Document type:** The document's function
+**Audience:** Who uses it to make or implement decisions
+**Status:** Draft, Owner input required, Approved, Active, or Historical
+**Owner:** One accountable person
+**Updated:** ISO date: `YYYY-MM-DD`
+**Canonical for:** The decisions this document controls
+**Companion documents:** Relative Markdown links
+```
 
-Follow the table with `## How to read this document`, including precedence, unresolved owner input, and whether historical text appears.
+Follow the fields with `## How to read this document`, including precedence, unresolved owner input, and whether historical text appears.
 
 ## 2. Scope labels
 

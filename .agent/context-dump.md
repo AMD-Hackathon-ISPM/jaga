@@ -1,14 +1,12 @@
 # Jaga · Full Context Dump
 
-| Field | Value |
-|---|---|
-| Document type | Historical decision record |
-| Audience | Contributors, reviewers, and future maintainers |
-| Status | Historical; current revision and decisions are summarized in Sections 15–20 |
-| Owner | Billy |
-| Updated | 2026-06-28 |
-| Canonical for | Product history, superseded ideas, and decision rationale |
-| Companion documents | [`evidence-register.md`](evidence-register.md), [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md) |
+**Document type:** Historical decision record
+**Audience:** Contributors, reviewers, and future maintainers
+**Status:** Historical; current revision and decisions are summarized in Sections 15–20
+**Owner:** Billy
+**Updated:** 2026-06-28
+**Canonical for:** Product history, superseded ideas, and decision rationale
+**Companion documents:** [`evidence-register.md`](evidence-register.md), [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`log.md`](log.md)
 
 ## How to read this document
 

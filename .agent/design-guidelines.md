@@ -1,14 +1,12 @@
 # Jaga · Design Guidelines
 
-| Field | Value |
-|---|---|
-| Document type | Design guidelines |
-| Audience | Frontend, design, product, QA, and reviewers |
-| Status | Active · provisional visual direction; Billy inputs required |
-| Owner | Billy |
-| Updated | 2026-06-28 |
-| Canonical for | Frontend information architecture, visual system, interaction states, microcopy, localization, accessibility, responsive behavior, and motion |
-| Companion documents | [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`product-brief.md`](product-brief.md), [`implementation-plan.md`](implementation-plan.md) |
+**Document type:** Design guidelines
+**Audience:** Frontend, design, product, QA, and reviewers
+**Status:** Active · provisional visual direction; Billy inputs required
+**Owner:** Billy
+**Updated:** 2026-06-28
+**Canonical for:** Frontend information architecture, visual system, interaction states, microcopy, localization, accessibility, responsive behavior, and motion
+**Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`product-brief.md`](product-brief.md), [`implementation-plan.md`](implementation-plan.md)
 
 ## How to read this document
 
