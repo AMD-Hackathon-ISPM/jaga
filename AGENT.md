@@ -1,54 +1,125 @@
-# AGENT.md — Start Here
+# AGENT.md — Jaga Project Router
 
-**Project: Jaga** — an AI-powered **tuberculosis triage** tool. A community health worker records a few guided coughs (~10s) plus a short clinical form on a phone, and a model **trained on AMD** returns an explainable, calibrated TB-risk estimate that prioritizes who needs a confirmatory test — no X-ray machine, lab, or on-site radiologist required. Inference runs online on AMD. **Triage, not diagnosis** (investigational research prototype). Evidence-backed core = **cough + clinical**; chest X-ray is an optional/independent stretch.
+**Document type:** Repository task router
+**Audience:** All contributors and coding agents
+**Status:** Active · pre-development
+**Canonical for:** Repository navigation, source precedence, working rules, ownership, and current status
+**Companion documents:** [`.agent/product-requirements.md`](.agent/product-requirements.md), [`.agent/project-architecture.md`](.agent/project-architecture.md), [`.agent/implementation-plan.md`](.agent/implementation-plan.md)
 
-Built for the **AMD Developer Hackathon ACT II** — **Unicorn track** (judged on creativity, originality, product potential). Window **6–11 July 2026** (~5-day sprint; confirm exact UTC). Product models run on AMD (ROCm) + Fireworks — not Anthropic/Claude (Claude is the coding assistant, not a product dependency).
+## How to read this document
 
-## Document router — read what fits your task
-| You need to… | Read |
+Start here, choose the task row in Section 1, then follow the source precedence in Section 2. Owner blocks are intentional integration gates; do not infer the missing contract. Historical rationale belongs in `.agent/context-dump.md`, not here.
+
+Jaga is a phone-first tuberculosis research prototype for **symptomatic adults aged 18+**. A community health worker records **five guided coughs** and supported clinical inputs; a model trained on AMD produces a calibrated research estimate used only to prioritize follow-up urgency. **Every symptomatic participant is directed to confirmatory evaluation regardless of score. Jaga does not diagnose or rule out tuberculosis.**
+
+Preparation and prototyping begin **29 June 2026**. The AMD Developer Hackathon ACT II runs **6 July 2026, 15:00 UTC → 11 July 2026, 15:00 UTC** (**22:00 WIB**), and requires a containerized, runnable submission in a public repository.
+
+## 1. Document router
+
+| Need | Canonical document |
 |---|---|
-| Understand what Jaga is & why | `.agent/product-brief.md` |
-| Build a feature / know exact requirements | `.agent/product-requirements.md` |
-| Make a technical/ML decision or write code | `.agent/project-architecture.md` |
-| Train / evaluate models, handle data | `.agent/data-evaluation-plan.md` |
-| Check a factual or medical claim | `.agent/evidence-register.md` — **single source of truth for facts** |
-| Know who does what, by when (5-day plan) | `.agent/implementation-plan.md` |
-| Work on UI/UX | `.agent/design-guidelines.md` |
-| Understand *why* a decision was made (or avoid a settled one) | `.agent/context-dump.md` (Decisions §14 · Set-Aside §15) |
-| Documentation depth standard | `.agent/plan-template.md` |
-| Working conventions / maintenance ritual | `CLAUDE.md` (Claude Code reads this automatically) |
+| Product, customer, positioning, pitch, and scope phases | [`.agent/product-brief.md`](.agent/product-brief.md) |
+| User-visible behavior, feature requirements, safety, and acceptance criteria | [`.agent/product-requirements.md`](.agent/product-requirements.md) |
+| System boundaries, planned interfaces, security, deployment, and ownership | [`.agent/project-architecture.md`](.agent/project-architecture.md) |
+| Datasets, model selection, calibration, evaluation, and reporting | [`.agent/data-evaluation-plan.md`](.agent/data-evaluation-plan.md) |
+| Verified external facts and citations | [`.agent/evidence-register.md`](.agent/evidence-register.md) |
+| Frontend constraints, design direction, components, states, and motion | [`.agent/design-guidelines.md`](.agent/design-guidelines.md) |
+| Tickets, dependencies, milestones, merge order, and fallbacks | [`.agent/implementation-plan.md`](.agent/implementation-plan.md) |
+| Decision history and rejected ideas | [`.agent/context-dump.md`](.agent/context-dump.md) |
+| Chronological documentation changes | [`.agent/log.md`](.agent/log.md) |
+| Reusable planning standard | [`.agent/plan-template.md`](.agent/plan-template.md) |
 
-**First time?** `product-brief.md` → `product-requirements.md` → `project-architecture.md`; use `context-dump.md` for rationale.
+**First read:** `AGENT.md` → the canonical document for the task. New contributors should read `product-brief.md`, then `product-requirements.md`, then their owned architecture or implementation section. Use `context-dump.md` only when the reasoning behind a decision matters.
 
-**Source precedence (if docs disagree):** `evidence-register.md` wins on facts → the four spec docs win on current spec → `context-dump.md` is *historical rationale only* (may contain superseded decisions, clearly marked). Fix drift when you find it.
+## 2. Source precedence
 
-## How to work here
+Precedence is responsibility-specific rather than one global ordering:
 
-- **Be data-driven.** Every problem claim is backed by a real, cited source. No invented stats.
-- **Build something real and ours.** Triage-not-diagnosis is non-negotiable; a human stays in the loop.
-- **The AMD hardware is load-bearing** — the model is trained/fine-tuned on the MI300X (ROCm) and served online on AMD.
-- **Push back** on anything out of scope, unworkable, or unsafe.
+1. `evidence-register.md` controls external facts and cited numbers.
+2. `product-requirements.md` controls current product behavior, safety, and MVP scope.
+3. `project-architecture.md` and `data-evaluation-plan.md` control implementation and evaluation after their owner-input blocks are completed.
+4. `design-guidelines.md` controls frontend behavior and visual constraints after its owner-input blocks are completed.
+5. `implementation-plan.md` controls sequence and ownership, but may not override the PRD or evidence.
+6. `product-brief.md` and `README.md` summarize the canonical documents.
+7. `context-dump.md` and `log.md` are historical and may contain explicitly marked superseded decisions.
 
-## Scope discipline (read before adding anything)
+When two current documents disagree, add a visible contradiction block, stop the affected implementation, and resolve the canonical source first.
 
-Features in `product-requirements.md` are tagged **[MVP]** (build for 11 Jul), **[V1]** (document, don't build now), **[OUT]** (never). **If it isn't [MVP], don't build it now** — the MVP is the demo; anything beyond it is scope creep.
+## 3. Scope and safety rules
 
-**Product invariants (non-negotiable):** triage-not-diagnosis · **evidence-backed core = cough + clinical** (CXR optional/stretch, never a fused metric) · **trained on AMD MI300X, served online on AMD** · **minimize + don't retain patient data** (no scraping) · **honest metrics** (no overclaiming vs CODA/WHO evidence) · ships by 11 Jul. A change that touches an invariant is out of scope unless explicitly re-decided and logged.
+- **[MVP]** ships for 11 July 2026.
+- **[V1]** is documented for post-hackathon work and is not built now.
+- **[Stretch]** starts only after every P0 acceptance criterion passes.
+- **[OUT]** must not be implemented.
+- The MVP core is **cough + supported clinical inputs**. It is evidence-backed, not clinically validated for deployment.
+- Chest X-ray (**Prisma**) is an isolated `[MVP]` signal with separate metrics, co-equal with the cough core (**Gema**) and built in parallel. Never fuse it with the cough score because no paired dataset supports that claim.
+- Do not retain patient inputs, log request bodies, scrape patient information, or use real patient data in the demo.
+- Model-attention and saliency artifacts show where a model focused; they are not causal explanations or clinical reasoning.
+- All factual and medical claims must trace to `evidence-register.md`.
 
-## Rules for agents & collaborators
+## 4. Visible owner-input blocks
 
-1. **Read before writing** — `AGENT.md` → the relevant `.agent/` doc.
-2. **Respect scope tags** — don't build `[V1]`/`[OUT]`; if a change touches an invariant, stop and flag it.
-3. **Check the Set-Aside Ideas Index** (`context-dump.md` §15) before proposing something — it may already be ruled out.
-4. **Log every decision** — record it in `context-dump.md` (Decisions §14, or Set-Aside §15 if rejected) and append a dated line to `.agent/log.md`.
-5. **Cite real sources** for any factual/medical claim; no invented stats.
-6. **Triage, not diagnosis** — never frame Jaga as diagnosing; the human stays in the loop.
-7. **Keep docs in sync** — when you change a doc, bump its **Updated** date; "done" includes docs updated.
+Owner-input blocks are intentional handoffs, not generic placeholders. Every block must use this structure:
 
-## Team
+> **OWNER INPUT REQUIRED — Name — due YYYY-MM-DD**
+>
+> **Blocks:** the ticket or interface that cannot proceed
+>
+> **Required output:** the exact decisions or artifacts the owner must provide
+>
+> **Affected documents:** every canonical document that must be synchronized
+>
+> **Completion rule:** replace this block with the signed decision and update the affected documents and `log.md`
 
-Daffa (AI/ML) · Zeddin (backend) · Kei (frontend) · Billy (frontend lead + design) · Fransisco (PM, presentation, video).
+Allowed owners in the current revision:
 
-## Status
+- **Daffa · due 2026-06-29:** backend/AI architecture, data schemas, inference contract, model pipeline, evaluation gates, serving, security, and observability.
+- **Billy · due 2026-06-30:** frontend architecture, screen/state map, API-to-UI mapping, design system, responsive behavior, accessibility, and motion.
 
-Idea + name + scope **LOCKED** (Jaga; online; cough+clinical core; CXR optional). **CODA access secured (Daffa, via ORCID).** Build not yet started. Open items: confirm CODA held-out split + guided-cough count; run the model-selection evidence gate; confirm exact event UTC boundary + containerization. Once the stack lands, add build/test/lint commands to `CLAUDE.md`. Full ticket board: `.agent/implementation-plan.md`.
+Do not use unowned `TODO`, `TBD`, ellipses, or vague instructions such as “handle errors.”
+
+## 5. Contradiction blocks
+
+Use this only when two still-valid owner decisions conflict:
+
+> **CONTRADICTION — BLOCKS IMPLEMENTATION**
+>
+> **Conflict:** the two incompatible statements
+>
+> **Canonical documents affected:** paths
+>
+> **Owner / due:** one accountable resolver and date
+>
+> **Resolution rule:** implementation resumes only after all affected documents agree
+
+Known factual errors should be corrected directly rather than preserved as contradiction blocks.
+
+## 6. Team boundaries
+
+- **Daffa — backend/AI architect:** owns architecture, model and data decisions, evaluation design, and technical contracts.
+- **Zeddin — backend implementer:** builds the Go API + Python (Prisma) worker service, integration, containerization, and deployment from Daffa's approved contracts.
+- **Billy — frontend/design lead:** owns frontend architecture, UX, design system, accessibility, and final polish.
+- **Kei — frontend implementer:** builds capture and result flows from Billy's approved specification.
+- **Fransisco — PM/submission:** owns schedule, evidence-to-pitch consistency, slides, video, and submission completeness.
+
+No developer implements a blocked interface before its owner-input block is completed.
+
+## 7. Working rules
+
+1. Read this router and the canonical document before editing.
+2. Keep diffs minimal and do not change unrelated files.
+3. Respect `[MVP]`, `[V1]`, `[Stretch]`, and `[OUT]` labels.
+4. Record changed decisions in `context-dump.md` and add a dated entry to `log.md`.
+5. Update `evidence-register.md` before repeating a changed factual claim elsewhere.
+6. Update a document's `Updated` date whenever its current specification changes.
+7. A task is complete only when its acceptance criteria and documentation synchronization checks pass.
+
+## 8. Current status and first tasks
+
+Idea, name, research framing, cohort boundary, online AMD serving, and two co-equal `[MVP]` signals — cough-plus-clinical (Gema) and isolated digital-CXR (Prisma), never fused — are locked. CODA is controlled-access and Daffa has access; dataset redistribution is prohibited.
+
+- **Daffa:** complete the owner blocks in [`.agent/project-architecture.md`](.agent/project-architecture.md) and [`.agent/data-evaluation-plan.md`](.agent/data-evaluation-plan.md) by 29 June.
+- **Zeddin:** read [`.agent/project-architecture.md`](.agent/project-architecture.md) and start ticket `BE-0` only after Daffa signs the contract block.
+- **Billy:** complete the owner blocks in [`.agent/design-guidelines.md`](.agent/design-guidelines.md) and the frontend section of [`.agent/project-architecture.md`](.agent/project-architecture.md) by 30 June.
+- **Kei:** read [`.agent/product-requirements.md`](.agent/product-requirements.md) and start ticket `FE-0` only after Billy signs the screen/state block.
+- **Fransisco:** validate the milestone and submission checklist in [`.agent/implementation-plan.md`](.agent/implementation-plan.md) against the event page.
