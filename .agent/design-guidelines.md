@@ -1,7 +1,5 @@
 # Jaga · Design Guidelines
 
-**Status:** Active · **Updated:** 2026-06-27 · **Owner:** Billy
-
 > Brand, voice, color, type, components, motion, and the signature visual.
 > Companions: `product-brief.md` · `product-requirements.md` · `project-architecture.md` · `context-dump.md`.
 

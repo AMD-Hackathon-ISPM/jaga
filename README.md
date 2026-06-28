@@ -1,6 +1,6 @@
 # Jaga
 
-**An AI-powered tuberculosis triage tool that turns a 10-second cough plus a few clinical questions into an explainable, calibrated risk result — on any phone, no X-ray machine, lab, or radiologist required.**
+**An AI-powered tuberculosis triage tool that turns a few guided coughs plus a short clinical form into an explainable, calibrated risk estimate — on any phone, no X-ray machine, lab, or radiologist required.**
 
 [Product Brief](.agent/product-brief.md) · [Requirements](.agent/product-requirements.md) · [Architecture](.agent/project-architecture.md) · [Design Guidelines](.agent/design-guidelines.md) · [Agent Guide](AGENT.md)
 
@@ -8,21 +8,21 @@
 
 ## What is Jaga?
 
-Jaga is a phone-first tuberculosis triage tool. A community health worker records a 10-second cough and a few clinical details, an AI model trained on AMD returns an explainable, calibrated TB-risk result in seconds, and that decides who needs a confirmatory test. _Jaga_ is Indonesian for "to watch over / to guard."
+Jaga is a phone-first tuberculosis triage tool. A community health worker records a few guided coughs and a short clinical form, an AI model trained on AMD returns an explainable, calibrated TB-risk estimate in seconds, and that prioritizes who needs a confirmatory test. _Jaga_ is Indonesian for "to watch over / to guard." *(Investigational research prototype — triage, not diagnosis; documented for symptomatic adults 18+.)*
 
 **The problem:** Tuberculosis is again the world's deadliest infectious disease. In 2024 there were an estimated [10.7M cases but only 8.3M were diagnosed and reported — a ~2.4M (≈22%) detection gap](https://www.who.int/news/item/12-11-2025-global-gains-in-tuberculosis-response-endangered-by-funding-challenges) (WHO 2025), because first-line screening needs [X-ray machines, sputum labs, and trained readers the hardest-hit communities don't have](https://pmc.ncbi.nlm.nih.gov/articles/PMC9803213/). Indonesia is the world's #2 burden country and a top contributor to that gap.
 
-**The solution:** A phone-first screen built on the validated cough + clinical signal. It listens to a cough, combines it with symptoms and demographics into one **calibrated** TB-risk score, and shows the model's reasoning (spectrogram + attention overlay + contributing factors). The model is **trained on AMD** and served online. An optional chest-X-ray module adds an independent signal where a digital X-ray is available. **Triage, not diagnosis** — a human always stays in the loop and flagged cases go for confirmatory testing.
+**The solution:** A phone-first screen built on the evidence-backed cough + clinical signal. It listens to a cough, combines it with symptoms and demographics into one **calibrated** TB-risk score, and shows *where the model focused* (spectrogram + model-attention overlay + contributing factors — model attention, not a claim of clinical reasoning). The model is **trained on AMD** and served online. An optional chest-X-ray module adds an independent signal where a digital X-ray is available. **Triage, not diagnosis** — a human always stays in the loop and flagged cases go for confirmatory testing.
 
 ## Key Features
 
 | Feature              | Description                                                                                                                       |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Listen**           | 10-second cough → mel-spectrogram + acoustic analysis, with an audio-quality gate and a model-attention overlay                   |
-| **Combine**          | Cough + demographics + symptoms → one **calibrated** TB-risk probability (the validated cough+clinical core)                      |
+| **Listen**           | A few guided coughs (~10s) → mel-spectrogram + acoustic analysis, with an audio-quality gate and a model-attention overlay         |
+| **Combine**          | Cough + demographics + symptoms → one **calibrated** TB-risk probability (the evidence-backed cough+clinical core)                |
 | **Decide**           | Explainable triage band (Low / Elevated / High → refer for confirmatory test) + deterministic bilingual (Bahasa/English) referral |
 | **See** _(optional)_ | Digital chest X-ray → an **independent** TB-likelihood + attention heatmap, shown alongside (not fused into the score)            |
-| **Honest by design** | Real metrics vs the WHO triage target, calibration, subgroup performance, and stated limitations — no overclaiming               |
+| **Honest by design** | Real metrics vs the WHO 2025 screening profiles, calibration, subgroup performance, and stated limitations — no overclaiming      |
 
 ## Tech Stack (MVP)
 
@@ -49,6 +49,9 @@ jaga/
     ├── product-brief.md          # Product vision, market, business model
     ├── product-requirements.md   # Users, scope (tagged), features, acceptance criteria
     ├── project-architecture.md   # System architecture, models, datasets, pipeline
+    ├── data-evaluation-plan.md   # Datasets, splits, leakage controls, model gate, metrics
+    ├── evidence-register.md      # Verified facts + sources (single source of truth)
+    ├── implementation-plan.md    # 5-day ticket board, API contract, deliverables
     ├── design-guidelines.md      # Brand, voice, color, components
     ├── log.md                    # Chronological decision/change log
     └── plan-template.md          # Documentation depth standard
@@ -66,9 +69,9 @@ jaga/
 
 ## Hackathon Context
 
-Built for the **AMD Developer Hackathon ACT II** (lablab.ai) — **Unicorn track** (judged on creativity, originality, and product potential). The cough+clinical model is **trained on the AMD Instinct MI300X** via ROCm and served online on AMD Dev Cloud; an optional plain-language note uses the Fireworks API. Ends **11 July 2026** (≈5-day sprint — confirm start date).
+Built for the **AMD Developer Hackathon ACT II** (lablab.ai) — **Unicorn track** (judged on creativity, originality, and product potential). The cough+clinical model is **trained on the AMD Instinct MI300X** via ROCm and served online on AMD Dev Cloud; an optional plain-language note uses the Fireworks API. **6–11 July 2026** (~5-day sprint; confirm exact UTC).
 
-**Demo narrative (≈5 min):** open on the global TB crisis and detection gap; record a cough + a few clinical answers → spectrogram + **model-attention** overlay → calibrated triage band + deterministic referral; show **honest metrics** (cough+clinical AUROC vs the WHO target, stated as an aspiration) and the **AMD training story**; land the beachhead (Indonesia → worldwide). _(Stretch: show the optional CXR signal as a separate panel.)_
+**Demo narrative (≈5 min):** open on the global TB crisis and detection gap; record a few guided coughs + a short clinical form → spectrogram + **model-attention** overlay → calibrated triage band + deterministic referral; show **honest metrics** (cough+clinical AUROC vs the WHO 2025 screening profiles, stated as an aspiration) and the **AMD training story**; land the beachhead (Indonesia → worldwide). _(Stretch: show the optional CXR signal as a separate panel.)_
 
 ## Developers
 

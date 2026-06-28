@@ -1,7 +1,5 @@
 # Jaga · Product Requirements (PRD)
 
-**Status:** Active · **Updated:** 2026-06-27 · **Owner:** Fransisco (PM)
-
 > Roles, scope, user flow, features, and acceptance criteria.
 > Companions: `product-brief.md` · `project-architecture.md` · `design-guidelines.md` · `context-dump.md`.
 
@@ -13,7 +11,7 @@ Every feature carries a tag. **If it isn't `[MVP]`, do not build it for the hack
 - **[V1]** — after the hackathon. Document, don't build now.
 - **[OUT]** — explicitly never; listed so no one speculatively builds it.
 
-**Product invariants (non-negotiable, do not drift):** triage-not-diagnosis · **validated core = cough + clinical inputs** (CXR is optional/stretch, never a fused metric) · **trained on AMD MI300X (ROCm), served online on AMD** · **minimize + don't retain patient data** (transient cloud inference; no scraping) · honest metrics (no overclaiming vs the CODA/WHO evidence) · ships by 11 Jul. A change touching any of these is out of scope unless explicitly re-decided and logged in `context-dump.md` + `log.md`.
+**Product invariants (non-negotiable, do not drift):** triage-not-diagnosis · **evidence-backed core = cough + clinical inputs** (CXR is optional/stretch, never a fused metric) · **trained on AMD MI300X (ROCm), served online on AMD** · **minimize + don't retain patient data** (transient cloud inference; no scraping) · honest metrics (no overclaiming vs the CODA/WHO evidence) · ships by 11 Jul. A change touching any of these is out of scope unless explicitly re-decided and logged in `context-dump.md` + `log.md`.
 
 ---
 
@@ -22,13 +20,14 @@ Every feature carries a tag. **If it isn't `[MVP]`, do not build it for the hack
 - **Clinic / district TB program lead** — deploys the AMD edge appliance; owns case-finding targets; views aggregate results. (Persona: *Dr. Adi*.)
 - **NGO field coordinator** — runs mobile screening camps; needs triage at point of contact. (Persona: *Maria*.)
 
-## Scope — MVP (≈5-day sprint, ships by 11 Jul)
-Capture (cough + structured clinical form) → **online inference on AMD (cloud)** → explainable, calibrated TB-risk triage + referral. One clean end-to-end loop. **Validated core = cough + clinical.** Chest X-ray = optional/stretch module only.
+## Scope — MVP (≈5-day sprint, 6–11 Jul)
+Capture (cough + structured clinical form) → **online inference on AMD (cloud)** → explainable, calibrated TB-risk triage + referral. One clean end-to-end loop. **Evidence-backed core = cough + clinical.** Chest X-ray = optional/stretch module only.
+**Documented cohort:** **symptomatic adults (18+) with cough** — matches the CODA evidence base. We do not claim performance for children, asymptomatic screening, or the general population (stated as a limitation). **Investigational research prototype**, not a cleared device.
 
 ## User journey
 1. **Demographics + risk factors** (required) — age, sex, region, known TB contact.
 2. **Symptoms** (required-lite) — symptom chips (cough duration, fever, night sweats, weight loss) feed the clinical model.
-3. **Cough** (required) — record a ~10-second cough; live waveform; an **audio-quality gate** rejects unusable recordings.
+3. **Cough** (required) — record **a few guided coughs (~10s, per the CODA solicited-cough protocol)**; live waveform; an **audio-quality gate** rejects unusable recordings.
 4. **Chest X-ray** (optional / stretch) — upload a *digital* X-ray for a separate, independent TB-likelihood signal. Skippable.
 5. **Analysis** — sent to the AMD cloud model; processed transiently, not retained.
 6. **Result** — calibrated risk band + explainability + deterministic bilingual referral.
@@ -36,8 +35,8 @@ Capture (cough + structured clinical form) → **online inference on AMD (cloud)
 **Design principle:** the score is a **calibrated probability** — adding inputs can raise *or* lower it, and conflicting signals can reduce certainty. We never mechanically inflate confidence with more input.
 
 ## Features
-- **[MVP] Listen** — 10-sec cough → mel-spectrogram + compact audio embeddings (with audio-quality gate).
-- **[MVP] Combine** — cough + demographics + symptoms → **one calibrated TB-risk probability** (the validated cough+clinical core).
+- **[MVP] Listen** — a few guided coughs (~10s) → mel-spectrogram + compact audio embeddings (with audio-quality gate).
+- **[MVP] Combine** — cough + demographics + symptoms → **one calibrated TB-risk probability** (the evidence-backed cough+clinical core).
 - **[MVP] Decide** — triage band (**Low / Elevated / High → refer for confirmatory test**), explainable (spectrogram + **model-attention** overlay, calibrated score, key contributing factors), with **deterministic** bilingual (Bahasa/English) referral copy.
 - **[Stretch] See (CXR module)** — optional *digital* chest X-ray → an **independent** TB-likelihood + model-attention heatmap, shown *alongside* the cough+clinical score (not fused into it).
 - **[Stretch/V1] Richer note** — optional online Fireworks-generated plain-language explanation (deterministic copy is the default).
@@ -50,7 +49,7 @@ Calibrated risk band/score · cough mel-spectrogram + **model-attention** overla
 - End-to-end flow runs **online**, served on AMD (Dev Cloud), reachable at a public app URL.
 - **Cough + clinical form required;** flow produces a calibrated triage band; CXR optional and clearly separate.
 - Every result is **explainable** (spectrogram + model-attention + contributing factors) and shows **limitations**.
-- Accuracy reported **honestly** vs the published evidence: cough-only AUROC ~**0.69–0.74**, **cough+clinical ~0.78–0.83** ([CODA challenge](https://pmc.ncbi.nlm.nih.gov/articles/PMC12502651/)); the **WHO ≥90% sens / ≥70% spec** target is the *aspiration we measure against, not a promised number*. Eval is **subject-level / site-held-out**, with calibration + subgroup metrics.
+- Accuracy reported **honestly** vs the published evidence: cough-only AUROC ~**0.69–0.74**, **cough+clinical ~0.78–0.83** ([CODA challenge](https://pmc.ncbi.nlm.nih.gov/articles/PMC12502651/)); the **WHO 2025 screening TPP** (tiered targets — see `evidence-register.md`) is the *aspiration we measure against, not a promised number*. Eval is **subject-level / leave-one-country-out**, with calibration + subgroup metrics (full method in `data-evaluation-plan.md`).
 - Containerized; deployed online for the demo. (Confirm containerization requirement.)
 
 ## Safety / non-negotiables

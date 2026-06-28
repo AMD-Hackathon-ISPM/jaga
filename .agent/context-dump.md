@@ -1,12 +1,8 @@
 # Jaga · Full Context Dump
 
-**Status:** Active · **Updated:** 2026-06-27 · **Owner:** Billy
-
 **Purpose:** A complete record of how Jaga was conceived — from first principles about what we wanted to build, through every idea we explored and discarded, to the product we committed to. This exists so anyone (future Claude instances, new teammates, your future self) can reconstruct not just *what* Jaga is but *why every decision was made the way it was*.
 
 **Format:** Roughly chronological, organized by phase. Each phase shows the question we were wrestling with, the key insights, the decisions made, and what we set aside. Indices at the end give fast lookup.
-
-**Status:** Captured from the full ideation session. Idea + name LOCKED; build not yet started. Target ship date **11 July 2026** (AMD Developer Hackathon ACT II).
 
 ---
 
@@ -173,7 +169,8 @@ What the review got wrong: it said the track/criteria were "TBA" — they're not
 | **Honest metrics (no overclaiming)** | Report real CODA numbers (cough+clinical AUROC ~0.78–0.83) with WHO 90/70 as an aspiration; a technical judge can dismantle inflated claims |
 | **Name: Jaga** | "To watch over / guard" — says the mission, authentic to us, distinct from existing tools |
 | **Global tool; beachhead = community health workers in Indonesia** | Market is the worldwide high-burden belt; we start in Indonesia (#2 burden, our home) for ground truth + authenticity, then expand |
-| **Public/bundled data only (CODA cough, Kaggle TB CXR, Shenzhen/Montgomery)** | Honest, reproducible, no scraping, no patient data exposed |
+| **Controlled-access CODA (Daffa has it via ORCID) + public CXR** | *(Corrected — CODA is NOT a public download; it's Synapse controlled-access.)* Honest, reproducible, no scraping; honor CODA data-use terms |
+| **Keep `CLAUDE.md` as a thin pointer (not sole `AGENT.md`)** | A reviewer asked to delete it for a single entry point; we keep it because **Claude Code auto-loads `CLAUDE.md`** — removing it means the coding agent loses project conventions on load. `AGENT.md` remains canonical; `CLAUDE.md` points to it + holds the maintenance ritual, so no real duplication/drift |
 | **No live web scraping** | A craft lesson from ConsumerIQ — robust products don't depend on fragile pipelines |
 | **Clarity + decisive output as our signature** | It's what we're best at and what makes a tool trustworthy |
 | **Design treated as substance** | Clear, polished UX is how people trust and adopt a health tool |
@@ -200,7 +197,8 @@ Things we explored and chose not to build, with the honest reason:
 | **Offline / on-device deployment (for MVP)** | *(Set aside in Phase 13.)* Incoherent with cloud/AMD/Fireworks; on-device models too large for cheap phones in a 5-day sprint. On-prem "edge" kept as a future roadmap only |
 | **Fused cough+X-ray validated score** | No paired data exists to train/validate fusion; would be dismantled by a technical judge. CXR kept as an independent optional signal |
 | **Scoring a photographed X-ray film** | Not equivalent to the digital CXR the models are trained/evaluated on |
-| **Overstated metrics (0.85–0.90 cough; fused ≥90/70)** | Not supported by CODA evidence; replaced with honest ranges + WHO target as aspiration |
+| **Overstated metrics (0.85–0.90 cough; fused ≥90/70)** | Not supported by CODA evidence; replaced with honest ranges + WHO 2025 TPP as aspiration |
+| **Quantum image processing / quantum ML for the X-ray (or cough)** | Research-stage with **no demonstrated advantage** over classical CNNs (classical TB-CXR ~94%); wouldn't use AMD ROCm (uses a quantum SDK/simulator → weakens the AMD criterion); reads as buzzword-padding against our honesty posture; needs heavy downsampling; a time sink in a 5-day sprint. Only conceivable as a clearly-labelled research sidebar (not the MVP). |
 
 ---
 

@@ -1,17 +1,16 @@
 # Jaga · Product Brief
 
-**Status:** Active · **Updated:** 2026-06-27 · **Owner:** Fransisco (PM)
-
 > **Jaga** (Indonesian: "to watch over / to guard"). Vision, market, business model, and positioning.
 > Companions: `product-requirements.md` · `project-architecture.md` · `design-guidelines.md` · `context-dump.md`.
 
 ---
 
 ## What Jaga is
-> An AI-powered tuberculosis triage tool: a community health worker records a 10-second cough and a few clinical details on a phone, and an explainable, calibrated TB-risk result comes back in seconds — **no X-ray machine, no sputum lab, no on-site radiologist required** — to decide who needs a confirmatory test. (Inference runs online on AMD.)
+> An AI-powered tuberculosis triage tool: a community health worker records a few guided coughs (~10s) and a short clinical form on a phone, and an explainable, calibrated TB-risk estimate comes back in seconds — **no X-ray machine, no sputum lab, no on-site radiologist required** — to prioritize who needs a confirmatory test. (Inference runs online on AMD.)
 
 **Tagline:** Catch it early. Guard your community.
-**One-liner:** Cough into a phone, answer a few questions, and an AI trained on AMD flags tuberculosis risk in seconds — no lab, no X-ray machine, no radiologist needed.
+**One-liner:** A few guided coughs and a short form on any phone, and an AI trained on AMD flags tuberculosis risk in seconds — no lab, no X-ray machine, no radiologist needed.
+**Status & scope:** an **investigational research prototype** (triage, not diagnosis), documented for **symptomatic adults 18+** with cough — matching the CODA evidence base. *(This is the honest framing; the product ambition below is the path it's on.)*
 
 ## Why this problem (a global crisis)
 TB is again the **world's deadliest infectious disease**. In 2024 there were an estimated [**10.7M cases but only 8.3M were diagnosed and reported — a ~2.4M (≈22%) detection gap**](https://www.who.int/news/item/12-11-2025-global-gains-in-tuberculosis-response-endangered-by-funding-challenges) (WHO 2025), driven by both under-diagnosis and under-reporting. The gap concentrates in a high-burden belt — India, Indonesia, the Philippines, Pakistan, China, and sub-Saharan Africa. The reason is painfully practical: first-line screening depends on equipment and staff the hardest-hit communities don't have — [an X-ray machine, a sputum lab (low-sensitivity microscopy), and trained readers; patients travel far to find broken machines](https://pmc.ncbi.nlm.nih.gov/articles/PMC9803213/). Jaga attacks that gap with a screen that needs only a phone.
@@ -43,18 +42,11 @@ The space is real and contested. [qXR / CAD4TB / Lunit](https://www.nature.com/a
 
 ## Core pitch messages
 1. *"TB is the world's deadliest infectious disease — and 2.4M cases a year go undetected, because first-line screening needs equipment the sick can't reach."*
-2. *"Jaga turns a 10-second cough plus a few questions into a triage decision — on any phone, with a model trained on AMD."*
+2. *"Jaga turns a few guided coughs plus a short form into a triage decision — on any phone, with a model trained on AMD."*
 3. *"Global problem, real starting line: we're building it in Indonesia, the world's #2 burden, then scaling across the high-burden belt."*
-
-## Team
-- **Daffa** — AI/ML lead (train cough+clinical model on MI300X; calibration; explainability; stretch CXR module).
-- **Zeddin** — backend, data pipeline, API contract, containerization, cloud serving, optional Fireworks note.
-- **Kei** — frontend (capture + result UI, PWA).
-- **Billy** — frontend lead, design system, signature result visuals, bilingual UX copy.
-- **Fransisco** — PM, pitch deck/presentation, demo video.
 
 ## Timeline (≈5-day sprint; ends 11 Jul 2026 — confirm start date)
 D1 data + baseline cough+clinical model on MI300X · D2 calibration + subject-level/site-held-out eval + subgroup metrics · D3 frontend capture journey + result dashboard (spectrogram + model attention) + deterministic referral · D4 polish + honest metrics writeup + deploy online + demo video · D5 buffer + submit. *(Stretch: independent CXR module if time.)*
 
 ## Demo narrative
-Open on the global crisis (top infectious killer; ~2.4M cases undetected each year; the access gap across the high-burden belt). Record a cough + a few clinical answers → spectrogram + **model-attention** overlay → calibrated triage band + deterministic referral; show the **honest metrics** (cough+clinical AUROC vs the WHO target, stated as an aspiration) and the **AMD training story**; land the beachhead: starting in Indonesia (#2 burden), scaling worldwide. *(Stretch: show the optional CXR signal as a separate panel.)*
+Open on the global crisis (top infectious killer; ~2.4M cases undetected each year; the access gap across the high-burden belt). Record a cough + a few clinical answers → spectrogram + **model-attention** overlay → calibrated triage band + deterministic referral; show the **honest metrics** (cough+clinical AUROC vs the WHO 2025 screening profiles, stated as an aspiration) and the **AMD training story**; land the beachhead: starting in Indonesia (#2 burden), scaling worldwide. *(Stretch: show the optional CXR signal as a separate panel.)*
