@@ -62,6 +62,14 @@ dataset/
 python scripts/train.py --config configs/default.yaml
 ```
 
+Alternative backbones:
+
+```bash
+python scripts/train.py --config configs/local_efficientnet_b0.yaml
+python scripts/train.py --config configs/local_biomedclip.yaml
+python scripts/train.py --config configs/local_raddino.yaml
+```
+
 ## Evaluate
 
 ```bash
@@ -138,6 +146,26 @@ python scripts/retrieval_demo.py --config configs/local_clahe.yaml --query-index
 ```
 
 If your Runpod dataset path differs, copy `configs/local_clahe.yaml` and update `dataset.root`.
+
+To switch backbones, only swap the config file:
+
+```bash
+python scripts/train.py --config configs/local_efficientnet_b0.yaml
+python scripts/train.py --config configs/local_biomedclip.yaml
+python scripts/train.py --config configs/local_raddino.yaml
+```
+
+To run the full train to retrieval pipeline in one command:
+
+```bash
+cd backend/python/project
+chmod +x scripts/run_full_pipeline.sh
+./scripts/run_full_pipeline.sh configs/local_efficientnet_b0.yaml
+./scripts/run_full_pipeline.sh configs/local_biomedclip.yaml
+./scripts/run_full_pipeline.sh configs/local_raddino.yaml
+```
+
+`BiomedCLIP` and `Rad-DINO` will download pretrained weights on first run. If GPU memory is tight, lower the batch sizes in the matching YAML before training.
 
 Or use the bundled shell script to download the Kaggle dataset into `data/` and start training:
 
