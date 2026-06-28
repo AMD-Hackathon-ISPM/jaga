@@ -31,7 +31,7 @@ Phone/PWA
   └─ transient in-memory state
           │ HTTPS multipart request
           ▼
-FastAPI service on AMD infrastructure
+Go API + Prisma worker on AMD infrastructure
   ├─ schema/version validation
   ├─ request-scoped preprocessing
   ├─ audio-quality gate
@@ -88,7 +88,7 @@ Billy owns frontend architecture, UX, accessibility, and review. Kei implements 
 
 ### 4.1 Locked constraints
 
-- FastAPI/Python service packaged in Docker and deployed on AMD infrastructure.
+- Go REST API (public orchestrator) plus a Python (Prisma) serving worker, packaged in Docker and deployed on AMD infrastructure via Docker Swarm.
 - Request-scoped processing only; no input persistence.
 - Validate content type, byte limits, encoding, field schema, contract version, and model availability before inference.
 - Return structured error codes; never return partial or stale estimates.
@@ -227,27 +227,39 @@ Prohibited telemetry includes audio, clinical values, raw/derived health estimat
 
 Zeddin owns implementation and deployment after Daffa signs architecture/security contracts. Fransisco owns submission completeness, not runtime operations.
 
-## 11. Planned repository structure
+## 11. Repository structure (as-built)
 
-The exact names may be adjusted in the signed owner sections, but responsibilities must remain separated:
+This reflects the layout on `backend-train`. Names may still be adjusted in the signed owner sections, but responsibilities must remain separated. The public request orchestrator is the **Go API** (`backend/go`); model serving is the **Prisma Python worker** (`backend/python/PrismaServer`); training/research is isolated in **`PrismaTraining`**. (Supersedes the earlier planned `apps/api/` FastAPI layout; the contract semantics in §4–§6 are unchanged.)
 
 ```text
-apps/
-├── web/                 # PWA capture/result client
-└── api/                 # FastAPI request orchestration
-ml/
-├── data/                # controlled-access download/manifests; ignored
-├── training/            # baseline/candidate training
-├── evaluation/          # participant-grouped/LOCO/calibration reports
-└── artifacts/           # versioned non-patient model metadata
-infra/
-├── containers/          # pinned runtime images
-└── deploy/              # AMD deployment configuration
-tests/
-├── contract/            # frontend/backend schema compatibility
-├── integration/         # end-to-end fixture paths
-└── privacy/             # logging/retention assertions
+backend/
+├── go/                  # public Go REST API + orchestration (request orchestrator)
+│   ├── cmd/server/      # entrypoint
+│   └── internal/        # config, handlers, http, memory (Cognee iface), models, routes, validation
+└── python/
+    ├── PrismaServer/    # Prisma serving worker (bundled local_clahe artifacts)
+    └── PrismaTraining/  # research/training: configs, data, models, training, evaluation,
+                         #   retrieval, quantum, scripts, utils (controlled-access data ignored)
+infra/                   # Docker Swarm deployment plane
+├── docker-stack.yml     # nginx, go-api, prisma-worker, postgres, redis, minio
+├── nginx/ postgres/ redis/ minio/ cognee/
+├── healthcheck/         # api / prisma / cognee probes
+└── scripts/             # build, deploy, logs, scale, remove (sh + ps1)
+apps/web/                # PWA capture/result client (frontend; see §3.2)
 ```
+
+**Endpoints (as-built):**
+
+| Service | Method · Path | Status |
+|---|---|---|
+| Go API | `POST /api/v1/patient/intake` | Live — validate/normalize metadata, no persistence/ML |
+| Go API | `GET /health`, `GET /healthz` | Live — process health |
+| Go API | `GET /api/v1/status`, `GET /v1/status` | Live — service status |
+| Go API | `GET /internal/health/cognee` | Live — semantic-memory availability only |
+| Prisma worker | `GET /health`, `GET /api/v1/status` | Live |
+| Go API → Prisma | `POST /api/v1/triage` (Gema), `POST /api/v1/cxr` (Prisma) | **Pending** — Daffa `ARCH-1` (§6) |
+
+> Tests (`tests/contract/`, `tests/integration/`, `tests/privacy/` per the planned schema/integration/privacy split) are not yet scaffolded; add them as the triage contract is signed.
 
 ## 12. Failure policy [MVP]
 
@@ -283,7 +295,7 @@ Architecture is ready for implementation only when:
 
 ## 14. Implemented backend runtime (`backend-train`)
 
-> **Status:** As-built on the `backend-train` branch. This section records the runtime layout that actually exists today; it is more concrete than, and in places diverges from, the *planned* §11 structure (`apps/api/` FastAPI service). The signed contracts in §4–§9 remain canonical for behavior and safety — code here must reconcile to them as Daffa's `ARCH-1` blocks are signed.
+> **Status:** As-built on the `backend-train` branch. This section records the runtime layout and behavior that exist today; the file/endpoint layout is enumerated in §11. The signed contracts in §4–§9 remain canonical for behavior and safety — code here must reconcile to them as Daffa's `ARCH-1` blocks are signed.
 
 ### 14.1 Runtime split
 
@@ -326,7 +338,6 @@ Docker Swarm with NGINX reverse proxy, replicated `go-api` tasks, and an interna
 ### 14.7 Open items
 
 - Confirm the final cough + clinical backbone for the demo path.
-- Sign the production `POST /api/v1/triage` (and `POST /api/v1/cxr`) contract (Daffa `ARCH-1`).
-- Reconcile the implemented `backend/python` + `backend/go` layout with the planned §11 `apps/api/` structure, or update §11.
+- Sign the production `POST /api/v1/triage` (and `POST /api/v1/cxr`) contract (Daffa `ARCH-1`); both are still unbuilt (§11 endpoint table).
 - Wire completed inference output into the memory layer without blocking predictions.
 - Confirm the submission deployment environment and public URL.

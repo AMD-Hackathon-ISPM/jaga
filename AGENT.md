@@ -97,7 +97,7 @@ Known factual errors should be corrected directly rather than preserved as contr
 ## 6. Team boundaries
 
 - **Daffa — backend/AI architect:** owns architecture, model and data decisions, evaluation design, and technical contracts.
-- **Zeddin — backend implementer:** builds the FastAPI service, integration, containerization, and deployment from Daffa's approved contracts.
+- **Zeddin — backend implementer:** builds the Go API + Python (Prisma) worker service, integration, containerization, and deployment from Daffa's approved contracts.
 - **Billy — frontend/design lead:** owns frontend architecture, UX, design system, accessibility, and final polish.
 - **Kei — frontend implementer:** builds capture and result flows from Billy's approved specification.
 - **Fransisco — PM/submission:** owns schedule, evidence-to-pitch consistency, slides, video, and submission completeness.

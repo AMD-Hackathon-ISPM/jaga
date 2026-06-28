@@ -28,7 +28,7 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 | Owner | Decision responsibility | Implementation responsibility |
 |---|---|---|
 | Daffa | Backend/AI architecture, data/model/evaluation contracts | Model, preprocessing, quality, calibration, release artifacts |
-| Zeddin | Proposes backend implementation details to Daffa | FastAPI, orchestration, integration, containerization, deployment |
+| Zeddin | Proposes backend implementation details to Daffa | Go API + Python (Prisma) worker, orchestration, integration, containerization, deployment |
 | Billy | Frontend/design architecture, copy, accessibility, review | Design system, integration review, final polish |
 | Kei | Proposes frontend implementation details to Billy | Capture/result frontend implementation |
 | Fransisco | Scope, schedule, pitch/evidence consistency | Submission copy, slides, video, asset completeness |
@@ -194,7 +194,7 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 
 **Work**
 
-- Scaffold FastAPI modules, dependency management, tests, and pinned Docker runtime.
+- Scaffold the Go API + Python (Prisma) worker modules, dependency management, tests, and pinned Docker runtime.
 - Add health/readiness skeletons and schema generation from the signed contract.
 
 **Acceptance criteria**
