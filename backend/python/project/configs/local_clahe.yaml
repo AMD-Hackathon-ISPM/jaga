@@ -105,6 +105,16 @@ retrieval:
   paths_path: null
   metadata_path: null
 
+quantum:
+  enabled: true
+  pca_dim: 4
+  max_samples: 300
+  test_size: 0.2
+  random_state: 42
+  shots: null
+  n_layers: 1
+  output_dir: quantum
+
 output:
   root: outputs
   experiment_name: tb_cxr

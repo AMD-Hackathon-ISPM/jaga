@@ -122,6 +122,18 @@ class RetrievalConfig:
 
 
 @dataclass
+class QuantumConfig:
+    enabled: bool
+    pca_dim: int
+    max_samples: int | None
+    test_size: float
+    random_state: int
+    shots: int | None
+    n_layers: int
+    output_dir: str
+
+
+@dataclass
 class OutputConfig:
     root: str
     experiment_name: str
@@ -145,6 +157,7 @@ class ExperimentConfig:
     evaluation: EvaluationConfig
     embeddings: EmbeddingConfig
     retrieval: RetrievalConfig
+    quantum: QuantumConfig
     output: OutputConfig
 
 
@@ -158,6 +171,7 @@ class RuntimePaths:
     metrics_dir: Path
     embeddings_dir: Path
     retrieval_dir: Path
+    quantum_dir: Path
     logs_dir: Path
 
 
@@ -198,6 +212,7 @@ def load_experiment_config(path: str | Path) -> ExperimentConfig:
         evaluation=EvaluationConfig(**data['evaluation']),
         embeddings=EmbeddingConfig(**data['embeddings']),
         retrieval=RetrievalConfig(**data['retrieval']),
+        quantum=QuantumConfig(**data['quantum']),
         output=OutputConfig(**data['output']),
     )
 
@@ -214,6 +229,7 @@ def resolve_runtime_paths(project_root: Path, config: ExperimentConfig) -> Runti
         metrics_dir=run_dir / 'metrics',
         embeddings_dir=run_dir / 'embeddings',
         retrieval_dir=run_dir / 'retrieval',
+        quantum_dir=_resolve_run_subdir(run_dir, config.quantum.output_dir),
         logs_dir=run_dir / 'logs',
     )
     for path in (
@@ -224,6 +240,7 @@ def resolve_runtime_paths(project_root: Path, config: ExperimentConfig) -> Runti
         paths.metrics_dir,
         paths.embeddings_dir,
         paths.retrieval_dir,
+        paths.quantum_dir,
         paths.logs_dir,
     ):
         path.mkdir(parents=True, exist_ok=True)
@@ -260,3 +277,10 @@ def _resolve_optional_path(project_root: Path, raw_path: str | None, default_pat
     if raw_path is None:
         return default_path
     return _resolve_path(project_root, raw_path)
+
+
+def _resolve_run_subdir(run_dir: Path, raw_path: str) -> Path:
+    path = Path(raw_path)
+    if path.is_absolute():
+        return path
+    return (run_dir / path).resolve()

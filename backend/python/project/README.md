@@ -12,6 +12,7 @@ This package is a modular PyTorch research scaffold for tuberculosis chest X-ray
 - Evaluation with classification, ranking, and confusion-matrix metrics
 - Embedding export for downstream retrieval and metric-learning workflows
 - FAISS-based retrieval over saved embeddings with evidence aggregation
+- Post-training QML comparison between classical PCA + RBF SVM and PCA + Quantum Kernel SVM
 
 ## Layout
 
@@ -104,6 +105,32 @@ python scripts/retrieval_demo.py --config configs/default.yaml --query-image-pat
 
 The retrieval demo saves a JSON summary and a CSV neighbor table under the run's `retrieval/` directory.
 
+## Quantum comparison
+
+The QML branch runs after embedding extraction and consumes saved `embeddings.npy`, `labels.npy`, `paths.npy`, and `metadata.csv`.
+
+```bash
+python scripts/run_quantum.py --config configs/local_clahe.yaml
+```
+
+Optional overrides:
+
+```bash
+python scripts/run_quantum.py --config configs/local_clahe.yaml --pca-dim 4 --max-samples 300
+```
+
+Artifacts are saved under the run's `quantum/` directory:
+
+- `quantum_metrics.json`
+- `classical_predictions.csv`
+- `quantum_predictions.csv`
+- `pca_embeddings.npy`
+- `sampled_indices.npy`
+- `quantum_train_kernel.npy`
+- `quantum_test_kernel.npy`
+
+The runner tries `lightning.gpu` first when that PennyLane backend is available, then falls back to `lightning.qubit`, then `default.qubit`.
+
 ## Local Docker only
 
 Dockerfiles in this folder are for local validation only.
@@ -143,6 +170,7 @@ python scripts/evaluate.py --config configs/local_clahe.yaml
 python scripts/extract_embeddings.py --config configs/local_clahe.yaml
 python scripts/build_index.py --config configs/local_clahe.yaml
 python scripts/retrieval_demo.py --config configs/local_clahe.yaml --query-index 0
+python scripts/run_quantum.py --config configs/local_clahe.yaml
 ```
 
 If your Runpod dataset path differs, copy `configs/local_clahe.yaml` and update `dataset.root`.
@@ -185,5 +213,5 @@ RUN_FULL_PIPELINE=1 ./scripts/download_and_train.sh configs/local_clahe.yaml
 
 ## Notes
 
-- Grad-CAM and quantum modules are intentionally scaffolded but not implemented.
+- Grad-CAM remains intentionally scaffolded and not implemented.
 - The same training pipeline can switch backbones through `model.name` and related config values only.
