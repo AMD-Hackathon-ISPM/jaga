@@ -1,6 +1,6 @@
 # Jaga
 
-**An investigational, phone-first tuberculosis triage prototype that combines five guided coughs with supported clinical inputs to help prioritize follow-up urgency.**
+**An investigational, phone-first tuberculosis triage prototype that combines five guided coughs with supported clinical inputs to help prioritize follow-up urgency — no X-ray machine, lab, or radiologist required.**
 
 [Product Brief](.agent/product-brief.md) · [Requirements](.agent/product-requirements.md) · [Architecture](.agent/project-architecture.md) · [Data & Evaluation](.agent/data-evaluation-plan.md) · [Evidence](.agent/evidence-register.md) · [Design](.agent/design-guidelines.md) · [Agent Guide](AGENT.md)
 
@@ -32,14 +32,16 @@ Jaga explores whether cough acoustics plus routinely available clinical informat
 
 ## Planned stack
 
-| Layer | Planned technology |
+| Layer | Technology |
 |---|---|
 | Frontend | Next.js PWA and Tailwind CSS; final frontend contract owned by Billy |
-| Backend | FastAPI and Docker; architecture owned by Daffa and implemented by Zeddin |
+| Backend / serving | Go REST API + Python (Prisma) worker, Docker Swarm + NGINX; architecture owned by Daffa, implemented by Zeddin |
 | AI training | PyTorch on AMD ROCm / Instinct MI300X |
 | Core model (Gema) | Evidence-gated cough-plus-clinical model; final pipeline owned by Daffa |
 | CXR model (Prisma) | Separate digital-CXR classifier (DenseNet121 / EfficientNet-B0 / BiomedCLIP / Rad-DINO) with retrieval-augmented inspection and Grad-CAM; never fused with Gema |
-| Optional generation | Fireworks API for richer copy only; deterministic bilingual referral remains the default |
+| LLM / generation | Featherless via an OpenAI-compatible API surface, for richer copy only; deterministic bilingual referral remains the default |
+| Semantic memory | Cognee (optional; degrades gracefully) |
+| Storage / data | PostgreSQL, Redis, MinIO |
 
 The detailed contracts are intentionally assigned in the [architecture](.agent/project-architecture.md), [data and evaluation plan](.agent/data-evaluation-plan.md), and [implementation plan](.agent/implementation-plan.md). Product and medical-safety rules are already fixed and are not placeholders.
 
@@ -50,33 +52,101 @@ The detailed contracts are intentionally assigned in the [architecture](.agent/p
 - **10 July:** evaluation, accessibility, failure-path testing, deployment, and demo recording.
 - **11 July:** submission verification and buffer.
 
-Application scaffolding begins 29 June 2026. The current commit contains planning documentation only, so there are no valid install or run commands yet. The public README must be updated with tested setup and usage commands as part of deployment ticket `BE-5`; submission is blocked until a clean checkout can run the documented commands.
+The backend and infrastructure scaffolds now exist — Go API + Prisma worker + Docker Swarm stack under `backend/` and `infra/` (see [Running locally](#running-locally)). The cough+clinical triage contract (`POST /api/v1/triage`) is still pending Daffa's `ARCH-1`. Submission stays blocked until a clean checkout runs the documented commands end to end.
 
 ## Repository structure
+
 
 ```text
 jaga/
 ├── AGENT.md
+├── CLAUDE.md
 ├── README.md
 ├── LICENSE
-└── .agent/
-    ├── product-brief.md
-    ├── product-requirements.md
-    ├── project-architecture.md
-    ├── data-evaluation-plan.md
-    ├── evidence-register.md
-    ├── design-guidelines.md
-    ├── implementation-plan.md
-    ├── context-dump.md
-    ├── log.md
-    └── plan-template.md
+├── .agent/
+│   ├── product-brief.md
+│   ├── product-requirements.md
+│   ├── project-architecture.md
+│   ├── data-evaluation-plan.md
+│   ├── evidence-register.md
+│   ├── design-guidelines.md
+│   ├── implementation-plan.md
+│   ├── context-dump.md
+│   ├── log.md
+│   └── plan-template.md
+├── backend/
+│   ├── go/
+│   │   ├── cmd/server/
+│   │   ├── internal/
+│   │   │   ├── config/
+│   │   │   ├── handlers/
+│   │   │   ├── http/
+│   │   │   ├── memory/
+│   │   │   ├── models/
+│   │   │   ├── routes/
+│   │   │   └── validation/
+│   │   ├── Dockerfile
+│   │   └── go.mod
+│   └── python/
+│       ├── PrismaServer/
+│       │   ├── app/
+│       │   ├── artifacts/
+│       │   ├── Dockerfile
+│       │   └── requirements.txt
+│       └── PrismaTraining/
+│           ├── configs/
+│           ├── data/
+│           ├── evaluation/
+│           ├── models/
+│           ├── quantum/
+│           ├── retrieval/
+│           ├── scripts/
+│           ├── training/
+│           └── utils/
+└── infra/
+    ├── docker-stack.yml
+    ├── .env.example
+    ├── nginx/
+    ├── postgres/
+    ├── redis/
+    ├── minio/
+    ├── scripts/
+    └── healthcheck/
 ```
+
+## Running locally
+
+Jaga runs as a Docker Swarm stack from the `infra/` directory. The default serving bundle is already packaged under `backend/python/PrismaServer/artifacts/local_clahe/`, so the normal local path is the stack — not starting each service by hand.
+
+```bash
+cd infra
+cp .env.example .env          # then edit .env with real credentials/values
+./scripts/build.sh            # build local images
+./scripts/deploy.sh           # start the full stack
+docker stack services jaga    # confirm services are up
+./scripts/logs.sh             # tail logs
+./scripts/scale-api.sh 4      # scale go-api / prisma-worker as needed
+./scripts/scale-worker.sh 2
+./scripts/remove.sh           # tear down when done
+```
+
+This brings up `nginx`, `go-api`, `prisma-worker`, `postgres`, `redis`, and `minio` together. The cough+clinical triage endpoint (`POST /api/v1/triage`) is still pending; intake (`POST /api/v1/patient/intake`) and health checks are live.
 
 ## Hackathon
 
 Jaga targets the **Unicorn Track** of AMD Developer Hackathon ACT II. The official window is **6 July 2026, 15:00 UTC → 11 July 2026, 15:00 UTC**. Judging covers creativity and originality, completeness, meaningful use of AMD platforms, and product/market potential.
 
 The submission must include a public repository with setup and usage instructions, a runnable application URL, containerized services, a cover image, video presentation, and slide presentation.
+
+## Market
+
+**Global:** TB's high-burden belt — India, Indonesia, the Philippines, Pakistan, China, and sub-Saharan Africa — all face the same lab, radiologist, and internet-access gap Jaga is built for.
+
+**Beachhead:** community health workers doing active TB case-finding in Indonesia, the world's #2 burden country, where the team has ground truth and proximity.
+
+**Expansion path:** district TB programs and clinics → NGO mobile screening camps → broader respiratory screening on the same platform.
+
+**Business model:** free tier for community health workers, then per-program / per-screen cloud licensing for national TB programs and NGOs.
 
 ## Team
 

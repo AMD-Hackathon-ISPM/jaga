@@ -3,8 +3,11 @@
 **Document type:** Historical decision record
 **Audience:** Contributors, reviewers, and future maintainers
 **Status:** Historical; current revision and decisions are summarized in Sections 15–20
+**Updated:** 2026-06-29
 **Canonical for:** Product history, superseded ideas, and decision rationale
 **Companion documents:** [`evidence-register.md`](evidence-register.md), [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`log.md`](log.md)
+
+**Purpose:** A complete record of how Jaga was conceived — from first principles about what we wanted to build, through every idea we explored and discarded, to the product we committed to. This exists so anyone (future Claude instances, new teammates, your future self) can reconstruct not just *what* Jaga is but *why every decision was made the way it was*.
 
 ## How to read this document
 
@@ -208,6 +211,14 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 | **Billy leads frontend and design; Kei implements capture and result flows** | This gives the frontend a clear specification handoff and implementer. |
 | **No live web scraping** | The project should depend on user input and stable, permitted data sources. |
 | **Design is part of safety** | Clear hierarchy, accessible states, and precise copy prevent a research risk output from being mistaken for a diagnosis. |
+| **Train the model on the MI300X (ROCm); serve online** | Training on GPU is the real, defensible AMD usage; serving on AMD too. |
+| **Independent TB-CXR research scaffold under `backend/python/PrismaTraining`** | Lets us explore the Prisma CXR path as a separate embedding-first research track without weakening the cough+clinical MVP scope or claiming a fused metric. |
+| **Split Python into `PrismaTraining` (research) and `PrismaServer` (serving)** | Separates research/training code from runtime serving, keeps the worker focused, and makes artifact bundling explicit. |
+| **Bundle the default `local_clahe` artifacts into `PrismaServer`** | Gives the serving worker a concrete checkpoint, config, and supporting artifacts for local and single-node stack runs without depending on the training tree at runtime. |
+| **Docker Swarm + NGINX for deployment orchestration** | Keeps deployment simple while giving rolling updates, service discovery, and horizontal scaling; avoids Kubernetes/Traefik complexity in the MVP window. |
+| **Treat Featherless as an OpenAI-compatible API surface** | Keeps the orchestration layer vendor-agnostic; Go/Python integrations use standard OpenAI-shaped client flows. |
+| **Add Cognee as an optional semantic-memory layer behind a neutral Go interface** | Preserves PostgreSQL as the system of record while enabling patient-history grounding for LLM explanations, and keeps the memory backend replaceable without leaking provider APIs into the rest of the app. |
+| **Keep Cognee local but use Featherless for generation** | Avoids a separate local LLM service, keeps semantic memory self-hosted, and aligns the memory layer with the same OpenAI-compatible generation surface used elsewhere. |
 
 ---
 

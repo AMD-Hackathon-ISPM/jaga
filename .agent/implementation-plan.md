@@ -630,3 +630,37 @@ This matrix supplies the affected interfaces, concrete deliverable, and fallback
 ## 12. Definition of done
 
 The project is submission-ready only when every P0 ticket is accepted, all owner-input blocks are replaced, traceability from PRD → architecture → ticket → test is complete, actual metrics are honest, privacy checks pass, the public README works from a clean checkout, the AMD container is live, and all submission assets are uploaded before the deadline.
+
+---
+
+## 13. Current baseline (as-built on `backend-train`)
+
+What already exists in the repository today. These are scaffolds/contracts; behavior still pins on the signed owner blocks above.
+
+- [x] Repo split into `backend/go`, `backend/python/PrismaServer`, `backend/python/PrismaTraining`, and `infra`.
+- [x] Docker Swarm deployment plane with NGINX, `go-api`, `prisma-worker`, Redis, PostgreSQL, and MinIO.
+- [x] Local image build and stack deploy scripts under `infra/scripts/`.
+- [x] Go patient intake endpoint at `POST /api/v1/patient/intake` (validate/normalize metadata; no persistence or ML yet).
+- [x] Optional Cognee semantic-memory layer behind a neutral Go interface, with a local Cognee service and Featherless-backed generation.
+- [x] Default `local_clahe` serving artifacts bundled into `PrismaServer`.
+- [ ] Final cough + clinical triage endpoint contract still pending (Daffa `ARCH-1`).
+
+## 14. API contract notes (as-built)
+
+- `POST /api/v1/patient/intake` — validates and normalizes patient metadata.
+- `POST /api/v1/triage` — the main missing contract (Gema; see architecture §6).
+- `POST /api/v1/cxr` — separate Prisma signal (architecture §6), never fused with triage.
+- `GET /health` — stack health endpoint.
+- `GET /internal/health/cognee` — reports semantic-memory availability only.
+- Featherless integrations treat Featherless as an OpenAI-compatible API surface.
+- Cognee stays optional and never blocks predictions; the normal local path needs no hosted Cognee endpoint or API key.
+
+## 15. Infrastructure contract
+
+- Swarm only: Docker Swarm, not Kubernetes or k3s.
+- Public ingress: NGINX, not Traefik.
+- Public service entrypoint: `go-api` behind NGINX.
+- Internal services: `prisma-worker`, `redis`, `postgres`, `minio`.
+- Scale shape: `go-api` horizontally; `prisma-worker` by replica count, one job per worker.
+- Runtime packaging: `PrismaServer` serves; `PrismaTraining` is research/training only.
+- Local memory path: Cognee runs in-stack and relies on Featherless for generation.

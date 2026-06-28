@@ -1,0 +1,12 @@
+param(
+    [Parameter(Mandatory = $true)]
+    [int]$Replicas
+)
+
+. (Join-Path $PSScriptRoot 'common.ps1')
+$paths = Resolve-InfraPaths -ScriptPath $MyInvocation.MyCommand.Path
+$envFile = if ($env:ENV_FILE) { $env:ENV_FILE } else { Join-Path $paths.InfraDir '.env' }
+Import-EnvFile -Path $envFile
+
+$stackName = Get-EnvValue -Key 'STACK_NAME' -Default 'jaga'
+docker service scale "${stackName}_prisma-worker=$Replicas"

@@ -3,6 +3,7 @@
 **Document type:** Project architecture
 **Audience:** Backend, frontend, ML, platform, QA, and technical reviewers
 **Status:** Active · owner contracts required before feature implementation
+**Updated:** 2026-06-29
 **Canonical for:** System boundaries, planned runtime components, shared interfaces, privacy, security, observability, deployment, and technical ownership
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
@@ -277,3 +278,55 @@ Architecture is ready for implementation only when:
 - the pinned ROCm container loads the selected artifacts;
 - quality, inference, result, and error states are versioned;
 - Zeddin and Kei can implement without inventing fields, states, or thresholds.
+
+---
+
+## 14. Implemented backend runtime (`backend-train`)
+
+> **Status:** As-built on the `backend-train` branch. This section records the runtime layout that actually exists today; it is more concrete than, and in places diverges from, the *planned* §11 structure (`apps/api/` FastAPI service). The signed contracts in §4–§9 remain canonical for behavior and safety — code here must reconcile to them as Daffa's `ARCH-1` blocks are signed.
+
+### 14.1 Runtime split
+
+- `backend/python/PrismaTraining` — research and training tree (embedding-first; backbones, training/eval, embedding export, retrieval, post-training quantum branch).
+- `backend/python/PrismaServer` — serving worker; `backend/python/PrismaServer/artifacts/local_clahe` holds the current default serving bundle for local and single-node runs.
+- `backend/go` — API and orchestration layer (currently patient intake at `POST /api/v1/patient/intake` plus health/status; validates and normalizes metadata, no persistence or ML calls yet).
+- `infra` — Docker Swarm deployment plane.
+
+### 14.2 Architecture layers
+
+1. **Capture** — phone mic for guided coughs plus a short structured form; optional digital chest X-ray (Prisma) is the parallel signal.
+2. **Backend intake** — Go REST API validates/normalizes patient metadata before any Prisma cough or CXR payload; hosts health endpoints and optional semantic-memory integration; intake does not persist patient records.
+3. **Preprocess** — cough → mel-spectrogram and compact audio features; structured inputs normalized.
+4. **AI inference on AMD** — cough + clinical model (Gema) produces a calibrated TB-risk probability; the CXR track (Prisma) is a separate model path.
+5. **Explain / compose** — spectrograms, attention overlays, calibrated probability, thresholded band, deterministic bilingual referral copy, and optional LLM explanation through Featherless.
+6. **Semantic memory** — once structured evidence exists, Cognee may store semantic summaries only (prior predictions, retrieval/quantum/clinical summaries, recommendations, lightweight metadata). Optional; inference must continue if it is unavailable.
+7. **Presentation** — Next.js/PWA capture flow and result dashboard.
+
+### 14.3 Tech stack
+
+Next.js / PWA · Go REST API · Prisma Python worker (`PrismaServer`) · TB-CXR research package (`PrismaTraining`) · PyTorch on ROCm (MI300X) · Featherless via an OpenAI-compatible API surface · Cognee semantic memory · PostgreSQL · Redis · MinIO · NGINX · Docker Swarm.
+
+### 14.4 CXR research track (Prisma)
+
+- Interchangeable backbones under `PrismaTraining`; saved embeddings support FAISS retrieval built from exported artifacts.
+- A post-training quantum branch compares classical PCA + RBF SVM against PCA + Quantum Kernel SVM on saved embeddings only.
+- The serving tree is intentionally separate from this research tree.
+
+### 14.5 Deployment
+
+Docker Swarm with NGINX reverse proxy, replicated `go-api` tasks, and an internal `prisma-worker` tier backed by Redis, PostgreSQL, and MinIO. The normal local run path is stack-first: build images, deploy the stack, operate through `infra/scripts/`.
+
+### 14.6 Memory architecture
+
+- PostgreSQL is the source of truth; Cognee is not mandatory and degrades gracefully.
+- Cognee stores semantic summaries only — never raw images, audio, embeddings, FAISS indices, or checkpoints.
+- Default deployment keeps Cognee local and uses Featherless instead of a second local LLM service.
+- The Go backend depends on a neutral memory interface, not on Cognee APIs directly.
+
+### 14.7 Open items
+
+- Confirm the final cough + clinical backbone for the demo path.
+- Sign the production `POST /api/v1/triage` (and `POST /api/v1/cxr`) contract (Daffa `ARCH-1`).
+- Reconcile the implemented `backend/python` + `backend/go` layout with the planned §11 `apps/api/` structure, or update §11.
+- Wire completed inference output into the memory layer without blocking predictions.
+- Confirm the submission deployment environment and public URL.
