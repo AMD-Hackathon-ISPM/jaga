@@ -1,0 +1,8 @@
+/data/
+/python/project/data/Preprocessed Data/
+/python/project/data/TB Chest Radiography Database/
+/python/project/outputs/*
+!/python/project/outputs/.gitkeep
+**/__pycache__/
+**/*.pyc
+**/*.pyo
