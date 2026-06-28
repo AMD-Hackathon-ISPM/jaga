@@ -59,6 +59,14 @@ cp .env.example .env
 ./scripts/build.sh
 ```
 
+PowerShell equivalent:
+
+```powershell
+Set-Location infra
+Copy-Item .env.example .env
+.\scripts\build.ps1
+```
+
 The default `.env.example` tags everything as local images:
 
 - `jaga/go-api:local`
@@ -67,6 +75,7 @@ The default `.env.example` tags everything as local images:
 - `jaga/postgres:local`
 - `jaga/redis:local`
 - `jaga/minio:local`
+- `jaga/cognee:local`
 
 For a multi-node Swarm, replace those tags with registry-backed image references and push them before deploy.
 
@@ -79,10 +88,25 @@ cp .env.example .env
 ./scripts/deploy.sh
 ```
 
+PowerShell equivalent:
+
+```powershell
+Set-Location infra
+Copy-Item .env.example .env
+.\scripts\build.ps1
+.\scripts\deploy.ps1
+```
+
 ## Remove
 
 ```bash
 ./scripts/remove.sh
+```
+
+PowerShell equivalent:
+
+```powershell
+.\scripts\remove.ps1
 ```
 
 ## Logs
@@ -101,6 +125,13 @@ Tail one service:
 ./scripts/logs.sh cognee
 ```
 
+PowerShell equivalent:
+
+```powershell
+.\scripts\logs.ps1
+.\scripts\logs.ps1 go-api
+```
+
 ## Scale
 
 Scale the API:
@@ -109,10 +140,22 @@ Scale the API:
 ./scripts/scale-api.sh 4
 ```
 
+PowerShell equivalent:
+
+```powershell
+.\scripts\scale-api.ps1 4
+```
+
 Scale the worker:
 
 ```bash
 ./scripts/scale-worker.sh 2
+```
+
+PowerShell equivalent:
+
+```powershell
+.\scripts\scale-worker.ps1 2
 ```
 
 The worker is configured for one job at a time through `WORKER_CONCURRENCY=1`. Horizontal scaling is done by increasing replicas instead of concurrency inside a single worker.
@@ -147,6 +190,7 @@ Manual probes:
 
 - Docker Stack does not build images during deploy. Build and push the application images before running `deploy.sh`.
 - `scripts/build.sh` is intended for local or single-node Swarm use. Multi-node Swarm deployments should push images to a registry and update `.env`.
+- The local Cognee image installs `fastembed`, so rerun the build script after Cognee-related stack changes before redeploying.
 - The MinIO service creates the configured top-level bucket directories on startup using `MINIO_BUCKET_UPLOADS` and `MINIO_BUCKET_MODELS`.
 - Cognee now runs locally inside the stack, and the Go backend defaults to `http://cognee:8000` internally. You do not need to set `COGNEE_API_KEY` or `COGNEE_BASE_URL` for the normal local path.
 - Cognee generation uses Featherless, while embeddings default to local Fastembed inside the Cognee container.

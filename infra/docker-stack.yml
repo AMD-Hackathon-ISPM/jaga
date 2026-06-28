@@ -76,7 +76,7 @@ services:
       JAGA_BACKEND_UPLOAD_PATH: ${UPLOAD_PATH}
       JAGA_BACKEND_MODEL_PATH: ${MODEL_PATH}
     healthcheck:
-      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/health || exit 1']
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 -O /dev/null http://127.0.0.1:8080/health || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -164,7 +164,7 @@ services:
       - model_cache:/models
       - logs:/var/log/prisma
     healthcheck:
-      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:${PRISMA_WORKER_PORT}/health || exit 1']
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 -O /dev/null http://127.0.0.1:${PRISMA_WORKER_PORT}/health || exit 1']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -174,15 +174,11 @@ services:
       replicas: 1
       resources:
         reservations:
-          cpus: '1.00'
-          memory: 8G
-          generic_resources:
-            - discrete_resource_spec:
-                kind: NVIDIA-GPU
-                value: 1
+          cpus: '0.50'
+          memory: 2G
         limits:
           cpus: '4.00'
-          memory: 24G
+          memory: 12G
 
   redis:
     image: ${REDIS_IMAGE}
@@ -246,9 +242,10 @@ services:
   minio:
     image: ${MINIO_IMAGE}
     command:
-      - sh
-      - -c
-      - mkdir -p "/data/${MINIO_BUCKET_UPLOADS}" "/data/${MINIO_BUCKET_MODELS}" && minio server /data --console-address ":9001"
+      - server
+      - /data
+      - --console-address
+      - :9001
     networks:
       - jaga-network
     environment:
@@ -258,12 +255,6 @@ services:
       MINIO_BUCKET_MODELS: ${MINIO_BUCKET_MODELS}
     volumes:
       - minio_data:/data
-    healthcheck:
-      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:9000/minio/health/ready || exit 1']
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 20s
     deploy:
       <<: *common-deploy
       replicas: 1
