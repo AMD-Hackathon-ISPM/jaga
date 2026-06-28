@@ -1,5 +1,7 @@
 # Jaga · Full Context Dump
 
+**Updated:** 2026-06-28
+
 **Purpose:** A complete record of how Jaga was conceived — from first principles about what we wanted to build, through every idea we explored and discarded, to the product we committed to. This exists so anyone (future Claude instances, new teammates, your future self) can reconstruct not just *what* Jaga is but *why every decision was made the way it was*.
 
 **Format:** Roughly chronological, organized by phase. Each phase shows the question we were wrestling with, the key insights, the decisions made, and what we set aside. Indices at the end give fast lookup.
@@ -166,6 +168,7 @@ What the review got wrong: it said the track/criteria were "TBA" — they're not
 | **Online cloud serving on AMD (not offline/on-device)** | Honest + buildable in a short sprint; avoids the on-device/HeAR-size and incoherence problems flagged in review (Phase 13). On-prem "edge" is a future roadmap, not the MVP |
 | **Train the model on the MI300X (ROCm); serve online** | Training on GPU is the real, defensible AMD usage; serving on AMD too |
 | **Validated core = cough + clinical; CXR optional/stretch** | No paired cough+X-ray data exists, so a fused metric can't be validated; cough+clinical is the evidence-backed approach (CODA) |
+| **Independent TB-CXR research scaffold under `backend/python/project`** | Lets us explore the optional CXR path as a separate embedding-first research track without weakening the cough+clinical MVP scope or claiming a fused metric |
 | **Honest metrics (no overclaiming)** | Report real CODA numbers (cough+clinical AUROC ~0.78–0.83) with WHO 90/70 as an aspiration; a technical judge can dismantle inflated claims |
 | **Name: Jaga** | "To watch over / guard" — says the mission, authentic to us, distinct from existing tools |
 | **Global tool; beachhead = community health workers in Indonesia** | Market is the worldwide high-burden belt; we start in Indonesia (#2 burden, our home) for ground truth + authenticity, then expand |

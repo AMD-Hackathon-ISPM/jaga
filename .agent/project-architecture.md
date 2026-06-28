@@ -1,5 +1,7 @@
 # Jaga · Project Architecture
 
+**Updated:** 2026-06-28
+
 > System architecture, data, models, pipeline, and build ownership.
 > Companions: `product-brief.md` · `product-requirements.md` · `design-guidelines.md` · `data-evaluation-plan.md` (eval method) · `evidence-register.md` (facts) · `implementation-plan.md` (API contract + tickets) · `context-dump.md`.
 
@@ -24,6 +26,7 @@ Next.js / PWA · FastAPI (Python) · **PyTorch on ROCm (MI300X)** · cough+clini
 ## Datasets (public — no scraping)
 - [CODA TB cough](https://www.nature.com/articles/s41597-024-03972-z) — 700k+ cough sounds, 2,143 adults across 7 countries, **with paired clinical data** → this is our cough+clinical core.
 - **[Stretch] digital CXR:** [Kaggle TB CXR](https://www.kaggle.com/datasets/scipygaurav/tuberculosis-tb-chest-x-ray-cleaned-database), Shenzhen/Montgomery — **different patients from CODA**, so used only for an independent CXR signal, never a fused metric. Use digital CXR images, **not photographed films**.
+- **Research scaffold:** `backend/python/project` hosts an independent TB-CXR embedding/classification framework with interchangeable backbones and exportable embeddings so the optional CXR path can advance without changing the cough+clinical MVP contract.
 
 ## Models, metrics & evaluation
 - Train the cough+clinical model on **MI300X via ROCm**; calibrate the output probability.
