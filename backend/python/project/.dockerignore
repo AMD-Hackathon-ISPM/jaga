@@ -1,8 +1,0 @@
-__pycache__/
-*.pyc
-*.pyo
-outputs/
-.pytest_cache/
-.mypy_cache/
-data/Preprocessed Data/
-data/TB Chest Radiography Database/

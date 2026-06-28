@@ -1,5 +1,7 @@
 # Jaga Backend
 
-`backend/python/project` contains the PyTorch-based TB chest X-ray research framework.
+`backend/python/PrismaTraining` contains the PyTorch-based TB chest X-ray research and experiment framework.
 
-`backend/go` contains a thin Go service scaffold for future orchestration and deployment concerns around the Python stack.
+`backend/python/PrismaServer` contains the Python inference worker scaffold and bundled runtime artifacts.
+
+`backend/go` contains the Go API and orchestration layer around the Python stack.

@@ -1,54 +1,68 @@
 # Jaga · Project Architecture
 
-**Updated:** 2026-06-28
+**Updated:** 2026-06-29
 
 > System architecture, data, models, pipeline, and build ownership.
-> Companions: `product-brief.md` · `product-requirements.md` · `design-guidelines.md` · `data-evaluation-plan.md` (eval method) · `evidence-register.md` (facts) · `implementation-plan.md` (API contract + tickets) · `context-dump.md`.
+> Companions: `product-brief.md` · `product-requirements.md` · `design-guidelines.md` · `data-evaluation-plan.md` · `evidence-register.md` · `implementation-plan.md` · `context-dump.md`.
 
 ---
 
 ## Design philosophy
-- **Cloud-served, online.** Inference runs in the cloud on **AMD (Dev Cloud, MI300X)**; the phone/browser is a thin client. (We are *not* claiming on-device/offline — see `context-dump.md` §Set-Aside.)
-- **AMD is load-bearing through training.** We **train + fine-tune** the model on **MI300X via ROCm/PyTorch** — that is the real, defensible AMD usage — and serve it on AMD.
-- **Privacy posture (honest):** patient inputs are transmitted to the cloud for *transient* inference and **not retained**; de-identify what we can. We do **not** claim "nothing leaves the device."
-- **Evidence-backed core, honest metrics.** The core is **cough + structured clinical inputs** (the CODA-evidenced approach; we don't call our own prototype "validated"). Chest X-ray is an **independent optional module (stretch)**, never fused into a single score without paired data. All metrics reported against the WHO 2025 screening TPP as an *aspiration*, not an expected result.
+- **Cloud-served, online.** Inference runs in the cloud on AMD; the phone/browser is a thin client.
+- **AMD is load-bearing through training.** We train and fine-tune on MI300X via ROCm/PyTorch and serve the resulting system online.
+- **Privacy posture is honest.** Patient inputs are transmitted for transient inference; we do not claim fully local processing.
+- **Cough + clinical is the core.** Chest X-ray remains an independent optional module and is never presented as a fused validated score without paired data.
+- **Operational layers are separated.** PostgreSQL is the system of record, Redis handles queues/cache, MinIO stores binary objects, and Cognee is optional semantic memory only.
 
-## Architecture (layers)
-1. **Capture** — phone mic (cough) + a short structured form (demographics + symptoms). Optional: a digital chest X-ray (stretch module). PWA, online.
-2. **Preprocess** — cough → mel-spectrogram + compact audio embeddings (distilled/HeAR-style — *not* full HeAR; HeAR's own card says it's too large for on-device, and we run server-side anyway); structured inputs normalized.
-3. **AI inference on AMD (the core)** — **cough + clinical model** producing one **calibrated** TB-risk probability. Trained in **PyTorch on ROCm (MI300X)**, served on AMD Dev Cloud. **[Stretch] CXR module** = a *separate* TB-likelihood from a digital-CXR model, shown alongside (not blended into the core score).
-4. **Explain / Compose** — mel-spectrogram + **model-attention overlay** (labelled "where the model focused," not "the reason"); calibrated probability + threshold; **deterministic, templated bilingual (Bahasa/English) referral copy** (no runtime LLM needed). *Optional, online:* Fireworks generates a richer plain-language note.
-5. **Presentation** — Next.js/PWA capture journey + result dashboard. Docker-containerized (per the original brief; confirm requirement).
+## Architecture layers
+1. **Capture** - phone mic for guided coughs plus a short structured form. Optional digital chest X-ray remains a stretch path.
+2. **Backend intake** - Go REST API validates and normalizes patient metadata before Prisma receives chest X-ray or cough payloads. The same API layer hosts health endpoints and optional semantic-memory integration. Intake itself does not persist patient records.
+3. **Preprocess** - cough to mel-spectrogram and compact audio features; structured inputs normalized.
+4. **AI inference on AMD** - cough + clinical model produces a calibrated TB-risk probability. The optional CXR track is a separate model path.
+5. **Explain / compose** - spectrograms, attention overlays, calibrated probability, thresholded triage band, deterministic bilingual referral copy, and optional LLM explanation through Featherless.
+6. **Semantic memory** - after structured evidence exists, Cognee can store semantic summaries only: prior predictions, retrieval summaries, quantum summaries, clinical summaries, recommendations, and lightweight metadata. In the default stack, Cognee stays self-hosted while Featherless handles generation. If unavailable, inference must continue.
+7. **Presentation** - Next.js/PWA capture flow and result dashboard.
+
+## Runtime split
+- `backend/python/PrismaTraining` is the research and training tree.
+- `backend/python/PrismaServer` is the serving worker.
+- `backend/python/PrismaServer/artifacts/local_clahe` holds the current default serving bundle for local and single-node runs.
+- `backend/go` is the API and orchestration layer.
+- `infra` is the Docker Swarm deployment plane.
 
 ## Tech stack
-Next.js / PWA · FastAPI (Python) · **PyTorch on ROCm (MI300X)** · cough+clinical model (compact audio model + structured features) · mel-spectrogram + model-attention (e.g. Grad-CAM-style) · calibration (Platt/isotonic) · deterministic referral templates · Fireworks API (optional note) · Docker.
+Next.js / PWA · Go REST API · Prisma Python worker (`PrismaServer`) · TB-CXR research package (`PrismaTraining`) · PyTorch on ROCm (MI300X) · Featherless via an OpenAI-compatible API surface · Cognee semantic memory · PostgreSQL · Redis · MinIO · NGINX · Docker Swarm.
 
-## Datasets (public — no scraping)
-- [CODA TB cough](https://www.nature.com/articles/s41597-024-03972-z) — 700k+ cough sounds, 2,143 adults across 7 countries, **with paired clinical data** → this is our cough+clinical core.
-- **[Stretch] digital CXR:** [Kaggle TB CXR](https://www.kaggle.com/datasets/scipygaurav/tuberculosis-tb-chest-x-ray-cleaned-database), Shenzhen/Montgomery — **different patients from CODA**, so used only for an independent CXR signal, never a fused metric. Use digital CXR images, **not photographed films**.
-- **Research scaffold:** `backend/python/project` hosts an independent TB-CXR embedding/classification framework with interchangeable backbones and exportable embeddings so the optional CXR path can advance without changing the cough+clinical MVP contract.
+## Datasets
+- CODA TB cough with paired clinical data is the cough + clinical core.
+- Kaggle TB CXR plus Shenzhen / Montgomery remain the optional CXR research path.
+- `PrismaTraining` is embedding-first so retrieval, similarity search, and later extensions do not force changes to the classical training pipeline contract.
 
-## Models, metrics & evaluation
-- Train the cough+clinical model on **MI300X via ROCm**; calibrate the output probability.
-- **Honest target metrics** (from the [CODA challenge](https://pmc.ncbi.nlm.nih.gov/articles/PMC12502651/)): cough-only AUROC ~**0.69–0.74**; **cough+clinical AUROC ~0.78–0.83** (our goal); best published cough+clinical hit ~73.8% specificity at 80% sensitivity. The **WHO 2025 screening TPP (≥90% sens / ≥70% spec)** is the aspiration we measure against, not a promised result.
-- **Evaluation:** subject-level and, where possible, **country/site-held-out** splits; report calibration and **subgroup metrics**; state limitations plainly.
-
-## Cost
-Training + inference on the **$100 AMD Dev Cloud** credit; **Fireworks $50** covers optional notes. Cloud inference cost per screen is modest; quantify at build.
+## CXR research track
+- Interchangeable backbones are implemented under `PrismaTraining`.
+- Saved embeddings support retrieval over FAISS indices built from exported artifacts.
+- A post-training quantum branch compares classical PCA + RBF SVM against PCA + Quantum Kernel SVM on saved embeddings only.
+- The runtime serving tree is intentionally separate from this research tree.
 
 ## Deployment
-Online: containerized service on **AMD Dev Cloud (MI300X)**; PWA client over the internet; public app URL for the submission. (Offline/on-prem edge is a *future roadmap idea*, not built or claimed for the MVP.)
+Online deployment targets Docker Swarm with NGINX as the reverse proxy, replicated `go-api` tasks, and an internal `prisma-worker` tier backed by Redis, PostgreSQL, and MinIO. The normal local run path is stack-first: build images, deploy the stack, and operate through the Swarm scripts under `infra/scripts/`.
 
-## Technical risks & mitigations
-- **Accuracy honesty** → reproduce CODA cough+clinical methods; report real numbers vs the WHO aspiration; never claim a fused tri-modal metric.
-- **Liability** → triage-not-diagnosis; always refer for confirmatory test; show limitations + subgroup performance.
-- **Field generalization** → frame as triage to prioritize testing; CODA includes uncontrolled recordings; add an audio-quality gate before scoring.
-- **CXR validity** → optional only; digital CXR, not photographed film; shown as a separate signal.
-- **ROCm/serving fit** → use AMD office hours early; pick a backbone that trains+serves comfortably in the window.
-- **Scope (≈5-day sprint)** → MVP = cough+clinical model + capture journey + explainable result + deterministic referral, served online on AMD. CXR only if time remains.
+## Memory architecture
+- PostgreSQL remains the source of truth.
+- Cognee is not mandatory.
+- Cognee stores semantic summaries only, never raw images, audio, embeddings, FAISS indices, or checkpoints.
+- The default deployment keeps Cognee local and uses Featherless instead of a second local LLM service.
+- The Go backend depends on a neutral memory interface, not on Cognee APIs directly.
+
+## Technical risks and mitigations
+- **Accuracy honesty** - report real metrics and limitations; do not claim unsupported fusion results.
+- **Runtime complexity** - keep serving and research split cleanly between `PrismaServer` and `PrismaTraining`.
+- **Operational fragility** - Swarm is simpler than Kubernetes for the MVP while still supporting rolling updates and horizontal scaling.
+- **Memory availability** - Cognee is optional and must degrade gracefully.
+- **Scope** - MVP remains the cough + clinical triage flow with explainability and deployment; CXR, retrieval, quantum, and memory are supporting extensions, not core proof points.
 
 ## Open items
-- Confirm cough+clinical backbone that trains/serves on MI300X within the window (Daffa).
-- Confirm CODA dataset access terms.
-- Define the **API contract** (so frontend + ML proceed independently).
-- Confirm the actual event window (start date / sprint length) and whether containerization is required.
+- Confirm final cough + clinical backbone for the demo path.
+- Define the production `POST /api/v1/triage` contract.
+- Wire the completed inference output into the memory layer without blocking predictions.
+- Confirm the exact submission deployment environment and public URL.

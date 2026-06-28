@@ -1,53 +1,65 @@
 # Jaga · Implementation Plan
 
 **Type:** Execution plan · **Audience:** whole team
-**Canonical for:** the 5-day build, ticket ownership, dependencies, fallbacks, and submission deliverables.
-> Companions: `product-requirements.md` · `project-architecture.md` · `data-evaluation-plan.md`.
-
-**Window:** **6 Jul → 11 Jul 2026** (~5 days; confirm exact 15:00 UTC boundaries). Priorities: **P0** must ship · **P1** if on track · **P2** stretch.
+**Canonical for:** ticket ownership, dependencies, deployment shape, and submission deliverables.
 
 ---
 
-## Pre-sprint (do now — critical path)
-- [x] **CODA access** — Daffa has it via ORCID (Synapse). *(Unblocked.)*
-- [ ] Pull CODA, confirm held-out split + guided-cough count + clinical variables (Daffa).
-- [ ] Pin the **ROCm container** + repo scaffold, `.gitignore`, MIT `LICENSE` (done), CI-lite (Zeddin).
-- [ ] Agree the **API contract** (below) so frontend + ML proceed in parallel (Zeddin + Kei).
+## Current baseline
+- [x] Repo scaffold split into `backend/go`, `backend/python/PrismaServer`, `backend/python/PrismaTraining`, and `infra`.
+- [x] Docker Swarm deployment plane exists with NGINX, `go-api`, `prisma-worker`, Redis, PostgreSQL, and MinIO.
+- [x] Local image build and stack deploy scripts exist under `infra/scripts/`.
+- [x] Go patient intake endpoint exists at `POST /api/v1/patient/intake`.
+- [x] Optional Cognee semantic-memory layer exists behind a neutral Go interface, with a local Cognee service and Featherless-backed generation path.
+- [x] Default `local_clahe` serving artifacts are bundled into `PrismaServer`.
+- [ ] Final cough + clinical triage endpoint contract is still pending.
 
-## P0 — must ship
+## P0 - must ship
 | # | Task | Owner | Depends on |
 |---|---|---|---|
-| 1 | Baseline **cough + clinical** model on MI300X (log-mel + classifier) | Daffa | CODA pull |
-| 2 | **Subject-level + leave-one-country-out** eval; calibration; subgroup metrics | Daffa | #1 |
-| 3 | Inference service (FastAPI) on **AMD Dev Cloud**, behind the API contract | Zeddin | #1, API contract |
-| 4 | Capture journey PWA (demographics → symptoms → guided coughs, audio-quality gate) | Kei | API contract |
-| 5 | Result dashboard: calibrated band + spectrogram + **model-attention** + contributing factors + **deterministic bilingual referral** + limitations | Kei + Billy | #3 |
-| 6 | Honest metrics writeup + limitations (from #2) into the result + repo | Daffa + Fransisco | #2 |
-| 7 | Deploy online (public URL), containerized; smoke-test end to end | Zeddin | #3, #5 |
-| 8 | Demo video + slides + public repo (MIT) | Fransisco + Billy | #5, #7 |
+| 1 | Baseline cough + clinical model on MI300X | Daffa | CODA access |
+| 2 | Subject-level and leave-one-country-out evaluation with calibration and subgroup metrics | Daffa | #1 |
+| 3 | Triage inference contract between frontend, Go API, and Prisma worker | Zeddin + Kei | #1 |
+| 4 | Capture journey PWA with guided coughs and clinical form | Kei | #3 |
+| 5 | Result dashboard with calibrated band, inspection artifacts, limitations, and deterministic referral copy | Kei + Billy | #3 |
+| 6 | End-to-end Swarm deployment on AMD-backed infrastructure | Zeddin | #3, #5 |
+| 7 | Honest metrics writeup in repo, demo, and result UI | Daffa + Fransisco | #2 |
+| 8 | Public demo, video, slides, and repo handoff | Fransisco + Billy | #6, #7 |
 
-## P1 — if on track
-- Evidence-gate a pretrained audio encoder vs baseline (promote only if it passes all gate criteria) — Daffa.
-- Polish the signature result-reveal motion — Billy.
-- Optional Fireworks richer note (deterministic copy stays the default) — Zeddin.
+## P1 - if on track
+- Compare stronger pretrained audio encoders against the baseline.
+- Add richer Featherless-generated explanation copy while keeping deterministic copy as default.
+- Use Cognee memory to ground LLM explanations from prior visit summaries.
+- Validate the local Cognee + Featherless memory path in the stack.
 
-## P2 — stretch
-- **Independent CXR module** (digital only, source-aware split, separate panel, **no fusion**, internal-benchmark framing) — Daffa.
+## P2 - stretch
+- Independent digital-CXR panel backed by the `PrismaTraining` research track.
+- Retrieval evidence surfaced from saved embedding artifacts.
+- Quantum comparison included as a research appendix, not a primary product claim.
 
-## API contract (v1)
-- `POST /api/v1/triage` — guided-cough audio + supported clinical fields (age, sex, symptoms, known TB contact…).
-- **Response:** model id/version · quality-gate status · calibrated research estimate · relative risk band (Low/Elevated/High) · urgency priority · **mandatory confirmatory-referral** flag · inspection artifacts (spectrogram + attention) · limitations.
-- **Error responses:** invalid input · insufficient/low-quality audio · model-unavailable · timeout.
-- **Rules:** no request-body logging; no patient-data persistence; transient inference only.
+## API contract notes
+- `POST /api/v1/patient/intake` validates and normalizes patient metadata.
+- `POST /api/v1/triage` remains the main missing contract.
+- `GET /health` is the stack health endpoint.
+- `GET /internal/health/cognee` reports semantic-memory availability only.
+- Featherless integrations must treat Featherless as an OpenAI-compatible API surface.
+- Cognee must remain optional and never block predictions.
+- The normal local path should not require a hosted Cognee endpoint or Cognee API key.
+
+## Infrastructure contract
+- Swarm only: Docker Swarm, not Kubernetes or k3s.
+- Public ingress: NGINX, not Traefik.
+- Public service entrypoint: `go-api` behind NGINX.
+- Internal services: `prisma-worker`, `redis`, `postgres`, `minio`.
+- Scale shape: `go-api` horizontally, `prisma-worker` by replica count with one job per worker.
+- Runtime packaging: `PrismaServer` is the serving worker; `PrismaTraining` remains research/training only.
+- Local memory path: Cognee runs in-stack and relies on Featherless for generation.
 
 ## Fallbacks
-- 70B/large encoder won't train/serve in time → ship the **baseline cough+clinical** (still valid). 
-- CXR slips → drop it (it's P2, no dependency).
-- Pretrained encoder fails the gate → keep the baseline (ties favor simpler).
-- Fireworks/online note flaky → deterministic referral copy is the default anyway.
+- If the final cough + clinical model is not ready, demo the strongest honest baseline.
+- If CXR is not fully integrated, keep it as a documented separate research path.
+- If Featherless is unavailable, deterministic referral copy remains sufficient.
+- If Cognee is unavailable, skip memory grounding and continue inference.
 
-## Submission deliverables (confirm against event page)
-Public repo (MIT) · deployed app URL · demo video · slide deck · written submission. Containerization: prepare it; confirm if mandatory.
-
-## Definition of done (P0)
-End-to-end online flow on AMD; cough+clinical calibrated triage with honest, subject-level/LOCO metrics + limitations shown; explainable result; deterministic bilingual referral; deployed at a public URL; repo + video + slides submitted.
+## Definition of done
+End-to-end online flow deployed through the Swarm stack, with validated intake, a working triage path, honest metrics, explainable outputs, deterministic referral copy, and a public demo-ready deployment.

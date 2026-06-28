@@ -10,7 +10,7 @@ type Config struct {
 func Load() Config {
 	return Config{
 		Addr:              getEnv("JAGA_BACKEND_ADDR", ":8080"),
-		PythonProjectRoot: getEnv("JAGA_PYTHON_PROJECT_ROOT", "../python/project"),
+		PythonProjectRoot: getEnv("JAGA_PYTHON_PROJECT_ROOT", "../python/PrismaServer"),
 	}
 }
 

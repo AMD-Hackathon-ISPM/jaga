@@ -1,0 +1,298 @@
+x-common-deploy: &common-deploy
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+    max_attempts: 3
+    window: 30s
+  update_config:
+    parallelism: 1
+    delay: 10s
+    order: start-first
+    failure_action: rollback
+    monitor: 30s
+  rollback_config:
+    parallelism: 1
+    delay: 5s
+    order: stop-first
+  placement:
+    constraints:
+      - node.platform.os == linux
+
+services:
+  nginx:
+    image: ${NGINX_IMAGE}
+    ports:
+      - target: 80
+        published: ${NGINX_PUBLISHED_PORT:-80}
+        protocol: tcp
+        mode: ingress
+    networks:
+      - jaga-network
+    configs:
+      - source: nginx_main_conf
+        target: /etc/nginx/nginx.conf
+      - source: nginx_default_conf
+        target: /etc/nginx/conf.d/default.conf
+    volumes:
+      - logs:/var/log/nginx
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://127.0.0.1/nginx-health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      <<: *common-deploy
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+        limits:
+          cpus: '1.00'
+          memory: 512M
+
+  go-api:
+    image: ${GO_API_IMAGE}
+    networks:
+      - jaga-network
+    environment:
+      JAGA_BACKEND_ADDR: :8080
+      JAGA_PYTHON_PROJECT_ROOT: ${MODEL_PATH}
+      JAGA_BACKEND_POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      JAGA_BACKEND_REDIS_ADDR: redis:6379
+      JAGA_BACKEND_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JAGA_BACKEND_MINIO_ENDPOINT: minio:9000
+      JAGA_BACKEND_MINIO_USE_SSL: 'false'
+      JAGA_BACKEND_MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      JAGA_BACKEND_MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      JAGA_BACKEND_FEATHERLESS_URL: ${FEATHERLESS_URL}
+      JAGA_BACKEND_FEATHERLESS_API_KEY: ${FEATHERLESS_API_KEY}
+      JAGA_BACKEND_FEATHERLESS_MODEL: ${FEATHERLESS_MODEL}
+      COGNEE_ENABLED: ${COGNEE_ENABLED}
+      COGNEE_COLLECTION: ${COGNEE_COLLECTION}
+      COGNEE_TIMEOUT: ${COGNEE_TIMEOUT}
+      JAGA_BACKEND_JWT_SECRET: ${JWT_SECRET}
+      JAGA_BACKEND_UPLOAD_PATH: ${UPLOAD_PATH}
+      JAGA_BACKEND_MODEL_PATH: ${MODEL_PATH}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      <<: *common-deploy
+      replicas: 2
+      placement:
+        constraints:
+          - node.platform.os == linux
+        preferences:
+          - spread: node.id
+      resources:
+        reservations:
+          cpus: '0.50'
+          memory: 256M
+        limits:
+          cpus: '2.00'
+          memory: 1G
+
+  cognee:
+    image: ${COGNEE_IMAGE}
+    networks:
+      - jaga-network
+    environment:
+      LLM_PROVIDER: ${COGNEE_LLM_PROVIDER}
+      LLM_MODEL: ${COGNEE_LLM_MODEL}
+      LLM_API_KEY: ${COGNEE_LLM_API_KEY}
+      LLM_ENDPOINT: ${COGNEE_LLM_ENDPOINT}
+      EMBEDDING_PROVIDER: ${COGNEE_EMBEDDING_PROVIDER}
+      EMBEDDING_MODEL: ${COGNEE_EMBEDDING_MODEL}
+      EMBEDDING_API_KEY: ${COGNEE_EMBEDDING_API_KEY}
+      EMBEDDING_ENDPOINT: ${COGNEE_EMBEDDING_ENDPOINT}
+      EMBEDDING_DIMENSIONS: ${COGNEE_EMBEDDING_DIMENSIONS}
+      HUGGINGFACE_TOKENIZER: ${COGNEE_HUGGINGFACE_TOKENIZER}
+      DATA_ROOT_DIRECTORY: /app/cognee/.data_storage
+      SYSTEM_ROOT_DIRECTORY: /app/cognee/.cognee_system
+      COGNEE_SKIP_CONNECTION_TEST: 'true'
+    volumes:
+      - cognee_data:/app/cognee/.data_storage
+      - cognee_system:/app/cognee/.cognee_system
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:8000/health >/dev/null || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    deploy:
+      <<: *common-deploy
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.50'
+          memory: 512M
+        limits:
+          cpus: '2.00'
+          memory: 2G
+
+  prisma-worker:
+    image: ${PRISMA_WORKER_IMAGE}
+    networks:
+      - jaga-network
+    environment:
+      PRISMA_WORKER_PORT: ${PRISMA_WORKER_PORT}
+      WORKER_CONCURRENCY: '1'
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      MINIO_ENDPOINT: minio:9000
+      MINIO_USE_SSL: 'false'
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      FEATHERLESS_URL: ${FEATHERLESS_URL}
+      FEATHERLESS_API_KEY: ${FEATHERLESS_API_KEY}
+      FEATHERLESS_MODEL: ${FEATHERLESS_MODEL}
+      UPLOAD_PATH: ${UPLOAD_PATH}
+      MODEL_PATH: ${MODEL_PATH}
+      PRISMA_ARTIFACT_ROOT: /app/artifacts
+      TRANSFORMERS_CACHE: /models/huggingface
+      HF_HOME: /models/huggingface
+      TORCH_HOME: /models/torch
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    volumes:
+      - model_cache:/models
+      - logs:/var/log/prisma
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:${PRISMA_WORKER_PORT}/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    deploy:
+      <<: *common-deploy
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '1.00'
+          memory: 8G
+          generic_resources:
+            - discrete_resource_spec:
+                kind: NVIDIA-GPU
+                value: 1
+        limits:
+          cpus: '4.00'
+          memory: 24G
+
+  redis:
+    image: ${REDIS_IMAGE}
+    command:
+      - sh
+      - -c
+      - redis-server /usr/local/etc/redis/redis.conf --requirepass "$${REDIS_PASSWORD}"
+    networks:
+      - jaga-network
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$${REDIS_PASSWORD}" ping | grep PONG >/dev/null || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      <<: *common-deploy
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+        limits:
+          cpus: '1.00'
+          memory: 512M
+
+  postgres:
+    image: ${POSTGRES_IMAGE}
+    networks:
+      - jaga-network
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    configs:
+      - source: postgres_init_sql
+        target: /docker-entrypoint-initdb.d/001-init.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -h 127.0.0.1 || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    deploy:
+      <<: *common-deploy
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.50'
+          memory: 256M
+        limits:
+          cpus: '2.00'
+          memory: 2G
+
+  minio:
+    image: ${MINIO_IMAGE}
+    command:
+      - sh
+      - -c
+      - mkdir -p "/data/${MINIO_BUCKET_UPLOADS}" "/data/${MINIO_BUCKET_MODELS}" && minio server /data --console-address ":9001"
+    networks:
+      - jaga-network
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET_UPLOADS: ${MINIO_BUCKET_UPLOADS}
+      MINIO_BUCKET_MODELS: ${MINIO_BUCKET_MODELS}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:9000/minio/health/ready || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    deploy:
+      <<: *common-deploy
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+        limits:
+          cpus: '2.00'
+          memory: 2G
+
+networks:
+  jaga-network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  cognee_data:
+  cognee_system:
+  postgres_data:
+  redis_data:
+  minio_data:
+  model_cache:
+  logs:
+
+configs:
+  nginx_main_conf:
+    file: ./nginx/nginx.conf
+  nginx_default_conf:
+    file: ./nginx/conf.d/default.conf
+  postgres_init_sql:
+    file: ./postgres/init/001-base.sql
