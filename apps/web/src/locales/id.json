@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "version": "0",
+    "note": "PENDING UX-1. Trivial UI words are translated. Safety/referral strings (prototype.banner, result.band.*, result.nextStep) are left in English ON PURPOSE: they must be human-reviewed by UX-1 and must never be machine-translated. A missing/unreviewed mandatory translation should fail the build, not ship."
+  },
+  "common": {
+    "continue": "Lanjutkan",
+    "back": "Kembali",
+    "retry": "Coba lagi",
+    "submit": "Kirim"
+  },
+  "prototype": {
+    "banner": "PENDING UX-1: Jaga is a research prototype. It does not diagnose or rule out TB."
+  },
+  "result": {
+    "unavailable": "PENDING UX-1: Result unavailable",
+    "band": {
+      "lower": "PENDING UX-1: Lower model-estimated risk",
+      "intermediate": "PENDING UX-1: Intermediate model-estimated risk",
+      "higher": "PENDING UX-1: Higher model-estimated risk"
+    },
+    "nextStep": "PENDING UX-1: This person should receive confirmatory TB evaluation regardless of this estimate.",
+    "limitationsTitle": "Batasan dan detail model"
+  }
+}

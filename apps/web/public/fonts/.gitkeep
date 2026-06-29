@@ -1,0 +1,4 @@
+# Self-hosted subset woff2 fonts go here (design §5.3):
+# EB Garamond (serif), Figtree (sans), Ioskeley Mono NL (numerics).
+# Wire them via next/font/local or @font-face in globals.css and map to
+# --font-serif / --font-sans / --font-mono. Not committed yet.

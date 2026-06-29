@@ -1,0 +1,10 @@
+{
+  "name": "Jaga",
+  "short_name": "Jaga",
+  "description": "Investigational TB triage research prototype. Does not diagnose.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFEB",
+  "theme_color": "#024F46",
+  "icons": []
+}

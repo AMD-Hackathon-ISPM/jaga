@@ -1,0 +1,24 @@
+{
+  "step": "review",
+  "language": "en",
+  "clinical": {
+    "age_years": 34,
+    "sex_at_birth": "female",
+    "height_cm": 160,
+    "weight_kg": 52,
+    "cough_duration_days": 21,
+    "prior_tb": false,
+    "hemoptysis": false,
+    "smoked_last_7_days": false,
+    "fever_last_30_days": true,
+    "night_sweats_last_30_days": true,
+    "weight_loss_last_30_days": true
+  },
+  "coughs": [
+    { "index": 1, "status": "accepted" },
+    { "index": 2, "status": "accepted" },
+    { "index": 3, "status": "retryable" },
+    { "index": 4, "status": "empty" },
+    { "index": 5, "status": "empty" }
+  ]
+}

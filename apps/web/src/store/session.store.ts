@@ -1,0 +1,68 @@
+import { create } from "zustand";
+import type {
+  FlowStep,
+  Language,
+  PatientIntakeRequest,
+  SubmitState,
+  TriageResult,
+} from "@/types";
+
+/**
+ * In-memory session store (Zustand).
+ *
+ * SAFETY: no `persist` middleware. Patient inputs, audio, and results must never
+ * touch localStorage / IndexedDB / service-worker cache (project-architecture.md
+ * §3.1, PRD-08). This store lives only in memory and is fully cleared on reset,
+ * success acknowledgement, or session timeout.
+ *
+ * This satisfies both the design intent ("in-memory step machine") and the
+ * request for a Zustand store. MOCK STATE ONLY — no API calls.
+ */
+
+interface CoughAttempt {
+  index: number; // 1..5
+  status: "empty" | "recording" | "captured" | "accepted" | "retryable";
+}
+
+interface SessionState {
+  step: FlowStep;
+  language: Language;
+  clinical: Partial<PatientIntakeRequest>;
+  coughs: CoughAttempt[];
+  submitState: SubmitState;
+  result: TriageResult | null;
+  requestId: string | null;
+
+  // actions
+  setStep: (step: FlowStep) => void;
+  setLanguage: (language: Language) => void;
+  setClinical: (values: Partial<PatientIntakeRequest>) => void;
+  setSubmitState: (state: SubmitState) => void;
+  setResult: (result: TriageResult | null) => void;
+  reset: () => void;
+}
+
+const emptyCoughs: CoughAttempt[] = Array.from({ length: 5 }, (_, i) => ({
+  index: i + 1,
+  status: "empty",
+}));
+
+const initialState = {
+  step: "gate" as FlowStep,
+  language: "en" as Language,
+  clinical: {} as Partial<PatientIntakeRequest>,
+  coughs: emptyCoughs,
+  submitState: "idle" as SubmitState,
+  result: null as TriageResult | null,
+  requestId: null as string | null,
+};
+
+export const useSessionStore = create<SessionState>((set) => ({
+  ...initialState,
+  setStep: (step) => set({ step }),
+  setLanguage: (language) => set({ language }),
+  setClinical: (values) => set((s) => ({ clinical: { ...s.clinical, ...values } })),
+  setSubmitState: (submitState) => set({ submitState }),
+  setResult: (result) => set({ result }),
+  reset: () => set({ ...initialState, coughs: emptyCoughs.map((c) => ({ ...c })) }),
+}));

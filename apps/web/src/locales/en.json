@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "version": "0",
+    "note": "English is the default field language (design §10). Keys are versioned; mandatory safety/referral strings are deterministic and human-reviewed (never model-generated). Final paired EN/ID copy is owned by UX-1."
+  },
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "retry": "Retry",
+    "submit": "Submit"
+  },
+  "prototype": {
+    "banner": "Jaga is a research prototype. It does not diagnose or rule out TB."
+  },
+  "result": {
+    "unavailable": "Result unavailable",
+    "band": {
+      "lower": "Lower model-estimated risk",
+      "intermediate": "Intermediate model-estimated risk",
+      "higher": "Higher model-estimated risk"
+    },
+    "nextStep": "This person should receive confirmatory TB evaluation regardless of this estimate.",
+    "limitationsTitle": "Limitations and model details"
+  }
+}

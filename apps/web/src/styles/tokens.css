@@ -1,0 +1,41 @@
+/*
+ * Jaga design tokens — ported verbatim from .agent/design-guidelines.md §4 (signed 2026-06-28).
+ * Light theme only for MVP (§4.2). Do not invent values; this file is the single
+ * source for color tokens consumed by tailwind.config.ts.
+ */
+:root {
+  /* Surfaces */
+  --canvas: #ffffeb; /* page background (pale warm cream) */
+  --surface: #fffff7;
+  --surface-sunken: #f4f4dc;
+  --border-subtle: #e8e8d0;
+  --border-strong: oklch(0.62 0.02 95);
+
+  /* Ink */
+  --ink: #1a1a1a;
+  --ink-muted: oklch(0.49 0.018 95);
+
+  /* Brand + focus */
+  --brand: #024f46;
+  --focus: oklch(0.5 0.09 165);
+
+  /* Status (text / tint) */
+  --info: oklch(0.45 0.095 245);
+  --info-surface: oklch(0.95 0.03 240);
+  --warning: oklch(0.45 0.085 70);
+  --warning-surface: oklch(0.95 0.04 85);
+  --error: oklch(0.47 0.155 28);
+  --error-surface: oklch(0.95 0.045 25);
+  --error-strong: #b3261e;
+  --success: #024f46; /* process completion only — NOT clinical clearance */
+
+  /* Risk-band ramp (§4.4) — non-green, monotonic lightness, never the sole signal */
+  --band-lower: oklch(0.78 0.035 78);
+  --band-intermediate: oklch(0.65 0.11 58);
+  --band-higher: oklch(0.49 0.14 36);
+
+  /* Font role variables (self-hosted woff2 to be wired in layout, §5.2/§5.3) */
+  --font-serif: "EB Garamond";
+  --font-sans: "Figtree";
+  --font-mono: "Ioskeley Mono";
+}
