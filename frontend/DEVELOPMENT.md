@@ -1,6 +1,6 @@
 # Jaga Frontend — Developer Guide
 
-Deep reference for working on `apps/web`. The [README](README.md) is the overview; this file documents **how every part works, how to use it, and how to extend it**. Product/safety rules are canonical in [`../../.agent/`](../../.agent/) — this guide does not restate them, it points to them.
+Deep reference for working on `frontend`. The [README](README.md) is the overview; this file documents **how every part works, how to use it, and how to extend it**. Product/safety rules are canonical in [`../.agent/`](../.agent/) — this guide does not restate them, it points to them.
 
 > **Golden invariants (do not break):** no patient input is ever persisted (no `localStorage`/`IndexedDB`/SW cache); services never call a real endpoint until `ARCH-1` is signed; Gema (cough+clinical) and Prisma (CXR) results are never fused; a failure never shows a stale or fabricated estimate; mandatory safety/referral copy is deterministic and human-reviewed, never machine-translated.
 
@@ -42,7 +42,7 @@ Deep reference for working on `apps/web`. The [README](README.md) is the overvie
 | Lint/format | ESLint (`next/core-web-vitals` + `next/typescript`), Prettier |
 
 ```bash
-cd apps/web
+cd frontend
 npm install
 cp .env.example .env.local      # keep NEXT_PUBLIC_API_BASE_URL empty for now
 npm run dev                     # http://localhost:3000
@@ -53,7 +53,7 @@ npm run build                   # production build smoke test
 
 Path alias: `@/*` → `src/*` (see `tsconfig.json`).
 
-No shadcn/ui: the design system is bespoke, so UI primitives are hand-rolled to the tokens (see §12).
+No shadcn/ui: the design system is bespoke, so UI primitives are hand-rolled to the tokens (see §12). The one exception is `ui/dialog.tsx`, which runs on **Radix Dialog** (`@radix-ui/react-dialog`) for the focus trap / scroll lock / portal / ARIA, fully re-skinned to the tokens — no default theme is imported.
 
 ---
 
@@ -319,6 +319,6 @@ Backend owner adds it to the Go model + validator → mirror in `types/patient.t
 - **`getUserMedia` secure context:** localhost or HTTPS only.
 - **Duplicate language state:** `session.store.ts` also has a `language` field, but i18n reads from `language.store.ts` via `useLanguage()`. The session copy is currently unused for rendering — pick one source before this drifts (recommend: drop `language` from the session store and keep `language.store`).
 - **`useSession()` returns the whole store** (no selector) → components using it re-render on any session change. For hot paths, subscribe with a selector (`useSessionStore(s => s.x)`) instead.
-- **shadcn not installed** — intentional; primitives are bespoke. If you add Radix later, re-skin to the tokens, don't import default themes.
+- **shadcn not installed** — intentional; primitives are bespoke. Radix _is_ used as an unstyled behavior layer (currently `ui/dialog.tsx` only); if you reach for more Radix, re-skin to the tokens, don't import default themes.
 - **Fonts not yet self-hosted** — falls back to system fonts until woff2 files land in `public/fonts/`.
 - **Provisional triage/cxr types** — anything importing them is compiling against a guess; re-verify after `ARCH-1`.

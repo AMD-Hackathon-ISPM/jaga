@@ -3,7 +3,7 @@
 **Document type:** Project architecture
 **Audience:** Backend, frontend, ML, platform, QA, and technical reviewers
 **Status:** Active · owner contracts required before feature implementation
-**Updated:** 2026-06-29
+**Updated:** 2026-06-30
 **Canonical for:** System boundaries, planned runtime components, shared interfaces, privacy, security, observability, deployment, and technical ownership
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
@@ -67,10 +67,10 @@ The MVP has no user account, patient database, case history, queue, background j
 - **API state/error mapping:** `design-guidelines.md` §3.3; exact codes pin on Daffa's `ARCH-1` contract (§6).
 - **In-memory form/audio model:** clinical values + five decoded cough buffers + result + request-id held in React state only; cleared on reset, success acknowledgement, or session timeout (PRD-08). No `localStorage`/`IndexedDB`/service-worker cache/analytics may contain them.
 - **Accessibility & responsive:** `design-guidelines.md` §5–§9 (320 px floor, AA contrast evidence, reduced-motion, text alternatives).
-- **Planned folder structure** (under the `apps/web/` of §11):
+- **Planned folder structure** (under the `frontend/` of §11):
 
 ```text
-apps/web/
+frontend/
 ├── app/                # routes: / (gate), /clinical, /coughs, /review, /result
 ├── components/         # reusable + screen-specific (re-skinned from ClinicalCaptureForm.jsx)
 ├── lib/                # step state machine, in-memory session model, audio capture/quality
@@ -245,7 +245,9 @@ infra/                   # Docker Swarm deployment plane
 ├── nginx/ postgres/ redis/ minio/ cognee/
 ├── healthcheck/         # api / prisma / cognee probes
 └── scripts/             # build, deploy, logs, scale, remove (sh + ps1)
-apps/web/                # PWA capture/result client (frontend; see §3.2)
+frontend/                # PWA capture/result client (Next.js; see §3.2) — renamed from apps/web 2026-06-30
+components/              # ClinicalCaptureForm.jsx — provisional reference prototype the frontend primitives were re-skinned from (design §6); kept as the canonical capture pattern, not built/shipped
+design/                  # design tooling: swatch.html (token preview) + contrast.mjs (WCAG ratio verifier, design §4); not application code
 ```
 
 **Endpoints (as-built):**
