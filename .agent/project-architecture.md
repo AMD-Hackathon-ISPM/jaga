@@ -62,7 +62,7 @@ The MVP has no user account, patient database, case history, queue, background j
 
 ### 3.2 Signed frontend architecture (Billy, 2026-06-28)
 
-- **Libraries:** Next.js (App Router) PWA + React; **Tailwind CSS** with the §4 OKLCH tokens declared as CSS custom properties (the provisional `components/ClinicalCaptureForm.jsx` already uses Tailwind utilities). No global state library — the step machine is local React state / `useReducer`, all in memory. Audio uses the **Web Audio API + `<canvas>`** for the recorder/waveform (no audio dependency). Motion is CSS-first (transform/opacity); add a small motion library only if a specific transition needs it.
+- **Libraries:** Next.js (App Router) PWA + React; **Tailwind CSS** with the §4 OKLCH tokens declared as CSS custom properties; **shadcn/ui** with the Radix/Nova configuration as the component source and CLI workflow. Shadcn semantic variables map to the signed Jaga tokens rather than replacing them, and existing token-styled primitives remain in place until intentionally migrated. No global state library — the step machine is local React state / `useReducer`, all in memory. Audio uses the **Web Audio API + `<canvas>`** for the recorder/waveform (no audio dependency). Motion is CSS-first (transform/opacity); add a small motion library only if a specific transition needs it.
 - **Route / screen map and state machine:** defined once in [`design-guidelines.md`](design-guidelines.md) §3 (gate → clinical → coughs → review → processing → result → limitations, with reset/error). Not duplicated here.
 - **API state/error mapping:** `design-guidelines.md` §3.3; exact codes pin on Daffa's `ARCH-1` contract (§6).
 - **In-memory form/audio model:** clinical values + five decoded cough buffers + result + request-id held in React state only; cleared on reset, success acknowledgement, or session timeout (PRD-08). No `localStorage`/`IndexedDB`/service-worker cache/analytics may contain them.
@@ -71,6 +71,7 @@ The MVP has no user account, patient database, case history, queue, background j
 
 ```text
 frontend/
+├── components.json     # shadcn/ui Radix/Nova configuration and aliases
 ├── app/                # routes: / (gate), /clinical, /coughs, /review, /result
 ├── components/         # reusable + screen-specific (re-skinned from ClinicalCaptureForm.jsx)
 ├── lib/                # step state machine, in-memory session model, audio capture/quality

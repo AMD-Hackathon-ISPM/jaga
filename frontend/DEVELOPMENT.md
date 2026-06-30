@@ -35,6 +35,7 @@ Deep reference for working on `frontend`. The [README](README.md) is the overvie
 | Framework | Next.js 15 (App Router) + React 19 |
 | Language | TypeScript (strict) |
 | Styling | Tailwind CSS 3 + CSS custom properties (OKLCH tokens) |
+| Components | shadcn/ui CLI with the Radix/Nova configuration |
 | Server state | TanStack Query (one future triage mutation) |
 | Client state | Zustand (in-memory, no `persist`) |
 | Forms | React Hook Form + Zod (`@hookform/resolvers`) |
@@ -53,7 +54,7 @@ npm run build                   # production build smoke test
 
 Path alias: `@/*` → `src/*` (see `tsconfig.json`).
 
-No shadcn/ui: the design system is bespoke, so UI primitives are hand-rolled to the tokens (see §12). The one exception is `ui/dialog.tsx`, which runs on **Radix Dialog** (`@radix-ui/react-dialog`) for the focus trap / scroll lock / portal / ARIA, fully re-skinned to the tokens — no default theme is imported.
+Shadcn/ui is configured through `components.json` with the Radix/Nova source. Its semantic variables map to Jaga's signed tokens; existing primitives remain in place until intentionally migrated. Use the shadcn CLI for new primitives, then adapt them to the existing component API and token contract without importing a generic theme.
 
 ---
 
@@ -233,7 +234,7 @@ Files: `hooks/use-cough-recorder.ts`, `features/coughs/cough-waveform.tsx`, `fea
 
 - **`styles/tokens.css`** declares the OKLCH palette + font-role variables as CSS custom properties, ported verbatim from design-guidelines §4. **Change colors here, not in components.**
 - **`tailwind.config.ts`** aliases those variables to Tailwind classes (`bg-brand`, `text-ink-muted`, `border-border-strong`, `bg-band-higher`, `max-w-flow`, radius `bar/control/frame`, etc.). Never hard-code hex in components — use the aliases.
-- **`app/globals.css`** imports tokens, applies the Tailwind layers, sets the base body type/focus ring, the reduced-motion rule, and the `.record-orb` component styles.
+- **`app/globals.css`** imports tokens and shadcn CSS utilities, maps shadcn semantic variables to Jaga's palette, applies the Tailwind layers, and sets the base body type/focus ring, reduced-motion rule, and `.record-orb` component styles.
 - Fonts: self-hosted woff2 go in `public/fonts/` (EB Garamond serif, Figtree sans, Ioskeley mono) and wire to `--font-serif/sans/mono` via `next/font/local` or `@font-face`. Not committed yet — `font-serif/sans/mono` fall back to system fonts until then.
 
 ---
@@ -307,7 +308,7 @@ Backend owner adds it to the Go model + validator → mirror in `types/patient.t
 4. In `features/review/`, call it via a TanStack Query `useMutation`; map states/errors per design §3.3 into `SubmitState`.
 5. Swap `mocks/triage-result.mock.json` in `features/result/` for the live result; keep the locked hierarchy and the unconditional banner + next-step panel.
 
-**Add a UI primitive:** put it in `components/ui/`, style with token classes only, export from the barrel.
+**Add a UI primitive:** run `npx shadcn@latest add <component>` from `frontend/`, review the generated file against the signed token and accessibility rules, preserve any existing public API, and export it from the barrel when needed.
 
 **Add a translated string:** add the key to `en.json` **and** `id.json`; read with `t("…")`.
 
@@ -319,6 +320,6 @@ Backend owner adds it to the Go model + validator → mirror in `types/patient.t
 - **`getUserMedia` secure context:** localhost or HTTPS only.
 - **Duplicate language state:** `session.store.ts` also has a `language` field, but i18n reads from `language.store.ts` via `useLanguage()`. The session copy is currently unused for rendering — pick one source before this drifts (recommend: drop `language` from the session store and keep `language.store`).
 - **`useSession()` returns the whole store** (no selector) → components using it re-render on any session change. For hot paths, subscribe with a selector (`useSessionStore(s => s.x)`) instead.
-- **shadcn not installed** — intentional; primitives are bespoke. Radix _is_ used as an unstyled behavior layer (currently `ui/dialog.tsx` only); if you reach for more Radix, re-skin to the tokens, don't import default themes.
+- **Existing primitives predate shadcn initialization** — do not bulk-overwrite them. Use `npx shadcn@latest add <component> --dry-run` and `--diff` before updating a component, then preserve Jaga's token styling and current public API.
 - **Fonts not yet self-hosted** — falls back to system fonts until woff2 files land in `public/fonts/`.
 - **Provisional triage/cxr types** — anything importing them is compiling against a guess; re-verify after `ARCH-1`.

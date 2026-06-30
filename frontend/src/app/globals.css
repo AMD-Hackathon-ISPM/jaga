@@ -1,4 +1,6 @@
 @import "../styles/tokens.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @tailwind base;
 @tailwind components;
@@ -31,6 +33,40 @@
       animation-duration: 0.001ms !important;
       transition-duration: 0.001ms !important;
     }
+  }
+  :root {
+    --background: var(--canvas);
+    --foreground: var(--ink);
+    --card: var(--surface);
+    --card-foreground: var(--ink);
+    --popover: var(--surface);
+    --popover-foreground: var(--ink);
+    --primary: var(--brand);
+    --primary-foreground: #ffffff;
+    --secondary: var(--surface-sunken);
+    --secondary-foreground: var(--ink);
+    --muted: var(--surface-sunken);
+    --muted-foreground: var(--ink-muted);
+    --accent: var(--surface-sunken);
+    --accent-foreground: var(--ink);
+    --destructive: var(--error-strong);
+    --border: var(--border-subtle);
+    --input: var(--border-strong);
+    --ring: var(--focus);
+    --chart-1: var(--band-lower);
+    --chart-2: var(--band-intermediate);
+    --chart-3: var(--band-higher);
+    --chart-4: var(--info);
+    --chart-5: var(--warning);
+    --radius: 0.5rem;
+    --sidebar: var(--surface);
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--brand);
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: var(--surface-sunken);
+    --sidebar-accent-foreground: var(--ink);
+    --sidebar-border: var(--border-subtle);
+    --sidebar-ring: var(--focus);
   }
 }
 

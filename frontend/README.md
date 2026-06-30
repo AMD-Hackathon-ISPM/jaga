@@ -26,11 +26,11 @@ The Next.js PWA capture/result client for **Jaga**, an investigational TB *triag
 
 ## Tech stack
 
-React 19 · Next.js 15 (App Router) · TypeScript · Tailwind CSS · TanStack Query · Zustand · React Hook Form · Zod · Axios (configured, unused) · ESLint · Prettier.
+React 19 · Next.js 15 (App Router) · TypeScript · Tailwind CSS · shadcn/ui (Radix/Nova) · TanStack Query · Zustand · React Hook Form · Zod · Axios (configured, unused) · ESLint · Prettier.
 
 **Intentional deviations from a generic dashboard scaffold** (this is a triage PWA, not a CRUD admin):
 
-- **No shadcn/ui.** The signed design system is bespoke (specific OKLCH tokens + EB Garamond / Figtree / Ioskeley). UI primitives are hand-rolled to the tokens in `components/ui/`. The exception is `ui/dialog.tsx`, which uses **Radix Dialog** as an unstyled behavior layer (focus trap, scroll lock, portal, ARIA) re-skinned to the tokens — not shadcn's default theme.
+- **Shadcn uses Jaga's design system.** `components.json` configures the Radix/Nova source and CLI workflow. Its semantic variables map to the signed Jaga palette; existing primitives remain token-styled in `components/ui/` until intentionally migrated, and new primitives should be added through the shadcn CLI rather than recreated.
 - **No Dashboard/Reports/Monitoring/Admin pages.** The product flow is `gate → clinical → coughs → review → result`. Operator/auth pieces (`components/layout/navbar.tsx`, `sidebar.tsx`, `guards/`, `context/auth-context.tsx`, `store/auth.store.ts`) are placeholders for a *possible* future operator area and are **not** part of the public flow.
 - **Folder name.** This lives in `frontend/` (renamed from `apps/web` on 2026-06-30); the role is described in [`../.agent/project-architecture.md`](../.agent/project-architecture.md) §11/§3.2.
 
@@ -38,6 +38,7 @@ React 19 · Next.js 15 (App Router) · TypeScript · Tailwind CSS · TanStack Qu
 
 ```text
 frontend/
+├── components.json             # shadcn/ui Radix/Nova config and aliases
 ├── public/
 │   ├── manifest.webmanifest
 │   └── fonts/                 # self-hosted subset woff2 (to add)
