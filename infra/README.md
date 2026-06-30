@@ -5,6 +5,7 @@ This directory contains the Docker Swarm deployment layout for JAGA.
 ## Topology
 
 - `nginx` is the public entrypoint
+- `web` serves the Next.js frontend behind NGINX
 - `go-api` handles auth, intake, uploads, orchestration, and future Featherless/OpenAI-compatible calls
 - `prisma-worker` handles internal inference workloads only
 - `cognee` provides local semantic memory
@@ -28,8 +29,9 @@ All services communicate over the `jaga-network` overlay network using service n
 - Docker Engine with Swarm enabled
 - Linux nodes for the stack
 - Built and pushed images for:
-  - `GO_API_IMAGE`
-  - `PRISMA_WORKER_IMAGE`
+- `GO_API_IMAGE`
+- `PRISMA_WORKER_IMAGE`
+- `WEB_IMAGE`
 - A worker image that exposes `GET /health` on `PRISMA_WORKER_PORT`
 - Application images should include `wget` or an equivalent HTTP probe utility for the in-container health checks
 - If GPU inference is enabled, a Swarm node with NVIDIA drivers and the NVIDIA container runtime stack installed
@@ -43,11 +45,13 @@ Important values:
 
 - `GO_API_IMAGE` must point to the published Go backend image
 - `PRISMA_WORKER_IMAGE` must point to the published Prisma worker image
+- `WEB_IMAGE` must point to the published Next.js frontend image
 - `FEATHERLESS_URL` should use the Featherless OpenAI-compatible endpoint base
 - `MODEL_PATH` is mounted into the worker through the `model_cache` volume
 - `COGNEE_ENABLED=true` uses the local in-stack Cognee service by default
 - `COGNEE_LLM_*` default to Featherless for generation
 - `COGNEE_EMBEDDING_*` default to local Fastembed embeddings, so no Cognee API key or external Cognee base URL is required
+- `NEXT_PUBLIC_API_BASE_URL` can stay blank for same-origin routing through NGINX
 
 ## Build
 
@@ -71,6 +75,7 @@ The default `.env.example` tags everything as local images:
 
 - `jaga/go-api:local`
 - `jaga/prisma-worker:local`
+- `jaga/web:local`
 - `jaga/nginx:local`
 - `jaga/postgres:local`
 - `jaga/redis:local`
@@ -163,7 +168,8 @@ The worker is configured for one job at a time through `WORKER_CONCURRENCY=1`. H
 ## Routing
 
 - `/api/*` proxies to `go-api`
-- `/health` proxies to `go-api`
+- `/internal/*`, `/v1/*`, `/health`, and `/healthz` proxy to `go-api`
+- `/` proxies to the Next.js frontend
 - `/storage/*` is already reserved for MinIO-backed storage routing
 
 ## Health
@@ -171,6 +177,7 @@ The worker is configured for one job at a time through `WORKER_CONCURRENCY=1`. H
 Built-in service health checks:
 
 - `nginx`: `GET /nginx-health`
+- `web`: `GET /`
 - `go-api`: `GET /health`
 - `cognee`: `GET /health`
 - `prisma-worker`: `GET /health`
@@ -190,6 +197,7 @@ Manual probes:
 
 - Docker Stack does not build images during deploy. Build and push the application images before running `deploy.sh`.
 - `scripts/build.sh` is intended for local or single-node Swarm use. Multi-node Swarm deployments should push images to a registry and update `.env`.
+- `NEXT_PUBLIC_*` values are baked into the frontend image at build time, so rebuild `WEB_IMAGE` after changing them.
 - The local Cognee image installs `fastembed`, so rerun the build script after Cognee-related stack changes before redeploying.
 - The MinIO service creates the configured top-level bucket directories on startup using `MINIO_BUCKET_UPLOADS` and `MINIO_BUCKET_MODELS`.
 - Cognee now runs locally inside the stack, and the Go backend defaults to `http://cognee:8000` internally. You do not need to set `COGNEE_API_KEY` or `COGNEE_BASE_URL` for the normal local path.
