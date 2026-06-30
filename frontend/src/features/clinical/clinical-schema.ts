@@ -8,15 +8,7 @@ import { PATIENT_BOUNDS } from "@/types/patient";
  */
 const b = PATIENT_BOUNDS;
 
-/**
- * React Hook Form ignores `setValueAs` for radio inputs, so the yes/no radios
- * submit the raw string "true"/"false". Coerce to boolean here instead. An
- * unselected field stays undefined, so it still fails as required.
- */
-const radioBoolean = z.preprocess(
-  (v) => (v === "true" ? true : v === "false" ? false : v),
-  z.boolean({ required_error: "Select one." }),
-);
+const radioBoolean = z.boolean({ required_error: "Select one." });
 
 export const clinicalSchema = z.object({
   age_years: z.number().int().min(b.age_years.min).max(b.age_years.max),

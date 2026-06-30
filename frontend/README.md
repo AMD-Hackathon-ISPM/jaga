@@ -26,11 +26,11 @@ The Next.js PWA capture/result client for **Jaga**, an investigational TB *triag
 
 ## Tech stack
 
-React 19 · Next.js 15 (App Router) · TypeScript · Tailwind CSS · shadcn/ui (Radix/Nova) · TanStack Query · Zustand · React Hook Form · Zod · Axios (configured, unused) · ESLint · Prettier.
+React 19 · Next.js 15 (App Router) · TypeScript · Tailwind CSS 4 · shadcn/ui (Radix/Nova preset `b85jYWWKi8`) · TanStack Query · Zustand · React Hook Form · Zod · Axios (configured, unused) · ESLint · Prettier.
 
 **Intentional deviations from a generic dashboard scaffold** (this is a triage PWA, not a CRUD admin):
 
-- **Shadcn uses Jaga's design system.** `components.json` configures the Radix/Nova source and CLI workflow. Its semantic variables map to the signed Jaga palette; existing primitives remain token-styled in `components/ui/` until intentionally migrated, and new primitives should be added through the shadcn CLI rather than recreated.
+- **Shadcn uses Jaga's design system.** `components.json` configures the Radix/Nova source and CLI workflow. The routed flow uses official shadcn APIs, while semantic variables map to the signed Jaga palette and remain light-only.
 - **No Dashboard/Reports/Monitoring/Admin pages.** The product flow is `gate → clinical → coughs → review → result`. Operator/auth pieces (`components/layout/navbar.tsx`, `sidebar.tsx`, `guards/`, `context/auth-context.tsx`, `store/auth.store.ts`) are placeholders for a *possible* future operator area and are **not** part of the public flow.
 - **Folder name.** This lives in `frontend/` (renamed from `apps/web` on 2026-06-30); the role is described in [`../.agent/project-architecture.md`](../.agent/project-architecture.md) §11/§3.2.
 
@@ -41,7 +41,7 @@ frontend/
 ├── components.json             # shadcn/ui Radix/Nova config and aliases
 ├── public/
 │   ├── manifest.webmanifest
-│   └── fonts/                 # self-hosted subset woff2 (to add)
+│   └── fonts/                 # self-hosted Ioskeley Regular woff2
 └── src/
     ├── app/                   # App Router routes
     │   ├── layout.tsx         # providers, fonts, lang
@@ -56,8 +56,8 @@ frontend/
     ├── features/              # feature-first screens
     │   ├── gate/ · clinical/ · coughs/ · review/ · result/
     ├── components/
-    │   ├── ui/                # Button, Card, Input, Table, Dialog/Modal,
-    │   │                      #   Skeleton, Spinner, Badge, EmptyState, ErrorState
+    │   ├── ui/                # shadcn actions, surfaces, forms, feedback,
+    │   │                      #   list/disclosure primitives + legacy Table/Dialog
     │   ├── layout/            # Header, Footer, StepIndicator, LanguageSwitcher,
     │   │                      #   Navbar/Sidebar (operator scaffolding)
     │   └── common/            # ErrorBoundary, PrototypeBanner
@@ -86,7 +86,11 @@ cp .env.example .env.local   # leave NEXT_PUBLIC_API_BASE_URL empty for now
 npm run dev                  # http://localhost:3000
 npm run typecheck            # tsc --noEmit
 npm run lint
+npm run build
+npx shadcn@latest info
 ```
+
+For an existing primitive, run `npx shadcn@latest add <component> --dry-run`, then `npx shadcn@latest add <component> --diff <file>` and merge the upstream API into Jaga's token and 44 px contracts. Never bulk-overwrite the UI directory.
 
 ## How to add API integration later (after `ARCH-1` is signed)
 

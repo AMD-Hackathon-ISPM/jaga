@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { PrototypeBanner } from "@/components/common/prototype-banner";
 
 /**
@@ -12,7 +12,7 @@ import { PrototypeBanner } from "@/components/common/prototype-banner";
  */
 export function GateScreen() {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <PrototypeBanner />
       <h1 className="font-serif text-2xl font-semibold">Before you begin</h1>
       <p className="text-ink-muted">
@@ -20,12 +20,12 @@ export function GateScreen() {
         not decide whether a person receives testing.
       </p>
       <Card>
-        <CardBody className="space-y-3">
+        <CardContent className="flex flex-col gap-3">
           <p className="text-sm text-ink-muted">
             Eligibility and consent acknowledgements will render here (placeholder). Each must be
             acknowledged explicitly before continuing.
           </p>
-        </CardBody>
+        </CardContent>
       </Card>
       <Button asChild>
         <Link href="/clinical">Continue</Link>

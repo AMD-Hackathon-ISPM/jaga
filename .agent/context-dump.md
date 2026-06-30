@@ -209,7 +209,7 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 | **Make `AGENT.md` the sole repository entry point** | A single router removes conflicting instructions and establishes source precedence. |
 | **Daffa architects backend and AI; Zeddin implements them** | This separates technical contract ownership from implementation responsibility. |
 | **Billy leads frontend and design; Kei implements capture and result flows** | This gives the frontend a clear specification handoff and implementer. |
-| **Use shadcn/ui through the Radix/Nova CLI configuration without replacing Jaga's signed tokens** | This standardizes future component sourcing and composition while preserving the existing clinical design system and avoiding an unsafe bulk migration of working primitives. |
+| **Use shadcn/ui Radix/Nova preset `b85jYWWKi8` across the routed frontend without replacing Jaga's signed tokens** | The gate, clinical, coughs, review, result, and shared layout use official component APIs on Tailwind 4. Semantic variables still resolve to Jaga's light-only palette; the safety hierarchy, accessibility constraints, and four custom visuals remain unchanged. |
 | **No live web scraping** | The project should depend on user input and stable, permitted data sources. |
 | **Design is part of safety** | Clear hierarchy, accessible states, and precise copy prevent a research risk output from being mistaken for a diagnosis. |
 | **Train the model on the MI300X (ROCm); serve online** | Training on GPU is the real, defensible AMD usage; serving on AMD too. |

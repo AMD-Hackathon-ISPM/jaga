@@ -5,11 +5,15 @@
  */
 export function PrototypeBanner() {
   return (
-    <div
+    <Alert
       role="note"
-      className="rounded-control border border-border-subtle bg-warning-surface px-4 py-3 text-sm text-ink"
+      variant="warning"
+      className="px-4 py-3"
     >
-      Jaga is a research prototype. It does not diagnose or rule out TB.
-    </div>
+      <AlertDescription className="text-foreground">
+        Jaga is a research prototype. It does not diagnose or rule out TB.
+      </AlertDescription>
+    </Alert>
   );
 }
+import { Alert, AlertDescription } from "@/components/ui/alert";

@@ -1,12 +1,28 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useForm, type UseFormRegister, type FieldError } from "react-hook-form";
+import {
+  Controller,
+  useForm,
+  type Control,
+  type FieldError as RhfFieldError,
+  type UseFormRegister,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { clinicalSchema, type ClinicalFormValues } from "./clinical-schema";
 import { useSessionStore } from "@/store/session.store";
 import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 /**
  * ClinicalForm — full field set mirrored from the live Go contract
@@ -24,6 +40,7 @@ export function ClinicalForm() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<ClinicalFormValues>({
@@ -32,120 +49,123 @@ export function ClinicalForm() {
   });
 
   const onSubmit = (values: ClinicalFormValues) => {
-    setClinical(values); // in-memory only — never persisted
+    setClinical(values);
     router.push("/coughs");
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-      <NumberField
-        name="age_years"
-        label="Age (years)"
-        hint="0 to 120"
-        register={register}
-        error={errors.age_years}
-        inputMode="numeric"
-      />
-
-      <BooleanLikeRadio
-        name="sex_at_birth"
-        legend="Sex at birth"
-        options={[
-          { value: "male", label: "Male" },
-          { value: "female", label: "Female" },
-        ]}
-        register={register}
-        error={errors.sex_at_birth}
-      />
-
-      <NumberField
-        name="height_cm"
-        label="Height (cm)"
-        hint="40 to 260"
-        register={register}
-        error={errors.height_cm}
-        step="0.1"
-      />
-      <NumberField
-        name="weight_kg"
-        label="Weight (kg)"
-        hint="1 to 350"
-        register={register}
-        error={errors.weight_kg}
-        step="0.1"
-      />
-      <NumberField
-        name="cough_duration_days"
-        label="Cough duration (days)"
-        hint="0 to 365"
-        register={register}
-        error={errors.cough_duration_days}
-        inputMode="numeric"
-      />
-
-      <YesNoField name="prior_tb" legend="Prior TB" register={register} error={errors.prior_tb} />
-      <YesNoField
-        name="hemoptysis"
-        legend="Coughing blood (hemoptysis)"
-        register={register}
-        error={errors.hemoptysis}
-      />
-
-      <fieldset className="space-y-4 rounded-control border border-border-subtle p-4">
-        <legend className="px-1 text-sm text-ink-muted">Vitals (optional)</legend>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <FieldGroup>
         <NumberField
-          name="heart_rate_bpm"
-          label="Heart rate (bpm)"
-          hint="20 to 250 — optional"
+          name="age_years"
+          label="Age (years)"
+          hint="0 to 120"
           register={register}
-          error={errors.heart_rate_bpm as FieldError | undefined}
-          optional
+          error={errors.age_years}
           inputMode="numeric"
         />
+
+        <SexField control={control} error={errors.sex_at_birth} />
+
         <NumberField
-          name="temperature_c"
-          label="Temperature (°C)"
-          hint="30 to 45 — optional"
+          name="height_cm"
+          label="Height (cm)"
+          hint="40 to 260"
           register={register}
-          error={errors.temperature_c as FieldError | undefined}
-          optional
+          error={errors.height_cm}
           step="0.1"
         />
-      </fieldset>
+        <NumberField
+          name="weight_kg"
+          label="Weight (kg)"
+          hint="1 to 350"
+          register={register}
+          error={errors.weight_kg}
+          step="0.1"
+        />
+        <NumberField
+          name="cough_duration_days"
+          label="Cough duration (days)"
+          hint="0 to 365"
+          register={register}
+          error={errors.cough_duration_days}
+          inputMode="numeric"
+        />
 
-      <YesNoField
-        name="smoked_last_7_days"
-        legend="Smoked in the last 7 days"
-        register={register}
-        error={errors.smoked_last_7_days}
-      />
-      <YesNoField
-        name="fever_last_30_days"
-        legend="Fever in the last 30 days"
-        register={register}
-        error={errors.fever_last_30_days}
-      />
-      <YesNoField
-        name="night_sweats_last_30_days"
-        legend="Night sweats in the last 30 days"
-        register={register}
-        error={errors.night_sweats_last_30_days}
-      />
-      <YesNoField
-        name="weight_loss_last_30_days"
-        legend="Weight loss in the last 30 days"
-        register={register}
-        error={errors.weight_loss_last_30_days}
-      />
+        <YesNoField name="prior_tb" legend="Prior TB" control={control} error={errors.prior_tb} />
+        <YesNoField
+          name="hemoptysis"
+          legend="Coughing blood (hemoptysis)"
+          control={control}
+          error={errors.hemoptysis}
+        />
 
-      <Button type="submit">Continue</Button>
+        <FieldSet className="rounded-control border border-border-subtle p-4">
+          <FieldLegend variant="label" className="px-1 text-ink-muted">
+            Vitals (optional)
+          </FieldLegend>
+          <FieldGroup>
+            <NumberField
+              name="heart_rate_bpm"
+              label="Heart rate (bpm)"
+              hint="20 to 250 — optional"
+              register={register}
+              error={errors.heart_rate_bpm as RhfFieldError | undefined}
+              optional
+              inputMode="numeric"
+            />
+            <NumberField
+              name="temperature_c"
+              label="Temperature (°C)"
+              hint="30 to 45 — optional"
+              register={register}
+              error={errors.temperature_c as RhfFieldError | undefined}
+              optional
+              step="0.1"
+            />
+          </FieldGroup>
+        </FieldSet>
+
+        <YesNoField
+          name="smoked_last_7_days"
+          legend="Smoked in the last 7 days"
+          control={control}
+          error={errors.smoked_last_7_days}
+        />
+        <YesNoField
+          name="fever_last_30_days"
+          legend="Fever in the last 30 days"
+          control={control}
+          error={errors.fever_last_30_days}
+        />
+        <YesNoField
+          name="night_sweats_last_30_days"
+          legend="Night sweats in the last 30 days"
+          control={control}
+          error={errors.night_sweats_last_30_days}
+        />
+        <YesNoField
+          name="weight_loss_last_30_days"
+          legend="Weight loss in the last 30 days"
+          control={control}
+          error={errors.weight_loss_last_30_days}
+        />
+
+        <Button type="submit">Continue</Button>
+      </FieldGroup>
     </form>
   );
 }
 
-/* ---------- field primitives (placeholder; will read labels from locale bundle) ---------- */
-
 type FieldName = keyof ClinicalFormValues;
+
+type BooleanFieldName =
+  | "prior_tb"
+  | "hemoptysis"
+  | "smoked_last_7_days"
+  | "fever_last_30_days"
+  | "night_sweats_last_30_days"
+  | "weight_loss_last_30_days";
 
 function NumberField({
   name,
@@ -161,99 +181,122 @@ function NumberField({
   label: string;
   hint?: string;
   register: UseFormRegister<ClinicalFormValues>;
-  error?: FieldError;
+  error?: RhfFieldError;
   optional?: boolean;
   inputMode?: "numeric" | "decimal";
   step?: string;
 }) {
   const id = String(name);
+
   return (
-    <div>
-      <label htmlFor={id} className="mb-1 block font-semibold">
+    <Field data-invalid={!!error}>
+      <FieldLabel htmlFor={id} className="text-base font-semibold">
         {label}
-      </label>
+      </FieldLabel>
       <Input
         id={id}
         type="number"
         inputMode={inputMode}
         step={step}
         className="font-mono"
-        invalid={!!error}
+        aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
         {...register(name, {
-          // Optional vitals: empty -> null; required numbers -> Number (NaN fails Zod).
-          setValueAs: (v: string) =>
-            v === "" ? (optional ? null : Number.NaN) : Number(v),
+          setValueAs: (value: string) =>
+            value === "" ? (optional ? null : Number.NaN) : Number(value),
         })}
       />
-      {hint && !error && (
-        <p id={`${id}-hint`} className="mt-1 text-sm text-ink-muted">
-          {hint}
-        </p>
+      {hint && !error && <FieldDescription id={`${id}-hint`}>{hint}</FieldDescription>}
+      {error && <FieldError id={`${id}-error`}>Enter a valid value ({hint ?? "see range"}).</FieldError>}
+    </Field>
+  );
+}
+
+function SexField({
+  control,
+  error,
+}: {
+  control: Control<ClinicalFormValues>;
+  error?: RhfFieldError;
+}) {
+  return (
+    <Controller
+      name="sex_at_birth"
+      control={control}
+      render={({ field }) => (
+        <FieldSet data-invalid={!!error}>
+          <FieldLegend>Sex at birth</FieldLegend>
+          <RadioGroup
+            name={field.name}
+            value={field.value ?? ""}
+            onValueChange={field.onChange}
+            onBlur={field.onBlur}
+            ref={field.ref}
+            aria-invalid={!!error}
+            className="flex gap-4"
+          >
+            <RadioOption id="sex_at_birth-male" value="male" label="Male" ariaInvalid={!!error} />
+            <RadioOption id="sex_at_birth-female" value="female" label="Female" ariaInvalid={!!error} />
+          </RadioGroup>
+          {error && <FieldError>Select one.</FieldError>}
+        </FieldSet>
       )}
-      {error && (
-        <p id={`${id}-error`} className="mt-1 text-sm text-error">
-          Enter a valid value ({hint ?? "see range"}).
-        </p>
-      )}
-    </div>
+    />
   );
 }
 
 function YesNoField({
   name,
   legend,
-  register,
+  control,
   error,
 }: {
-  name: FieldName;
+  name: BooleanFieldName;
   legend: string;
-  register: UseFormRegister<ClinicalFormValues>;
-  error?: FieldError;
+  control: Control<ClinicalFormValues>;
+  error?: RhfFieldError;
 }) {
   return (
-    <BooleanLikeRadio
+    <Controller
       name={name}
-      legend={legend}
-      options={[
-        { value: "true", label: "Yes" },
-        { value: "false", label: "No" },
-      ]}
-      register={register}
-      error={error}
+      control={control}
+      render={({ field }) => (
+        <FieldSet data-invalid={!!error}>
+          <FieldLegend>{legend}</FieldLegend>
+          <RadioGroup
+            name={field.name}
+            value={typeof field.value === "boolean" ? String(field.value) : ""}
+            onValueChange={(value) => field.onChange(value === "true")}
+            onBlur={field.onBlur}
+            ref={field.ref}
+            aria-invalid={!!error}
+            className="flex gap-4"
+          >
+            <RadioOption id={`${name}-true`} value="true" label="Yes" ariaInvalid={!!error} />
+            <RadioOption id={`${name}-false`} value="false" label="No" ariaInvalid={!!error} />
+          </RadioGroup>
+          {error && <FieldError>Select one.</FieldError>}
+        </FieldSet>
+      )}
     />
   );
 }
 
-function BooleanLikeRadio({
-  name,
-  legend,
-  options,
-  register,
-  error,
+function RadioOption({
+  id,
+  value,
+  label,
+  ariaInvalid,
 }: {
-  name: FieldName;
-  legend: string;
-  options: { value: string; label: string }[];
-  register: UseFormRegister<ClinicalFormValues>;
-  error?: FieldError;
+  id: string;
+  value: string;
+  label: string;
+  ariaInvalid: boolean;
 }) {
   return (
-    <fieldset>
-      <legend className="mb-1 font-semibold">{legend}</legend>
-      <div className="flex gap-4">
-        {options.map((opt) => (
-          <label key={opt.value} className="inline-flex min-h-[44px] items-center gap-2">
-            <input
-              type="radio"
-              value={opt.value}
-              {...register(name)}
-            />
-            <span>{opt.label}</span>
-          </label>
-        ))}
-      </div>
-      {error && <p className="mt-1 text-sm text-error">Select one.</p>}
-    </fieldset>
+    <FieldLabel htmlFor={id} className="min-h-11 gap-2 text-base">
+      <RadioGroupItem id={id} value={value} aria-invalid={ariaInvalid} />
+      {label}
+    </FieldLabel>
   );
 }

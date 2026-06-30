@@ -1,4 +1,5 @@
 import { Button } from "./button";
+import { Alert, AlertDescription, AlertTitle } from "./alert";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,18 +20,20 @@ export function ErrorState({
   className?: string;
 }) {
   return (
-    <div
-      role="alert"
+    <Alert
+      variant="destructive"
       tabIndex={-1}
-      className={cn("rounded-control border border-error bg-error-surface p-4 text-ink", className)}
+      className={cn("p-4", className)}
     >
-      <h3 className="mb-1 text-lg font-semibold text-error">{title}</h3>
-      {description && <p className="mb-4">{description}</p>}
+      <AlertTitle className="text-lg font-semibold">{title}</AlertTitle>
+      {description && <AlertDescription className="text-foreground">{description}</AlertDescription>}
       {onRetry && (
-        <Button variant="secondary" onClick={onRetry}>
-          {retryLabel}
-        </Button>
+        <div className="mt-4">
+          <Button variant="secondary" onClick={onRetry}>
+            {retryLabel}
+          </Button>
+        </div>
       )}
-    </div>
+    </Alert>
   );
 }

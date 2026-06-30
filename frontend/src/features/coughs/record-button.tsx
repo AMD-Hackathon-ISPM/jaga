@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 /**
  * RecordButton — round, glowing, breathing record orb (ChatGPT-voice style).
@@ -18,16 +18,17 @@ export function RecordButton({
   disabled?: boolean;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant="recorder"
       onClick={onClick}
       disabled={disabled}
       aria-pressed={recording}
       aria-label={recording ? "Stop recording" : "Start recording"}
-      className={cn("record-orb", recording && "record-orb--active")}
+      className={recording ? "record-orb--active" : undefined}
     >
       {recording ? <StopIcon /> : <MicIcon />}
-    </button>
+    </Button>
   );
 }
 

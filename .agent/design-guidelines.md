@@ -200,6 +200,7 @@ Computed from the values above (reproducible via [`../design/contrast.mjs`](../d
 - Numeric estimates show a clear label, unit/scale, and calibration status.
 - Minimum touch target is 44×44 CSS pixels.
 - Critical information remains readable at 320 CSS-pixel viewport width and 200% zoom.
+- Supported browser floor is Chrome and Android WebView 111 or newer.
 
 ### 5.2 Font families (3 roles, contrast-axis pairing)
 
@@ -213,8 +214,9 @@ Three families on a clean contrast axis (serif + humanist sans + geometric mono)
 
 ### 5.3 Loading strategy (performance budget)
 
-- **Self-host** all three as **subset woff2** — only the weights/glyphs actually used (Latin + Indonesian diacritics + the figure set). Convert Ioskeley's TTF → woff2; ship at most ~3 weights per family (e.g. sans 400/500/600, serif 400/600, Ioskeley 400/500). **Do not** ship Ioskeley's full 10-weight × 3-width family.
-- `font-display: swap`; `<link rel="preload">` the body sans (and the serif used above the fold on the result).
+- Figtree and EB Garamond are delivered through `next/font/google` as build-time assets and exposed as `--font-sans` and `--font-serif`. This supersedes the earlier full-self-host requirement for those two families.
+- Self-host only the Ioskeley Regular woff2 used for numerics through `next/font/local` as `--font-mono`; do not ship its full 10-weight × 3-width family.
+- All three use `font-display: swap`; `next/font` handles preload and asset delivery.
 - Always declare the system fallbacks above so first paint is legible before webfonts load.
 
 ### 5.4 Type scale (fixed rem, product register)
@@ -223,7 +225,7 @@ App screens use a **fixed rem** scale (not fluid) — consistent DPI, no shrink-
 
 | Step | Size / line-height | Weight · family |
 |---|---|---|
-| Display (result band name) | `clamp(1.5rem, 1.3rem + 1vw, 2rem)` / 1.1 | 600 · serif, letter-spacing -0.02em |
+| Display (result band name) | `clamp(1.5rem, 1.3rem + 1vw, 2rem)` / 1.1 | 600 · serif, letter-spacing -0.03em |
 | H1 (screen title) | `1.5rem` / 1.2 | 600 · serif |
 | H2 (section) | `1.25rem` / 1.3 | 600 · serif |
 | H3 / lead | `1.125rem` / 1.4 | 600 · sans |
@@ -254,9 +256,11 @@ Cap prose at 65–75 ch. `text-wrap: balance` on h1–h3; `text-wrap: pretty` on
 
 Required component families and their specs. Reuse the patterns already proven in [`../components/ClinicalCaptureForm.jsx`](../components/ClinicalCaptureForm.jsx) — 44 px targets, visible focus ring, radiogroup booleans, focusable error summary, bilingual `T` table, in-memory state — **re-skinned to the §4/§5 tokens**. Every interactive component defines all of: default, hover, focus, active, disabled, loading, error.
 
+The routed flow uses official shadcn APIs from preset `b85jYWWKi8`: Button for actions and the recorder; Card/CardContent for surfaces; Field/FieldSet/Input/RadioGroup for clinical inputs; ToggleGroup for language; Alert/Empty/Badge/Skeleton/Spinner for feedback; Item for cough attempts; and Accordion for limitations. Shadcn semantic variables map to §4 tokens, and the application remains light-only without a theme provider.
+
 | Family | Anatomy / variants | Key states & rules |
 |---|---|---|
-| **Buttons** | primary (brand fill, white), secondary (surface + border-strong), tertiary (text + brand), destructive (error-strong fill) | ≥44 px; focus ring `--focus`; disabled = reduced contrast + `aria-disabled`; loading = inline spinner + label, action locked; one primary per step |
+| **Buttons** | primary (brand fill, white), secondary (surface + border-strong), tertiary (text + brand), destructive (error-strong fill), recorder (record orb) | ≥44 px; focus ring `--focus`; disabled = reduced contrast + `aria-disabled`; loading composes `Spinner` + label with the action locked; one primary per step |
 | **Form controls** | label + optional unit + required/optional marker + hint + input/radio/boolean + error | `--surface-sunken` well, `--border-strong` outline; error = `--error` text + `--error-surface` + `aria-invalid` + `aria-describedby`; preserve value on error; numeric inputs use Ioskeley + `inputMode` |
 | **Language switcher** | pill toggle EN ⇄ ID | default EN; one tap; preserves step + values; `aria-label` states target language |
 | **Step / progress indicator** | top stepper (Eligibility · Clinical · Coughs · Result) + cough sub-counter `n/5` | current step `aria-current`; numeric counter in Ioskeley; never blocks reading the step content |

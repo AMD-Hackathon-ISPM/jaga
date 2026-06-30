@@ -1,12 +1,14 @@
 import { cn } from "@/lib/utils";
 
-/** Skeleton — loading placeholder (design §6: skeletons, not content spinners). */
-export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("animate-pulse rounded-control bg-surface-sunken", className)}
+      data-slot="skeleton"
+      className={cn("animate-pulse rounded-control bg-muted", className)}
       aria-hidden="true"
       {...props}
     />
   );
 }
+
+export { Skeleton };

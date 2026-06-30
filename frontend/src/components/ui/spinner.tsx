@@ -1,15 +1,17 @@
+import { Loader2Icon } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
-/** Inline spinner. Prefer skeletons for content loading; use this for inline actions only. */
-export function Spinner({ className }: { className?: string }) {
+function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
   return (
-    <span
+    <Loader2Icon
+      data-slot="spinner"
       role="status"
       aria-label="Loading"
-      className={cn(
-        "inline-block h-4 w-4 animate-spin rounded-full border-2 border-brand border-t-transparent",
-        className,
-      )}
+      className={cn("size-4 animate-spin", className)}
+      {...props}
     />
   );
 }
+
+export { Spinner };

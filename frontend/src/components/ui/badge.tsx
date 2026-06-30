@@ -1,25 +1,46 @@
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { Slot } from "radix-ui";
+
 import { cn } from "@/lib/utils";
 
-type Tone = "neutral" | "info" | "warning" | "error" | "success";
+const badgeVariants = cva(
+  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full border border-transparent px-2.5 py-0.5 text-sm",
+  {
+    variants: {
+      variant: {
+        neutral: "bg-muted text-muted-foreground",
+        info: "bg-info-surface text-info",
+        warning: "bg-warning-surface text-warning",
+        error: "bg-error-surface text-error",
+        success: "border-input bg-card text-success",
+      },
+    },
+    defaultVariants: {
+      variant: "neutral",
+    },
+  },
+);
 
-const tones: Record<Tone, string> = {
-  neutral: "bg-surface-sunken text-ink-muted",
-  info: "bg-info-surface text-info",
-  warning: "bg-warning-surface text-warning",
-  error: "bg-error-surface text-error",
-  success: "bg-surface text-success border border-border-strong",
-};
-
-/** Badge / tag — pill radius is allowed here (design §5.5). Text label always present. */
-export function Badge({
-  tone = "neutral",
+function Badge({
   className,
+  variant = "neutral",
+  asChild = false,
   ...props
-}: { tone?: Tone } & React.HTMLAttributes<HTMLSpanElement>) {
+}: React.ComponentProps<"span"> &
+  VariantProps<typeof badgeVariants> & {
+    asChild?: boolean;
+  }) {
+  const Comp = asChild ? Slot.Root : "span";
+
   return (
-    <span
-      className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-sm", tones[tone], className)}
+    <Comp
+      data-slot="badge"
+      data-variant={variant}
+      className={cn(badgeVariants({ variant }), className)}
       {...props}
     />
   );
 }
+
+export { Badge, badgeVariants };

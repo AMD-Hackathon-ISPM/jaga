@@ -25,7 +25,7 @@ export function CoughRecorder({ attemptIndex }: { attemptIndex: number }) {
   const recording = state === "recording";
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-5">
       <p className="text-center font-mono text-sm tabular-nums text-ink-muted">
         Attempt {attemptIndex} of 5
       </p>

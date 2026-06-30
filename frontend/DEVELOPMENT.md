@@ -34,8 +34,8 @@ Deep reference for working on `frontend`. The [README](README.md) is the overvie
 |---|---|
 | Framework | Next.js 15 (App Router) + React 19 |
 | Language | TypeScript (strict) |
-| Styling | Tailwind CSS 3 + CSS custom properties (OKLCH tokens) |
-| Components | shadcn/ui CLI with the Radix/Nova configuration |
+| Styling | Tailwind CSS 4 + CSS custom properties (OKLCH tokens) |
+| Components | shadcn/ui CLI with Radix/Nova preset `b85jYWWKi8` |
 | Server state | TanStack Query (one future triage mutation) |
 | Client state | Zustand (in-memory, no `persist`) |
 | Forms | React Hook Form + Zod (`@hookform/resolvers`) |
@@ -54,7 +54,7 @@ npm run build                   # production build smoke test
 
 Path alias: `@/*` → `src/*` (see `tsconfig.json`).
 
-Shadcn/ui is configured through `components.json` with the Radix/Nova source. Its semantic variables map to Jaga's signed tokens; existing primitives remain in place until intentionally migrated. Use the shadcn CLI for new primitives, then adapt them to the existing component API and token contract without importing a generic theme.
+Shadcn/ui is configured through `components.json` with Radix/Nova preset `b85jYWWKi8`. Its semantic variables map to Jaga's signed tokens. The five routed surfaces and shared layout use official APIs; Table, Dialog, and Modal remain unused legacy primitives. The application is light-only and has no theme provider.
 
 ---
 
@@ -159,16 +159,13 @@ Example and template: **the clinical form** (`features/clinical/`).
 Two patterns worth copying:
 
 1. **Number inputs** use `register(name, { setValueAs })`. Required numbers map `"" → NaN` (so Zod rejects empty); optional vitals map `"" → null`.
-2. **Radio / boolean inputs DO NOT use `setValueAs`.** React Hook Form **ignores `setValueAs` for radio and checkbox inputs** (it only applies to text/number). Coerce in the schema instead:
+2. **Radio / boolean inputs use `Controller` with shadcn `RadioGroup`.** Convert the selected string in `onValueChange` so RHF stores a real boolean before Zod runs:
 
    ```ts
-   const radioBoolean = z.preprocess(
-     (v) => (v === "true" ? true : v === "false" ? false : v),
-     z.boolean({ required_error: "Select one." }),
-   );
+   onValueChange={(value) => field.onChange(value === "true")}
    ```
 
-   This was a real bug: yes/no radios submitted the string `"true"`, which failed `z.boolean()` and blocked the form even after selecting an answer. Keep radios as plain `register(name)` and let the schema coerce. Unselected stays `undefined` so "required" still works.
+   The schema remains `z.boolean({ required_error: "Select one." })`; unselected stays `undefined`, so required validation still works. `ClinicalFormValues` and its snake_case field names are unchanged.
 
 **When adding a clinical field:** add it to the Go model + validator (backend owner), then mirror it in `types/patient.ts`, `clinical-schema.ts`, and render it in `clinical-form.tsx`. Keep the bounds identical across all three.
 
@@ -232,10 +229,10 @@ Files: `hooks/use-cough-recorder.ts`, `features/coughs/cough-waveform.tsx`, `fea
 
 ## 11. Design tokens & styling
 
-- **`styles/tokens.css`** declares the OKLCH palette + font-role variables as CSS custom properties, ported verbatim from design-guidelines §4. **Change colors here, not in components.**
+- **`styles/tokens.css`** declares the OKLCH palette as CSS custom properties, ported verbatim from design-guidelines §4. **Change colors here, not in components.**
 - **`tailwind.config.ts`** aliases those variables to Tailwind classes (`bg-brand`, `text-ink-muted`, `border-border-strong`, `bg-band-higher`, `max-w-flow`, radius `bar/control/frame`, etc.). Never hard-code hex in components — use the aliases.
-- **`app/globals.css`** imports tokens and shadcn CSS utilities, maps shadcn semantic variables to Jaga's palette, applies the Tailwind layers, and sets the base body type/focus ring, reduced-motion rule, and `.record-orb` component styles.
-- Fonts: self-hosted woff2 go in `public/fonts/` (EB Garamond serif, Figtree sans, Ioskeley mono) and wire to `--font-serif/sans/mono` via `next/font/local` or `@font-face`. Not committed yet — `font-serif/sans/mono` fall back to system fonts until then.
+- **`app/globals.css`** imports Tailwind 4 through the compatibility `@config` bridge, imports shadcn utilities, maps semantic variables to Jaga's palette, and sets base type/focus, reduced-motion, and recorder styles.
+- Fonts: `app/layout.tsx` loads Figtree and EB Garamond with `next/font/google` as `--font-sans`/`--font-serif`, and self-hosts `public/fonts/IoskeleyMono-Regular.woff2` with `next/font/local` as `--font-mono`. Serif and heading tracking is `-0.03em`.
 
 ---
 
@@ -245,11 +242,14 @@ Files: `hooks/use-cough-recorder.ts`, `features/coughs/cough-waveform.tsx`, `fea
 
 | Component | Notes |
 |---|---|
-| `Button` | variants `primary/secondary/tertiary/destructive`, `size md/lg` (≥44px), `loading`, `asChild` (clones a single child, e.g. `<Link>`) |
-| `Card` + `CardHeader/Title/Body` | raised surface panel |
-| `Input` | sunken well, `invalid` state, forwards ref |
+| `Button` | variants `primary/secondary/tertiary/destructive/recorder`, `size md/lg` (≥44px), Radix `Slot` via `asChild`; compose `Spinner` for pending actions |
+| `Card` + `CardHeader/Title/Description/Content/Footer` | raised surface composition |
+| `Field` / `FieldSet` + `Input` / `RadioGroup` | clinical forms; invalid controls use `aria-invalid` |
+| `ToggleGroup` | EN/ID navigation toggle |
+| `Alert` / `Empty` | prototype/error feedback and empty guidance |
 | `Skeleton` / `Spinner` | loading; prefer skeletons for content |
-| `Badge` | tones `neutral/info/warning/error/success` |
+| `Badge` | variants `neutral/info/warning/error/success` |
+| `Item` / `Accordion` | cough attempt rows and result limitations |
 | `Table` + `THead/TBody/TR/TH/TD` | review summaries |
 | `Dialog` / `Modal` | native `<dialog>` (`Modal` is an alias); used for reset confirmation |
 | `EmptyState` | teaches the step, not "nothing here" |
@@ -308,7 +308,7 @@ Backend owner adds it to the Go model + validator → mirror in `types/patient.t
 4. In `features/review/`, call it via a TanStack Query `useMutation`; map states/errors per design §3.3 into `SubmitState`.
 5. Swap `mocks/triage-result.mock.json` in `features/result/` for the live result; keep the locked hierarchy and the unconditional banner + next-step panel.
 
-**Add a UI primitive:** run `npx shadcn@latest add <component>` from `frontend/`, review the generated file against the signed token and accessibility rules, preserve any existing public API, and export it from the barrel when needed.
+**Add a UI primitive:** from `frontend/`, run `npx shadcn@latest add <component> --dry-run`. For an existing file, follow with `npx shadcn@latest add <component> --diff <file>` and merge manually. For a new file, add it normally, review it against the signed tokens and ≥44 px target rule, then export it from the barrel. Never bulk-overwrite.
 
 **Add a translated string:** add the key to `en.json` **and** `id.json`; read with `t("…")`.
 
@@ -316,10 +316,9 @@ Backend owner adds it to the Go model + validator → mirror in `types/patient.t
 
 ## 17. Known gotchas & cleanups
 
-- **RHF + radios:** never use `setValueAs` on radio/checkbox — coerce in Zod (see §7).
+- **RHF + radios:** Radix RadioGroup is controlled through RHF `Controller`; convert yes/no values in `onValueChange` before Zod validation (see §7).
 - **`getUserMedia` secure context:** localhost or HTTPS only.
 - **Duplicate language state:** `session.store.ts` also has a `language` field, but i18n reads from `language.store.ts` via `useLanguage()`. The session copy is currently unused for rendering — pick one source before this drifts (recommend: drop `language` from the session store and keep `language.store`).
 - **`useSession()` returns the whole store** (no selector) → components using it re-render on any session change. For hot paths, subscribe with a selector (`useSessionStore(s => s.x)`) instead.
-- **Existing primitives predate shadcn initialization** — do not bulk-overwrite them. Use `npx shadcn@latest add <component> --dry-run` and `--diff` before updating a component, then preserve Jaga's token styling and current public API.
-- **Fonts not yet self-hosted** — falls back to system fonts until woff2 files land in `public/fonts/`.
+- **Shadcn updates are source merges** — use `--dry-run` and `--diff` per component, then preserve Jaga's token styling, 44 px targets, and public API.
 - **Provisional triage/cxr types** — anything importing them is compiling against a guess; re-verify after `ARCH-1`.

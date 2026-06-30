@@ -5,7 +5,7 @@
  */
 export function SpectrogramFigure({ label }: { label: string }) {
   return (
-    <figure className="space-y-2">
+    <figure className="flex flex-col gap-2">
       <div
         className="flex h-32 items-center justify-center rounded-control bg-surface-sunken"
         role="img"

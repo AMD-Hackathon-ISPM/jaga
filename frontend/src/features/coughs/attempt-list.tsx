@@ -2,6 +2,7 @@
 
 import { useSessionStore } from "@/store/session.store";
 import { Badge } from "@/components/ui/badge";
+import { Item, ItemContent, ItemGroup } from "@/components/ui/item";
 
 /**
  * AttemptList — five rows showing per-attempt status. Status carries an icon
@@ -12,18 +13,22 @@ export function AttemptList() {
   const coughs = useSessionStore((s) => s.coughs);
 
   return (
-    <ul className="space-y-2">
+    <ItemGroup className="gap-2">
       {coughs.map((c) => (
-        <li
+        <Item
           key={c.index}
-          className="flex items-center justify-between rounded-control border border-border-subtle bg-surface px-3 py-2"
+          role="listitem"
+          variant="outline"
+          className="min-h-11 flex-nowrap bg-card"
         >
-          <span className="font-mono tabular-nums">Cough {c.index}</span>
-          <Badge tone={c.status === "accepted" ? "success" : c.status === "retryable" ? "error" : "neutral"}>
+          <ItemContent className="font-mono tabular-nums">Cough {c.index}</ItemContent>
+          <Badge
+            variant={c.status === "accepted" ? "success" : c.status === "retryable" ? "error" : "neutral"}
+          >
             {c.status}
           </Badge>
-        </li>
+        </Item>
       ))}
-    </ul>
+    </ItemGroup>
   );
 }

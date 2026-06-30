@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 
 /**
  * Review (step 3) — PLACEHOLDER. Shows exactly what would be sent (clinical +
@@ -12,26 +12,30 @@ import { EmptyState } from "@/components/ui/empty-state";
  */
 export function ReviewScreen() {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <h1 className="font-serif text-2xl font-semibold">Review and submit</h1>
 
       <Card>
         <CardHeader>
           <CardTitle>Clinical inputs</CardTitle>
         </CardHeader>
-        <CardBody>
-          <EmptyState
-            title="Summary placeholder"
-            description="The exact clinical values that will be sent render here once entered."
-          />
-        </CardBody>
+        <CardContent>
+          <Empty className="border border-dashed border-input">
+            <EmptyHeader>
+              <EmptyTitle>Summary placeholder</EmptyTitle>
+              <EmptyDescription>
+                The exact clinical values that will be sent render here once entered.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
           <CardTitle>Cough attempts</CardTitle>
         </CardHeader>
-        <CardBody className="text-ink-muted">Five accepted coughs summarize here.</CardBody>
+        <CardContent className="text-ink-muted">Five accepted coughs summarize here.</CardContent>
       </Card>
 
       {/* Submit is disabled: the triage contract is not signed (ARCH-1). */}

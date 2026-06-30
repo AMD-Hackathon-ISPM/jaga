@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/hooks/use-language";
-import { cn } from "@/lib/utils";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 /**
  * LanguageSwitcher — pill toggle EN ⇄ ID (design §6). One tap; preserves step
@@ -9,24 +9,23 @@ import { cn } from "@/lib/utils";
  */
 export function LanguageSwitcher({ className }: { className?: string }) {
   const { language, toggle } = useLanguage();
-  const target = language === "en" ? "Bahasa Indonesia" : "English";
 
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={`Switch to ${target}`}
-      className={cn(
-        "inline-flex min-h-[44px] items-center gap-1 rounded-full border border-border-strong bg-surface px-3 text-sm font-semibold",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus",
-        className,
-      )}
+    <ToggleGroup
+      type="single"
+      value={language}
+      onValueChange={(value) => value && value !== language && toggle()}
+      variant="outline"
+      spacing={0}
+      aria-label="Language"
+      className={className}
     >
-      <span className={cn(language === "en" && "text-brand")}>EN</span>
-      <span aria-hidden className="text-ink-muted">
-        /
-      </span>
-      <span className={cn(language === "id" && "text-brand")}>ID</span>
-    </button>
+      <ToggleGroupItem value="en" aria-label="Switch to English">
+        EN
+      </ToggleGroupItem>
+      <ToggleGroupItem value="id" aria-label="Switch to Bahasa Indonesia">
+        ID
+      </ToggleGroupItem>
+    </ToggleGroup>
   );
 }

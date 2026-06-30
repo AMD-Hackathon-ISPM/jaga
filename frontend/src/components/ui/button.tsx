@@ -1,60 +1,53 @@
-import { cloneElement, isValidElement, type ButtonHTMLAttributes, type ReactElement } from "react";
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { Slot } from "radix-ui";
+
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "tertiary" | "destructive";
-type Size = "md" | "lg";
+const buttonVariants = cva(
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-control font-sans text-base font-semibold transition-colors disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60",
+  {
+    variants: {
+      variant: {
+        primary: "bg-primary text-primary-foreground hover:opacity-90",
+        secondary: "border border-input bg-card text-card-foreground hover:bg-muted",
+        tertiary: "bg-transparent text-primary hover:underline",
+        destructive: "bg-destructive text-white hover:opacity-90",
+        recorder: "record-orb",
+      },
+      size: {
+        md: "min-h-11 px-4",
+        lg: "min-h-12 px-5",
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
+      size: "md",
+    },
+  },
+);
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
-  size?: Size;
-  loading?: boolean;
-  /** Render the single child element instead of a <button> (e.g. a Link). */
-  asChild?: boolean;
-}
-
-const base =
-  "inline-flex items-center justify-center gap-2 rounded-control font-sans font-semibold " +
-  "transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 " +
-  "focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60";
-
-// All targets meet the 44px minimum (design §5.1).
-const sizes: Record<Size, string> = {
-  md: "min-h-[44px] px-4 text-base",
-  lg: "min-h-[48px] px-5 text-base",
-};
-
-const variants: Record<Variant, string> = {
-  primary: "bg-brand text-white hover:opacity-90",
-  secondary: "bg-surface text-ink border border-border-strong hover:bg-surface-sunken",
-  tertiary: "bg-transparent text-brand hover:underline",
-  destructive: "bg-error-strong text-white hover:opacity-90",
-};
-
-/**
- * Button — token-styled primitive (no shadcn). Covers default/hover/focus/
- * disabled/loading states (design §6). Business logic lives in features.
- */
-export function Button({
+function Button({
+  className,
   variant = "primary",
   size = "md",
-  loading = false,
   asChild = false,
-  className,
-  children,
-  disabled,
   ...props
-}: ButtonProps) {
-  const classes = cn(base, sizes[size], variants[variant], className);
-
-  if (asChild && isValidElement(children)) {
-    const child = children as ReactElement<{ className?: string }>;
-    return cloneElement(child, { className: cn(classes, child.props.className) });
-  }
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean;
+  }) {
+  const Comp = asChild ? Slot.Root : "button";
 
   return (
-    <button className={classes} disabled={disabled || loading} aria-busy={loading} {...props}>
-      {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
-      {children}
-    </button>
+    <Comp
+      data-slot="button"
+      data-variant={variant}
+      data-size={size}
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
   );
 }
+
+export { Button, buttonVariants };

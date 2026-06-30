@@ -33,10 +33,13 @@ const config: Config = {
         "band-higher": "var(--band-higher)",
       },
       fontFamily: {
-        // Self-hosted webfonts to be added under public/fonts (design §5.3).
         serif: ["var(--font-serif)", "ui-serif", "Georgia", "serif"],
+        heading: ["var(--font-serif)", "ui-serif", "Georgia", "serif"],
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "SF Mono", "monospace"],
+      },
+      letterSpacing: {
+        serif: "-0.03em",
       },
       borderRadius: {
         // One radius scale, no exceptions (§5.5).

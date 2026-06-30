@@ -1,30 +1,19 @@
-import { forwardRef, type InputHTMLAttributes } from "react";
+import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  invalid?: boolean;
-}
-
-/**
- * Input — sunken well + strong outline (design §6). Numeric inputs should pass
- * inputMode and use the mono font via className. Error state via `invalid`.
- */
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { className, invalid, ...props },
-  ref,
-) {
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input
-      ref={ref}
-      aria-invalid={invalid || undefined}
+      type={type}
+      data-slot="input"
       className={cn(
-        "min-h-[44px] w-full rounded-control bg-surface-sunken px-3 text-base text-ink",
-        "border border-border-strong placeholder:text-ink-muted",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus",
-        invalid && "border-error bg-error-surface",
+        "min-h-11 w-full min-w-0 rounded-control border border-input bg-muted px-3 py-1 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60 aria-invalid:border-destructive aria-invalid:bg-error-surface aria-invalid:ring-2 aria-invalid:ring-destructive/20",
         className,
       )}
       {...props}
     />
   );
-});
+}
+
+export { Input };

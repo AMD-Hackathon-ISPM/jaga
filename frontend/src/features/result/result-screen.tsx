@@ -7,6 +7,12 @@ import { useT } from "@/hooks/use-t";
 import { RiskBandTrack } from "./risk-band-track";
 import { NextStepPanel } from "./next-step-panel";
 import { SpectrogramFigure } from "./spectrogram-figure";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 /**
  * Result (step 5) — renders MOCK data only (no API). Follows the locked
@@ -20,7 +26,7 @@ export function ResultScreen() {
   const estimate = result.estimate;
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-5">
       <PrototypeBanner />
 
       {estimate ? (
@@ -40,16 +46,25 @@ export function ResultScreen() {
 
       <NextStepPanel instruction={result.mandatoryNextStep} />
 
-      <details open className="rounded-control border border-border-subtle bg-surface p-4">
-        <summary className="cursor-pointer font-semibold">Limitations and model details</summary>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-muted">
-          <li className="font-mono">contract {result.metadata.contractVersion}</li>
-          <li>cohort: {result.metadata.cohort}</li>
-          {result.metadata.limitations.map((l) => (
-            <li key={l}>{l}</li>
-          ))}
-        </ul>
-      </details>
+      <Accordion
+        type="single"
+        collapsible
+        defaultValue="limitations"
+        className="rounded-control border border-border-subtle bg-card px-4"
+      >
+        <AccordionItem value="limitations">
+          <AccordionTrigger>Limitations and model details</AccordionTrigger>
+          <AccordionContent>
+            <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-ink-muted">
+              <li className="font-mono">contract {result.metadata.contractVersion}</li>
+              <li>cohort: {result.metadata.cohort}</li>
+              {result.metadata.limitations.map((l) => (
+                <li key={l}>{l}</li>
+              ))}
+            </ul>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       {result.inspection?.available && <SpectrogramFigure label={result.inspection.label} />}
     </div>

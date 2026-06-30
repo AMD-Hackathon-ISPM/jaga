@@ -129,7 +129,7 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 
 **Owner:** Billy
 
-**Status:** Design/token/component/motion/localization-rules drafted 2026-06-28 in `design-guidelines.md` §4–§10 (verified contrast evidence in §4.6). Open: final paired EN/ID string table; API mapping pins on `ARCH-1`.
+**Status:** Design/token/component/motion/localization-rules drafted 2026-06-28 in `design-guidelines.md` §4–§10 (verified contrast evidence in §4.6). Routed component migration to shadcn preset `b85jYWWKi8`, Tailwind 4, and the signed token/font contract completed 2026-07-01. Open: final paired EN/ID string table; API mapping pins on `ARCH-1`.
 
 **Depends on:** UX-0; ARCH-1 for API mapping
 

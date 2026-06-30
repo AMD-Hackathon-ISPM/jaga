@@ -34,8 +34,4 @@
   --band-intermediate: oklch(0.65 0.11 58);
   --band-higher: oklch(0.49 0.14 36);
 
-  /* Font role variables (self-hosted woff2 to be wired in layout, §5.2/§5.3) */
-  --font-serif: "EB Garamond";
-  --font-sans: "Figtree";
-  --font-mono: "Ioskeley Mono";
 }
