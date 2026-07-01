@@ -14,6 +14,7 @@ fi
 
 GO_API_IMAGE="${GO_API_IMAGE:-jaga/go-api:local}"
 PRISMA_WORKER_IMAGE="${PRISMA_WORKER_IMAGE:-jaga/prisma-worker:local}"
+WEB_IMAGE="${WEB_IMAGE:-jaga/web:local}"
 NGINX_IMAGE="${NGINX_IMAGE:-jaga/nginx:local}"
 POSTGRES_IMAGE="${POSTGRES_IMAGE:-jaga/postgres:local}"
 REDIS_IMAGE="${REDIS_IMAGE:-jaga/redis:local}"
@@ -22,6 +23,11 @@ COGNEE_IMAGE="${COGNEE_IMAGE:-jaga/cognee:local}"
 
 docker build -t "$GO_API_IMAGE" "$REPO_ROOT/backend/go"
 docker build -t "$PRISMA_WORKER_IMAGE" "$REPO_ROOT/backend/python/PrismaServer"
+docker build \
+  --build-arg NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-}" \
+  --build-arg NEXT_PUBLIC_APP_ENV="${NEXT_PUBLIC_APP_ENV:-production}" \
+  -t "$WEB_IMAGE" \
+  "$REPO_ROOT/apps/web"
 docker build -t "$NGINX_IMAGE" "$INFRA_DIR/nginx"
 docker build -t "$POSTGRES_IMAGE" "$INFRA_DIR/postgres"
 docker build -t "$REDIS_IMAGE" "$INFRA_DIR/redis"
