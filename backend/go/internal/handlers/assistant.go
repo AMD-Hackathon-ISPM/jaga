@@ -31,6 +31,9 @@ func (h AssistantHandler) Messages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Cap the JSON body before decoding so an oversized payload cannot exhaust
+	// memory; the message array is small by contract (<=8 items, <=500 chars).
+	r.Body = http.MaxBytesReader(w, r.Body, 64*1024)
 	req, apiErr := decodeAssistantRequest(r, requestID)
 	if apiErr != nil {
 		writeAPIError(w, http.StatusBadRequest, *apiErr)

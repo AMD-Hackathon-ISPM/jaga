@@ -73,8 +73,10 @@ func (c *Client) Chat(ctx context.Context, messages []Message) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= http.StatusBadRequest {
-		snippet, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
-		return "", fmt.Errorf("featherless status %d: %s", resp.StatusCode, string(snippet))
+		// Drain a bounded amount without logging provider response content
+		// (PRD-08: avoid persisting/logging upstream bodies).
+		_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 2048))
+		return "", fmt.Errorf("featherless status %d", resp.StatusCode)
 	}
 	var out chatResponse
 	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {

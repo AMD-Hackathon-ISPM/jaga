@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"time"
 
 	"jaga/backend/go/internal/config"
 	transporthttp "jaga/backend/go/internal/http"
@@ -32,15 +33,24 @@ func main() {
 		defer pool.Close()
 	}
 	recorder := metrics.NewRecorder(pool, logger)
+	defer recorder.Close()
 
 	// Inference seam: no model is wired yet, so both signals resolve to the
 	// Unavailable implementation (returns MODEL_UNAVAILABLE). Swap this for a
 	// real proxy/queue implementation when a model ships.
 	inferencer := inference.Unavailable{}
 
+	// Timeouts are generous on purpose: uploads can reach tens of MB (triage
+	// coughs) and the assistant proxy waits on an upstream LLM, so short read/
+	// write caps would break legitimate requests. ReadHeaderTimeout is the key
+	// slowloris defense; MaxBytesReader in the handlers bounds payload size.
 	server := &http.Server{
-		Addr:    cfg.Addr,
-		Handler: transporthttp.NewRouter(cfg, memoryService, assistantService, recorder, inferencer, inferencer),
+		Addr:              cfg.Addr,
+		Handler:           transporthttp.NewRouter(cfg, memoryService, assistantService, recorder, inferencer, inferencer),
+		ReadHeaderTimeout: 15 * time.Second,
+		ReadTimeout:       150 * time.Second,
+		WriteTimeout:      150 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 	log.Printf("starting go backend on %s (assistant_enabled=%t metrics_enabled=%t)", cfg.Addr, cfg.Featherless.Enabled(), pool != nil)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

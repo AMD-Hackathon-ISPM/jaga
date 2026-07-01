@@ -5,6 +5,7 @@ import (
 	"errors"
 	"mime/multipart"
 	"net/http"
+	"strings"
 
 	"jaga/backend/go/internal/idgen"
 	"jaga/backend/go/internal/inference"
@@ -19,6 +20,8 @@ const (
 	// this are rejected by MaxBytesReader before buffering.
 	maxCxrUploadBytes    = maxCxrImageBytes + 2*1024*1024
 	maxTriageUploadBytes = 60 * 1024 * 1024
+	// Per-cough cap; five coughs stay within maxTriageUploadBytes.
+	maxCoughBytes = 10 * 1024 * 1024
 	// In-memory parse budget; the remainder spills to temp files.
 	multipartMemoryBytes = 8 * 1024 * 1024
 )
@@ -47,6 +50,13 @@ func (h SignalHandler) Triage(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusBadRequest, apiError("VALIDATION_ERROR", "request must be valid multipart/form-data within size limits", requestID, false))
 		return
 	}
+	// ParseMultipartForm may spill large uploads to temp files; remove them
+	// before returning (including on every early-error path below).
+	defer func() {
+		if r.MultipartForm != nil {
+			_ = r.MultipartForm.RemoveAll()
+		}
+	}()
 	if r.FormValue("contract_version") != "triage-v1" {
 		writeAPIError(w, http.StatusBadRequest, apiError("CONTRACT_MISMATCH", "contract_version must be triage-v1", requestID, false))
 		return
@@ -72,6 +82,18 @@ func (h SignalHandler) Triage(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusBadRequest, apiError("VALIDATION_ERROR", "exactly five cough files are required", requestID, false))
 		return
 	}
+	// Validate each cough per-file before handing them to the inference seam,
+	// mirroring the CXR image checks (size + media type).
+	for _, cough := range coughs {
+		if cough.Size > maxCoughBytes {
+			writeAPIError(w, http.StatusRequestEntityTooLarge, apiError("PAYLOAD_TOO_LARGE", "a cough recording exceeds the size limit", requestID, false))
+			return
+		}
+		if ct := cough.Header.Get("Content-Type"); ct != "" && !strings.HasPrefix(ct, "audio/") {
+			writeAPIError(w, http.StatusUnsupportedMediaType, apiError("UNSUPPORTED_MEDIA_TYPE", "cough recordings must be audio", requestID, false))
+			return
+		}
+	}
 
 	result, err := h.triage.Triage(r.Context(), inference.TriageInput{Clinical: intake, Coughs: coughs})
 	if err != nil {
@@ -93,6 +115,13 @@ func (h SignalHandler) Cxr(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusBadRequest, apiError("VALIDATION_ERROR", "request must be valid multipart/form-data within size limits", requestID, false))
 		return
 	}
+	// ParseMultipartForm may spill large uploads to temp files; remove them
+	// before returning (including on every early-error path below).
+	defer func() {
+		if r.MultipartForm != nil {
+			_ = r.MultipartForm.RemoveAll()
+		}
+	}()
 	if r.FormValue("contract_version") != "cxr-v1" {
 		writeAPIError(w, http.StatusBadRequest, apiError("CONTRACT_MISMATCH", "contract_version must be cxr-v1", requestID, false))
 		return

@@ -42,6 +42,8 @@ func withMetrics(next http.Handler, recorder *metrics.Recorder) http.Handler {
 		next.ServeHTTP(rec, r)
 		latencyMs := int(time.Since(start).Milliseconds())
 		correlationID := idgen.New("req-")
-		go recorder.Record(r.URL.Path, r.Method, correlationID, rec.status, latencyMs)
+		// Record is a non-blocking enqueue onto a bounded queue; it never spawns
+		// a goroutine per request and never blocks the response.
+		recorder.Record(r.URL.Path, r.Method, correlationID, rec.status, latencyMs)
 	})
 }

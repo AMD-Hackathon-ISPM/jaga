@@ -30,3 +30,10 @@ CREATE TABLE IF NOT EXISTS request_metrics (
 
 CREATE INDEX IF NOT EXISTS idx_request_metrics_occurred_at ON request_metrics (occurred_at);
 CREATE INDEX IF NOT EXISTS idx_request_metrics_endpoint ON request_metrics (endpoint);
+
+-- Retention: request_metrics is append-only operational telemetry. For the MVP
+-- it is intentionally not time-partitioned; keep it bounded with a scheduled
+-- cleanup run outside the database (cron / go-api job), for example:
+--   DELETE FROM request_metrics WHERE occurred_at < now() - interval '30 days';
+-- Revisit time-partitioning (e.g. monthly partitions) if request volume grows
+-- large enough that the indexes above degrade.
