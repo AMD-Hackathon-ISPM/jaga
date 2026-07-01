@@ -11,6 +11,11 @@ import { toJagaApiError } from "./api-error";
 import type { ServiceFactoryOptions } from "./transport";
 
 const SAFETY_PATTERN = /\b(diagnos|do i have|positive|negative|treat|medicine|medication|drug|my risk)\b/i;
+const ASSISTANT_FIXTURE_DELAY_MS = 2_000;
+
+function delay(milliseconds: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
+}
 
 function fixtureResponse(request: AssistantRequest): AssistantResponse {
   const latest = request.messages.at(-1)?.content ?? "";
@@ -32,7 +37,10 @@ export function createAssistantService({ mode, client }: ServiceFactoryOptions) 
   return {
     async send(request: AssistantRequest, signal?: AbortSignal): Promise<AssistantResponse> {
       const payload = assistantRequestSchema.parse(request);
-      if (mode === "fixture") return fixtureResponse(payload);
+      if (mode === "fixture") {
+        await delay(ASSISTANT_FIXTURE_DELAY_MS);
+        return fixtureResponse(payload);
+      }
 
       try {
         const response = await client.post("/api/v1/assistant/messages", payload, {

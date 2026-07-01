@@ -19,7 +19,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { Marker, MarkerContent, MarkerIcon } from "@/components/ui/marker";
+import { Marker, MarkerContent } from "@/components/ui/marker";
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -27,7 +27,6 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller";
-import { Spinner } from "@/components/ui/spinner";
 import { ChatMessageItem } from "./chat-message";
 import { useAssistantChat } from "./use-assistant-chat";
 
@@ -83,9 +82,6 @@ export function ChatScreen() {
 
                     {status === "submitted" && (
                       <Marker role="status">
-                        <MarkerIcon>
-                          <Spinner />
-                        </MarkerIcon>
                         <MarkerContent className="shimmer">Thinking…</MarkerContent>
                       </Marker>
                     )}

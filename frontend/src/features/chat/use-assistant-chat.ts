@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { AssistantScreen } from "@/contracts/api";
 import { createAssistantRequest } from "@/lib/integration";
@@ -22,18 +22,66 @@ function createId() {
   return crypto.randomUUID();
 }
 
+const REVEAL_INTERVAL_MS = 18;
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 export function useAssistantChat() {
   const pathname = usePathname();
   const language = useLanguageStore((state) => state.language);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatStatus>("ready");
   const [inputValue, setInputValue] = useState("");
+  const revealTimerRef = useRef<number | null>(null);
+
+  const clearReveal = useCallback(() => {
+    if (revealTimerRef.current !== null) {
+      window.clearInterval(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => clearReveal, [clearReveal]);
+
+  const revealAssistantResponse = useCallback(
+    (content: string) => {
+      const id = createId();
+      clearReveal();
+
+      if (prefersReducedMotion()) {
+        setMessages((current) => [...current, { id, role: "assistant", content }]);
+        setStatus("ready");
+        return;
+      }
+
+      const tokens = content.match(/\S+|\s+/g) ?? [content];
+      let tokenIndex = 0;
+      setMessages((current) => [...current, { id, role: "assistant", content: "" }]);
+      setStatus("streaming");
+
+      revealTimerRef.current = window.setInterval(() => {
+        tokenIndex += 1;
+        const partial = tokens.slice(0, tokenIndex).join("");
+        setMessages((current) =>
+          current.map((message) => (message.id === id ? { ...message, content: partial } : message)),
+        );
+        if (tokenIndex >= tokens.length) {
+          clearReveal();
+          setStatus("ready");
+        }
+      }, REVEAL_INTERVAL_MS);
+    },
+    [clearReveal],
+  );
 
   const reset = useCallback(() => {
+    clearReveal();
     setMessages([]);
     setInputValue("");
     setStatus("ready");
-  }, []);
+  }, [clearReveal]);
 
   const sendMessage = useCallback(async () => {
     const content = inputValue.trim();
@@ -56,11 +104,9 @@ export function useAssistantChat() {
           })),
         }),
       );
-      setMessages((current) => [
-        ...current,
-        { id: createId(), role: "assistant", content: response.reply },
-      ]);
+      revealAssistantResponse(response.reply);
     } catch {
+      clearReveal();
       setMessages((current) => [
         ...current,
         {
@@ -69,15 +115,14 @@ export function useAssistantChat() {
           content: "Guidance is temporarily unavailable. Continue with the standard workflow.",
         },
       ]);
-    } finally {
       setStatus("ready");
     }
-  }, [inputValue, language, messages, pathname, status]);
+  }, [clearReveal, inputValue, language, messages, pathname, revealAssistantResponse, status]);
 
   return {
     messages,
     status,
-    isBusy: status === "submitted",
+    isBusy: status === "submitted" || status === "streaming",
     inputValue,
     setInputValue,
     sendMessage: () => void sendMessage(),

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AssistantRequest } from "@/contracts/api";
 import { createAssistantService } from "@/services/assistant.service";
@@ -29,6 +29,8 @@ function fakeClient() {
     post: vi.fn(),
   };
 }
+
+afterEach(() => vi.useRealTimers());
 
 describe("backend integration services", () => {
   it("reads backend capability readiness", async () => {
@@ -90,6 +92,7 @@ describe("backend integration services", () => {
   });
 
   it("returns a deterministic safety redirect in assistant fixture mode", async () => {
+    vi.useFakeTimers();
     const client = fakeClient();
     const request: AssistantRequest = {
       contract_version: "assistant-v1",
@@ -98,10 +101,36 @@ describe("backend integration services", () => {
       messages: [{ role: "user", content: "Do I have TB and what medicine should I take?" }],
     };
 
-    const response = await createAssistantService({ mode: "fixture", client }).send(request);
+    const responsePromise = createAssistantService({ mode: "fixture", client }).send(request);
+    await vi.advanceTimersByTimeAsync(2_000);
+    const response = await responsePromise;
 
     expect(response.disposition).toBe("safety_redirect");
     expect(response.reply).toContain("cannot diagnose");
     expect(client.post).not.toHaveBeenCalled();
+  });
+
+  it("keeps an assistant fixture response pending for two seconds", async () => {
+    vi.useFakeTimers();
+    const client = fakeClient();
+    const request: AssistantRequest = {
+      contract_version: "assistant-v1",
+      locale: "en",
+      screen: "clinical",
+      messages: [{ role: "user", content: "How do I complete this field?" }],
+    };
+    let settled = false;
+    const responsePromise = createAssistantService({ mode: "fixture", client })
+      .send(request)
+      .then((response) => {
+        settled = true;
+        return response;
+      });
+
+    await vi.advanceTimersByTimeAsync(1_999);
+    expect(settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    await responsePromise;
+    expect(settled).toBe(true);
   });
 });
