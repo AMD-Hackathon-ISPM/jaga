@@ -9,15 +9,22 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        default: "bg-primary text-primary-foreground hover:opacity-90",
         primary: "bg-primary text-primary-foreground hover:opacity-90",
         secondary: "border border-input bg-card text-card-foreground hover:bg-muted",
         tertiary: "bg-transparent text-primary hover:underline",
         destructive: "bg-destructive text-white hover:opacity-90",
+        outline: "border border-input bg-background hover:bg-muted hover:text-foreground",
+        ghost: "bg-transparent hover:bg-muted hover:text-foreground",
         recorder: "record-orb",
       },
       size: {
+        xs: "h-6 gap-1 rounded-[calc(var(--radius)-3px)] px-1.5 text-xs",
+        sm: "min-h-9 px-3 text-sm",
         md: "min-h-11 px-4",
         lg: "min-h-12 px-5",
+        "icon-xs": "size-6 rounded-[calc(var(--radius)-3px)] p-0",
+        "icon-sm": "size-8 p-0",
       },
     },
     defaultVariants: {
