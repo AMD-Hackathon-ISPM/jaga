@@ -37,8 +37,8 @@ export function ChatScreen() {
 
   return (
     <MessageScrollerProvider autoScroll={status === "ready"}>
-      <div className="relative mx-auto flex w-full max-w-sm flex-col gap-4">
-        <Card className="h-[35rem] gap-0 overflow-hidden py-0">
+      <div className="relative mx-auto flex min-h-0 w-full max-w-sm flex-1 flex-col gap-4">
+        <Card className="min-h-0 flex-1 gap-0 overflow-hidden py-0">
           <CardHeader className="gap-1 border-b border-border-subtle py-4">
             <CardTitle>Guidance assistant</CardTitle>
             <CardDescription>Workflow help only—not diagnosis or result interpretation.</CardDescription>
