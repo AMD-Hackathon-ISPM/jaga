@@ -8,6 +8,7 @@ import (
 
 	"jaga/backend/go/internal/config"
 	"jaga/backend/go/internal/memory"
+	"jaga/backend/go/internal/models"
 )
 
 type Handlers struct {
@@ -30,10 +31,18 @@ func (h Handlers) Health(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handlers) Status(w http.ResponseWriter, r *http.Request) {
-	respondJSON(w, http.StatusOK, map[string]any{
-		"service":             "jaga-backend",
-		"python_project_root": h.config.PythonProjectRoot,
-		"ready":               true,
+	respondJSON(w, http.StatusOK, models.ServiceStatus{
+		Service:           "jaga-backend",
+		PythonProjectRoot: h.config.PythonProjectRoot,
+		Ready:             true,
+		Capabilities: models.ServiceCapabilities{
+			// Honest readiness: intake + assistant are served here; the ML
+			// signals stay not-ready until a real model ships.
+			PatientIntake: models.Capability{Ready: true, ContractVersion: "clinical-v1"},
+			Gema:          models.Capability{Ready: false, ContractVersion: "triage-v1"},
+			Prisma:        models.Capability{Ready: false, ContractVersion: "cxr-v1"},
+			Assistant:     models.Capability{Ready: h.config.Featherless.Enabled(), ContractVersion: "assistant-v1"},
+		},
 	})
 }
 
