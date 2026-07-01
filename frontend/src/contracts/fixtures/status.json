@@ -1,0 +1,11 @@
+{
+  "service": "jaga-backend",
+  "python_project_root": "/models",
+  "ready": true,
+  "capabilities": {
+    "patient_intake": { "ready": true, "contract_version": "patient-v1" },
+    "gema": { "ready": true, "contract_version": "triage-v1" },
+    "prisma": { "ready": true, "contract_version": "cxr-v1" },
+    "assistant": { "ready": true, "contract_version": "assistant-v1" }
+  }
+}

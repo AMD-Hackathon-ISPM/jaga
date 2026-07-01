@@ -16,7 +16,7 @@ import type {
  * success acknowledgement, or session timeout.
  *
  * This satisfies both the design intent ("in-memory step machine") and the
- * request for a Zustand store. MOCK STATE ONLY — no API calls.
+ * request for a Zustand store.
  */
 
 interface CoughAttempt {
@@ -29,6 +29,7 @@ interface SessionState {
   language: Language;
   clinical: Partial<PatientIntakeRequest>;
   coughs: CoughAttempt[];
+  coughFiles: Array<File | null>;
   submitState: SubmitState;
   result: TriageResult | null;
   requestId: string | null;
@@ -37,6 +38,7 @@ interface SessionState {
   setStep: (step: FlowStep) => void;
   setLanguage: (language: Language) => void;
   setClinical: (values: Partial<PatientIntakeRequest>) => void;
+  setCough: (index: number, file: File) => void;
   setSubmitState: (state: SubmitState) => void;
   setResult: (result: TriageResult | null) => void;
   reset: () => void;
@@ -52,6 +54,7 @@ const initialState = {
   language: "en" as Language,
   clinical: {} as Partial<PatientIntakeRequest>,
   coughs: emptyCoughs,
+  coughFiles: Array.from({ length: 5 }, () => null) as Array<File | null>,
   submitState: "idle" as SubmitState,
   result: null as TriageResult | null,
   requestId: null as string | null,
@@ -62,7 +65,21 @@ export const useSessionStore = create<SessionState>((set) => ({
   setStep: (step) => set({ step }),
   setLanguage: (language) => set({ language }),
   setClinical: (values) => set((s) => ({ clinical: { ...s.clinical, ...values } })),
+  setCough: (index, file) =>
+    set((state) => ({
+      coughFiles: state.coughFiles.map((current, currentIndex) =>
+        currentIndex === index ? file : current,
+      ),
+      coughs: state.coughs.map((attempt, currentIndex) =>
+        currentIndex === index ? { ...attempt, status: "captured" } : attempt,
+      ),
+    })),
   setSubmitState: (submitState) => set({ submitState }),
   setResult: (result) => set({ result }),
-  reset: () => set({ ...initialState, coughs: emptyCoughs.map((c) => ({ ...c })) }),
+  reset: () =>
+    set({
+      ...initialState,
+      coughs: emptyCoughs.map((c) => ({ ...c })),
+      coughFiles: Array.from({ length: 5 }, () => null),
+    }),
 }));

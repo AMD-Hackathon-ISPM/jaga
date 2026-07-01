@@ -1,0 +1,8 @@
+{
+  "request_id": "synthetic-assistant-001",
+  "reply": "I can explain Jaga's form questions, capture steps, limitations, and follow-up workflow. I cannot diagnose TB or interpret an individual result.",
+  "disposition": "answer",
+  "provider": "fixture",
+  "model": "synthetic-guidance-assistant",
+  "contract_version": "assistant-v1"
+}

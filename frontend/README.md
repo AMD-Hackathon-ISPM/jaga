@@ -1,6 +1,6 @@
 # Jaga Frontend
 
-The Next.js PWA capture/result client for **Jaga**, an investigational TB *triage* research prototype. This folder is the **frontend foundation only**: placeholders, mock data, and architecture. It is not wired to any API.
+The Next.js PWA capture/result client for **Jaga**, an investigational TB *triage* research prototype. It is contract-first and can run against synthetic fixtures or the Go API gateway.
 
 > **Deep developer reference:** [DEVELOPMENT.md](DEVELOPMENT.md) documents every directory, component, hook, store, and service — the cough recorder internals, the RHF/Zod forms (and the radio-boolean gotcha), i18n, design tokens, and step-by-step extension guides.
 
@@ -8,10 +8,10 @@ The Next.js PWA capture/result client for **Jaga**, an investigational TB *triag
 
 ## Status
 
-- **No API calls.** Every service throws `Error("API not connected yet")`.
-- **No endpoint URLs.** The triage (`POST /api/v1/triage`) and CXR (`POST /api/v1/cxr`) contracts are gated on Daffa's `ARCH-1` (see [`../.agent/project-architecture.md`](../.agent/project-architecture.md) §6). `lib/http.ts` (Axios) is configured but unused.
-- **No backend or infra changes.**
-- **Mock data only**, under `src/mocks/`.
+- **Fixture and live adapters.** `NEXT_PUBLIC_API_MODE=fixture|live` selects deterministic synthetic responses or the configured Go gateway. Production rejects fixture mode.
+- **Backend handoff.** [`../contracts/openapi/jaga-v1.yaml`](../contracts/openapi/jaga-v1.yaml) pins the frontend integration proposal for status, intake, Gema, Prisma, assistant, and structured errors; backend owner sign-off remains required.
+- **No backend or infra changes.** Provider credentials and model calls remain server-side.
+- **Transient patient data.** Clinical values, five WebM cough files, the CXR image, chat, and results remain in memory only.
 - Dependencies installed and the dev server compiles. Run the commands below to start it.
 
 ## How this maps to the existing backend
@@ -19,9 +19,10 @@ The Next.js PWA capture/result client for **Jaga**, an investigational TB *triag
 | Backend reality | Frontend consequence |
 |---|---|
 | Go API, live `POST /api/v1/patient/intake` with exact field validation | `types/patient.ts` mirrors `models/patient.go`; `features/clinical/clinical-schema.ts` (Zod) mirrors `validation/patient.go` bounds |
-| Triage/CXR contracts unsigned (`ARCH-1`) | `types/triage.ts` and `types/cxr.ts` are clearly marked **provisional**; services throw |
+| Triage/CXR contracts awaiting backend sign-off (`ARCH-1`) | Zod schemas, synthetic fixtures, OpenAPI, and fixture/live adapters expose the exact proposed handoff without modifying the backend |
 | Single-session, in-memory, no accounts | Zustand session store with **no `persist`** (never localStorage/IndexedDB); auth is placeholder scaffolding only |
-| Two co-equal, never-fused signals (Gema, Prisma) | Triage and CXR types/services kept separate; never merged |
+| Two co-equal, never-fused signals (Gema, Prisma) | Separate routes, stores, services, results, and request contracts |
+| Fireworks/Featherless OpenAI-compatible model | Browser calls only `/api/v1/assistant/messages`; provider base URL, key, model, system prompt, and safety enforcement belong in Go |
 | Signed design system (cream/serif, OKLCH tokens) | `styles/tokens.css` ports the tokens verbatim; `tailwind.config.ts` aliases them |
 
 ## Tech stack
@@ -62,14 +63,14 @@ frontend/
     │   │                      #   Navbar/Sidebar (operator scaffolding)
     │   └── common/            # ErrorBoundary, PrototypeBanner
     ├── hooks/                 # useSession, useLanguage, useMediaQuery
-    ├── services/              # auth/patient/triage/cxr/health — all throw
-    ├── store/                 # Zustand: session, language, auth (mock)
+    ├── services/              # fixture/live status, patient, Gema, Prisma, assistant adapters
+    ├── store/                 # in-memory session, Prisma, language, auth
     ├── context/               # AuthContext (placeholder)
     ├── guards/                # ProtectedRoute, GuestRoute (placeholder)
     ├── providers/             # AppProviders (QueryClient + Auth + ErrorBoundary)
     ├── lib/                   # http (axios, unused), query-client, config, utils
-    ├── types/                 # patient (from Go), triage/cxr (provisional), api, common
-    ├── mocks/                 # triage-result.mock.json, session.mock.json
+    ├── contracts/             # runtime schemas + clearly synthetic fixtures
+    ├── types/                 # patient, triage, CXR, API, common
     ├── utils/                 # format helpers
     ├── styles/                # tokens.css (OKLCH design tokens)
     └── assets/
@@ -82,8 +83,9 @@ frontend/
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local   # leave NEXT_PUBLIC_API_BASE_URL empty for now
+cp .env.example .env.local
 npm run dev                  # http://localhost:3000
+npm test
 npm run typecheck            # tsc --noEmit
 npm run lint
 npm run build
@@ -92,17 +94,14 @@ npx shadcn@latest info
 
 For an existing primitive, run `npx shadcn@latest add <component> --dry-run`, then `npx shadcn@latest add <component> --diff <file>` and merge the upstream API into Jaga's token and 44 px contracts. Never bulk-overwrite the UI directory.
 
-## How to add API integration later (after `ARCH-1` is signed)
+## Backend integration handoff
 
-Do this in one place, behind the existing seams — do not scatter URLs through components.
-
-1. **Pin the contract.** Update `types/triage.ts` / `types/cxr.ts` to the signed schema (remove the "provisional" markers). Add the `schema_version` field the backend negotiates.
-2. **Configure the client.** Set `NEXT_PUBLIC_API_BASE_URL` in `.env.local`; add the schema/version header and error normalization interceptors in `lib/http.ts`.
-3. **Implement one service.** Replace the `throw new Error("API not connected yet")` body in the relevant `services/*.ts` with a real `http` call. Start with `patientService.submitIntake` (the only live endpoint today).
-4. **Wire the mutation.** In `features/review/`, call the service through a TanStack Query `useMutation`; map API states/errors to UI per [`../.agent/design-guidelines.md`](../.agent/design-guidelines.md) §3.3.
-5. **Drop the mock.** Swap `mocks/triage-result.mock.json` in `features/result/` for the live result. Keep the locked result hierarchy (§8) and the unconditional banner + next-step panel.
-6. **Hold the safety line.** Never persist patient inputs; never fuse Gema and Prisma; never show a stale or uncalibrated estimate.
+1. Backend owners review and sign [`../contracts/openapi/jaga-v1.yaml`](../contracts/openapi/jaga-v1.yaml), especially request limits, timeouts, quality errors, calibration metadata, and deterministic referral copy.
+2. Implement the same paths behind the Go gateway. Fireworks or Featherless configuration stays server-side; the frontend never receives provider credentials.
+3. Set `NEXT_PUBLIC_API_MODE=live` and `NEXT_PUBLIC_API_BASE_URL` in `.env.local`. Use same-origin routing by leaving the base URL empty.
+4. Confirm `GET /api/v1/status` reports each capability ready with the matching contract version.
+5. Run `npm test`, `npm run typecheck`, `npm run lint`, and `npm run build`, then test the five-cough multipart request, CXR upload, and assistant safety redirects end to end.
 
 ## Constraints honored
 
-Never modified backend or infra · never connected APIs · never guessed endpoint URLs · no auth logic · no DB models · no backend logic duplicated · in-memory mock data only.
+No backend or infra changes · no provider keys in the browser · no auth or DB changes · no persistent patient data · Gema and Prisma remain independent.

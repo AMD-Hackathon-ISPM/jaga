@@ -12,16 +12,14 @@ const STATUS: Record<string, string> = {
   error: "Could not start recording. Try again.",
 };
 
-/**
- * CoughRecorder — live mic visualizer + record orb.
- *
- * The waveform is full-bleed (it cancels the flow column padding with -mx-4) so
- * it sits flush in the frame with no surrounding box. No audio is uploaded; the
- * mic graph is local and torn down on stop (placeholder until the triage
- * contract is signed).
- */
-export function CoughRecorder({ attemptIndex }: { attemptIndex: number }) {
-  const { state, start, stop, analyserRef } = useCoughRecorder();
+export function CoughRecorder({
+  attemptIndex,
+  onCaptured,
+}: {
+  attemptIndex: number;
+  onCaptured: (file: File) => void;
+}) {
+  const { state, start, stop, analyserRef } = useCoughRecorder(onCaptured);
   const recording = state === "recording";
 
   return (

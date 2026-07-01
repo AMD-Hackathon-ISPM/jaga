@@ -228,6 +228,8 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 
 **Depends on:** ARCH-1; UX-0
 
+**Status:** Frontend proposal implemented 2026-07-01 with runtime Zod schemas, sanitized deterministic fixtures, service-factory tests, and `contracts/openapi/jaga-v1.yaml`; backend consumption and `ARCH-1` sign-off remain open.
+
 **Work**
 
 - Build shared sanitized request/response/error fixtures.
@@ -547,6 +549,8 @@ Use sanitized structured output only; deterministic safety/referral copy remains
 **Reviewers:** Billy + Fransisco
 
 **Depends on:** Prisma model artifact and the `POST /api/v1/cxr` contract; built in parallel with the Gema core, not gated behind it
+
+**Status:** Frontend upload, validation, in-memory state, fixture/live adapter, and independent result route implemented 2026-07-01; backend endpoint and model artifact remain open.
 
 Separate pipeline, schema, evaluation, panel, limitations, and metrics. Co-equal MVP signal; never fused with Gema and no photographed-film input.
 

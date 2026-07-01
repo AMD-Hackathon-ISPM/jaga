@@ -14,10 +14,13 @@ export interface CxrResult {
     probability: number;
     band: RiskBand;
     calibrated: boolean;
+    calibrationStatus: string;
   } | null;
+  mandatoryNextStep: string;
   metadata: {
     modelVersion: string;
     contractVersion: string;
+    cohort: string;
     limitations: string[];
   };
   inspection?: {

@@ -1,0 +1,26 @@
+{
+  "request_id": "synthetic-prisma-001",
+  "signal": "prisma",
+  "contract_version": "cxr-v1",
+  "schema_version": "cxr-image-v1",
+  "estimate": {
+    "probability": 0.31,
+    "band": "lower",
+    "calibrated": true,
+    "calibration_status": "calibrated synthetic fixture"
+  },
+  "mandatory_next_step": "This person should receive confirmatory TB evaluation regardless of this estimate.",
+  "metadata": {
+    "model_version": "synthetic-prisma-v1",
+    "contract_version": "cxr-v1",
+    "cohort": "digital CXR research cohort",
+    "limitations": [
+      "Synthetic fixture; not evidence of model performance.",
+      "Digital CXR research estimate only; not a diagnosis."
+    ]
+  },
+  "inspection": {
+    "available": false,
+    "label": "Inspection heatmap; not a clinical explanation."
+  }
+}

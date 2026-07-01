@@ -3,6 +3,8 @@ export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 export { Input } from "./input";
 export { Skeleton } from "./skeleton";
 export { Spinner } from "./spinner";
+export { Checkbox } from "./checkbox";
+export { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "./sheet";
 export { Badge, badgeVariants } from "./badge";
 export { Alert, AlertTitle, AlertDescription, AlertAction } from "./alert";
 export { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./accordion";

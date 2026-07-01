@@ -1,9 +1,12 @@
 "use client";
 
 import type { TriageResult } from "@/types";
-import mockResult from "@/mocks/triage-result.mock.json";
+import Link from "next/link";
 import { PrototypeBanner } from "@/components/common/prototype-banner";
+import { Button } from "@/components/ui/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { useT } from "@/hooks/use-t";
+import { useSessionStore } from "@/store/session.store";
 import { RiskBandTrack } from "./risk-band-track";
 import { NextStepPanel } from "./next-step-panel";
 import { SpectrogramFigure } from "./spectrogram-figure";
@@ -22,7 +25,23 @@ import {
  */
 export function ResultScreen() {
   const t = useT();
-  const result = mockResult as unknown as TriageResult;
+  const result = useSessionStore((state) => state.result) as TriageResult | null;
+  if (!result) {
+    return (
+      <div className="flex flex-col gap-5">
+        <PrototypeBanner />
+        <Empty className="border border-dashed border-input">
+          <EmptyHeader>
+            <EmptyTitle>No Gema result in this session</EmptyTitle>
+            <EmptyDescription>Submit the clinical inputs and five coughs first.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+        <Button asChild>
+          <Link href="/review">Return to review</Link>
+        </Button>
+      </div>
+    );
+  }
   const estimate = result.estimate;
 
   return (

@@ -9,9 +9,12 @@ import {
   type UseFormRegister,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { clinicalSchema, type ClinicalFormValues } from "./clinical-schema";
 import { useSessionStore } from "@/store/session.store";
+import { patientService, PatientValidationError } from "@/services/patient.service";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Field,
   FieldDescription,
@@ -23,39 +26,57 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Spinner } from "@/components/ui/spinner";
 
-/**
- * ClinicalForm — full field set mirrored from the live Go contract
- * (models/patient.go + validation/patient.go). RHF + Zod; the Zod bounds match
- * the server's so the UI rejects the same values.
- *
- * Placeholder behavior: submit writes to the in-memory session store and
- * advances the step. NO API call is made (the triage contract is unsigned).
- * Field labels are English inline for now; they move to the keyed EN/ID bundle
- * (src/locales) once UX-1 signs the paired strings.
- */
 export function ClinicalForm() {
   const router = useRouter();
   const setClinical = useSessionStore((s) => s.setClinical);
+  const clinical = useSessionStore((s) => s.clinical);
 
   const {
     register,
     control,
     handleSubmit,
+    setError,
+    setFocus,
     formState: { errors },
   } = useForm<ClinicalFormValues>({
     resolver: zodResolver(clinicalSchema),
     mode: "onBlur",
+    defaultValues: clinical,
   });
 
-  const onSubmit = (values: ClinicalFormValues) => {
-    setClinical(values);
-    router.push("/coughs");
-  };
+  const mutation = useMutation({
+    mutationFn: (values: ClinicalFormValues) => patientService.submitIntake(values),
+    onSuccess: (patient) => {
+      setClinical(patient);
+      router.push("/coughs");
+    },
+    onError: (error, values) => {
+      if (!(error instanceof PatientValidationError)) return;
+      const fields = error.errors.filter((item) => item.field in clinicalSchema.shape);
+      fields.forEach((item) =>
+        setError(item.field as keyof ClinicalFormValues, {
+          type: "server",
+          message: item.message,
+        }),
+      );
+      const first = fields[0]?.field as keyof ClinicalFormValues | undefined;
+      if (first && first in values) setFocus(first);
+    },
+  });
+
+  const onSubmit = (values: ClinicalFormValues) => mutation.mutate(values);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <FieldGroup>
+        {mutation.isError && !(mutation.error instanceof PatientValidationError) && (
+          <Alert variant="destructive">
+            <AlertTitle>Could not validate the form</AlertTitle>
+            <AlertDescription>Check your connection and try again.</AlertDescription>
+          </Alert>
+        )}
         <NumberField
           name="age_years"
           label="Age (years)"
@@ -151,7 +172,10 @@ export function ClinicalForm() {
           error={errors.weight_loss_last_30_days}
         />
 
-        <Button type="submit">Continue</Button>
+        <Button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending && <Spinner />}
+          Continue
+        </Button>
       </FieldGroup>
     </form>
   );
@@ -207,7 +231,11 @@ function NumberField({
         })}
       />
       {hint && !error && <FieldDescription id={`${id}-hint`}>{hint}</FieldDescription>}
-      {error && <FieldError id={`${id}-error`}>Enter a valid value ({hint ?? "see range"}).</FieldError>}
+      {error && (
+        <FieldError id={`${id}-error`}>
+          {error.message || `Enter a valid value (${hint ?? "see range"}).`}
+        </FieldError>
+      )}
     </Field>
   );
 }

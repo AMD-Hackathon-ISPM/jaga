@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  getNextQueuedUserText,
   MOCK_TURNS,
   type ChatMessage,
   type ChatStatus,
@@ -19,10 +18,14 @@ function prefersReducedMotion() {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+const FALLBACK_ASSISTANT =
+  "Thanks for your message! This demo uses scripted replies about MessageScroller — reset the conversation to replay them, or connect a real API for live responses.";
+
 export function useMockChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatStatus>("ready");
   const [turnIndex, setTurnIndex] = useState(0);
+  const [inputValue, setInputValue] = useState("");
   const streamTimerRef = useRef<number | null>(null);
   const thinkingTimerRef = useRef<number | null>(null);
 
@@ -43,6 +46,7 @@ export function useMockChat() {
     clearTimers();
     setMessages([]);
     setTurnIndex(0);
+    setInputValue("");
     setStatus("ready");
   }, [clearTimers]);
 
@@ -83,36 +87,36 @@ export function useMockChat() {
     [clearTimers],
   );
 
-  const sendNext = useCallback(() => {
-    if (status !== "ready") return;
-
-    const turn = MOCK_TURNS[turnIndex];
-    if (!turn) return;
+  const sendMessage = useCallback(() => {
+    const trimmed = inputValue.trim();
+    if (!trimmed || status !== "ready") return;
 
     const userMessage: ChatMessage = {
       id: createId(),
       role: "user",
-      content: turn.user,
+      content: trimmed,
     };
 
+    const assistantText = MOCK_TURNS[turnIndex]?.assistant ?? FALLBACK_ASSISTANT;
+
     setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
     setStatus("submitted");
 
     thinkingTimerRef.current = window.setTimeout(() => {
-      streamAssistantReply(turn.assistant);
+      streamAssistantReply(assistantText);
     }, THINKING_MS);
-  }, [status, streamAssistantReply, turnIndex]);
+  }, [inputValue, status, streamAssistantReply, turnIndex]);
 
-  const nextQueuedText = getNextQueuedUserText(turnIndex);
   const isBusy = status === "submitted" || status === "streaming";
 
   return {
     messages,
     status,
     isBusy,
-    nextQueuedText,
-    hasMoreTurns: turnIndex < MOCK_TURNS.length,
-    sendNext,
+    inputValue,
+    setInputValue,
+    sendMessage,
     reset,
   };
 }

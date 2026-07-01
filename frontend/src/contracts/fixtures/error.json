@@ -1,0 +1,6 @@
+{
+  "code": "MODEL_UNAVAILABLE",
+  "message": "The requested research model is temporarily unavailable.",
+  "request_id": "synthetic-error-001",
+  "retryable": true
+}

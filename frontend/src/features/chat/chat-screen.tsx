@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpIcon, MessageCircleDashedIcon, PlusIcon, RotateCwIcon } from "lucide-react";
+import { ArrowUpIcon, MessageCircleDashedIcon, RotateCwIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,11 +19,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-} from "@/components/ui/input-group";
 import { Marker, MarkerContent, MarkerIcon } from "@/components/ui/marker";
 import {
   MessageScroller,
@@ -34,19 +29,19 @@ import {
 } from "@/components/ui/message-scroller";
 import { Spinner } from "@/components/ui/spinner";
 import { ChatMessageItem } from "./chat-message";
-import { useMockChat } from "./use-mock-chat";
+import { useAssistantChat } from "./use-assistant-chat";
 
 export function ChatScreen() {
-  const { messages, status, isBusy, nextQueuedText, hasMoreTurns, sendNext, reset } =
-    useMockChat();
+  const { messages, status, isBusy, inputValue, setInputValue, sendMessage, reset } =
+    useAssistantChat();
 
   return (
-    <MessageScrollerProvider autoScroll>
+    <MessageScrollerProvider autoScroll={status === "ready"}>
       <div className="relative mx-auto flex w-full max-w-sm flex-col gap-4">
         <Card className="h-[35rem] gap-0 overflow-hidden py-0">
           <CardHeader className="gap-1 border-b border-border-subtle py-4">
-            <CardTitle>New Chat</CardTitle>
-            <CardDescription>How can I help you today?</CardDescription>
+            <CardTitle>Guidance assistant</CardTitle>
+            <CardDescription>Workflow help only—not diagnosis or result interpretation.</CardDescription>
             <CardAction>
               <Button
                 type="button"
@@ -70,8 +65,7 @@ export function ChatScreen() {
                   </EmptyMedia>
                   <EmptyTitle>Start a conversation</EmptyTitle>
                   <EmptyDescription>
-                    Press send to walk through a scripted demo of streaming scroll, turn anchoring,
-                    and accessibility behavior.
+                    Ask about the current screen, form fields, recording steps, or what happens next.
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -102,59 +96,46 @@ export function ChatScreen() {
             )}
           </CardContent>
 
-          <CardFooter className="flex-col gap-2 border-t border-border-subtle py-4">
+          <CardFooter className="flex-col gap-2 py-4">
             <form
               className="w-full"
               onSubmit={(event) => {
                 event.preventDefault();
-                if (!hasMoreTurns || isBusy) return;
-                sendNext();
+                sendMessage();
               }}
             >
-              <InputGroup className="h-auto min-h-14">
-                <div className="h-14 w-full px-3 py-2.5">
-                  <span
-                    className="line-clamp-2 text-sm opacity-60 data-[status=ready]:opacity-100"
-                    data-status={status}
-                  >
-                    {nextQueuedText ? (
-                      nextQueuedText
-                    ) : (
-                      <span className="text-muted-foreground">
-                        No messages queued. Reset the conversation.
-                      </span>
-                    )}
-                  </span>
-                </div>
-                <InputGroupAddon align="block-end" className="pt-1">
-                  <InputGroupButton
-                    type="button"
-                    variant="outline"
-                    size="icon-sm"
-                    aria-label="Add attachment"
-                    disabled
-                  >
-                    <PlusIcon />
-                  </InputGroupButton>
-                  <InputGroupButton
+              <div className="flex w-full flex-col rounded-xl border border-border-subtle bg-surface-sunken">
+                <textarea
+                  value={inputValue}
+                  onChange={(event) => setInputValue(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  placeholder="Type a message…"
+                  rows={2}
+                  maxLength={500}
+                  disabled={isBusy}
+                  className="field-sizing-content min-h-14 w-full resize-none border-0 bg-transparent px-3 py-2.5 text-base text-ink outline-none placeholder:text-ink-muted disabled:cursor-not-allowed disabled:opacity-60 md:text-sm"
+                />
+                <div className="flex items-center justify-end px-2 pb-2 pt-1">
+                  <Button
                     type="submit"
                     variant="default"
                     size="icon-sm"
-                    disabled={!nextQueuedText || isBusy}
-                    className="ml-auto"
+                    disabled={!inputValue.trim() || isBusy}
+                    className="size-9 shrink-0 rounded-full p-0"
                     aria-label="Send message"
                   >
-                    <ArrowUpIcon />
-                  </InputGroupButton>
-                </InputGroupAddon>
-              </InputGroup>
+                    <ArrowUpIcon className="size-4" />
+                  </Button>
+                </div>
+              </div>
             </form>
           </CardFooter>
         </Card>
-
-        <p className="px-0.5 text-center text-xs text-muted-foreground">
-          Demo is read only. Press send to advance the scripted conversation.
-        </p>
       </div>
     </MessageScrollerProvider>
   );

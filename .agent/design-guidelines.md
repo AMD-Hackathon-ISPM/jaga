@@ -87,7 +87,7 @@ Routes are a convenience; the **logical steps are fixed**. A back/refresh that w
 
 ### 3.3 API state / error mapping **(pin on ARCH-1)**
 
-The exact codes come from Daffa's `POST /api/v1/triage` contract; map to UI behavior as below.
+The frontend proposal in `contracts/openapi/jaga-v1.yaml` pins the current field names, versions, limits, and structured codes for backend review. Daffa's `ARCH-1` sign-off remains required; map accepted codes to UI behavior as below.
 
 | API state / code class | UI behavior |
 |---|---|
@@ -256,7 +256,7 @@ Cap prose at 65–75 ch. `text-wrap: balance` on h1–h3; `text-wrap: pretty` on
 
 Required component families and their specs. Reuse the patterns already proven in [`../components/ClinicalCaptureForm.jsx`](../components/ClinicalCaptureForm.jsx) — 44 px targets, visible focus ring, radiogroup booleans, focusable error summary, bilingual `T` table, in-memory state — **re-skinned to the §4/§5 tokens**. Every interactive component defines all of: default, hover, focus, active, disabled, loading, error.
 
-The routed flow uses official shadcn APIs from preset `b85jYWWKi8`: Button for actions and the recorder; Card/CardContent for surfaces; Field/FieldSet/Input/RadioGroup for clinical inputs; ToggleGroup for language; Alert/Empty/Badge/Skeleton/Spinner for feedback; Item for cough attempts; and Accordion for limitations. Shadcn semantic variables map to §4 tokens, and the application remains light-only without a theme provider.
+The routed flow uses official shadcn APIs from preset `b85jYWWKi8`: Button for actions and the recorder; Card/CardContent for surfaces; Field/FieldSet/Input/RadioGroup/Checkbox for clinical and CXR inputs; ToggleGroup for language; Alert/Empty/Badge/Skeleton/Spinner for feedback; Item for cough attempts; Accordion for limitations; and Sheet for shared guidance. Shadcn semantic variables map to §4 tokens, and the application remains light-only without a theme provider.
 
 | Family | Anatomy / variants | Key states & rules |
 |---|---|---|
@@ -381,5 +381,5 @@ privacy constraints. Flag any requested design that conflicts with a locked requ
 - [x] Responsive behavior is defined for 320 px mobile and desktop (§5.6).
 - [x] Reduced motion and text alternatives are defined (§7.2, §8.2, §9).
 - [ ] Bahasa Indonesia and English string tables reviewed — **pending `UX-1`**.
-- [ ] API state/error codes pinned — **pending Daffa `ARCH-1` (2026-06-29)**; mapping placeholder in §3.3.
+- [ ] API state/error codes signed — frontend proposal pinned in `contracts/openapi/jaga-v1.yaml`; **pending Daffa `ARCH-1`**.
 - [x] Kei can implement layout, state, component, and motion behavior without invention (string + API specifics excepted above).

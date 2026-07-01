@@ -1,0 +1,435 @@
+openapi: 3.1.0
+info:
+  title: Jaga Frontend Integration Contract
+  version: 1.0.0
+  description: Contract-first handoff for the Go API gateway. Gema and Prisma are independent signals.
+servers:
+  - url: /
+paths:
+  /api/v1/status:
+    get:
+      operationId: getStatus
+      responses:
+        "200":
+          description: Capability readiness
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+  /api/v1/patient/intake:
+    post:
+      operationId: submitPatientIntake
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientIntake"
+      responses:
+        "200":
+          description: Validated and normalized patient intake
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, patient]
+                properties:
+                  status:
+                    const: validated
+                  patient:
+                    $ref: "#/components/schemas/PatientIntake"
+        "400":
+          description: Field validation errors
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, errors]
+                properties:
+                  status:
+                    const: invalid
+                  errors:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FieldError"
+  /api/v1/triage:
+    post:
+      operationId: submitGemaTriage
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [contract_version, schema_version, clinical, coughs]
+              properties:
+                contract_version:
+                  const: triage-v1
+                schema_version:
+                  const: clinical-v1
+                clinical:
+                  type: string
+                  format: binary
+                  description: application/json file containing PatientIntake
+                coughs:
+                  type: array
+                  minItems: 5
+                  maxItems: 5
+                  items:
+                    type: string
+                    format: binary
+            encoding:
+              clinical:
+                contentType: application/json
+              coughs:
+                contentType: audio/webm
+      responses:
+        "200":
+          description: Independent Gema research result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GemaResult"
+        default:
+          $ref: "#/components/responses/ApiError"
+  /api/v1/cxr:
+    post:
+      operationId: submitPrismaCxr
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [contract_version, schema_version, source_type, image]
+              properties:
+                contract_version:
+                  const: cxr-v1
+                schema_version:
+                  const: cxr-image-v1
+                source_type:
+                  const: digital_export
+                image:
+                  type: string
+                  format: binary
+                  description: PNG or JPEG digital CXR export, maximum 10485760 bytes
+            encoding:
+              image:
+                contentType: image/png, image/jpeg
+      responses:
+        "200":
+          description: Independent Prisma research result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CxrResult"
+        default:
+          $ref: "#/components/responses/ApiError"
+  /api/v1/assistant/messages:
+    post:
+      operationId: sendGuidanceMessage
+      description: Server-side provider proxy. Provider credentials and patient values must not reach the browser or model.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantRequest"
+      responses:
+        "200":
+          description: Non-streaming scoped guidance response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantResponse"
+        default:
+          $ref: "#/components/responses/ApiError"
+components:
+  responses:
+    ApiError:
+      description: Structured integration error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+  schemas:
+    Capability:
+      type: object
+      required: [ready, contract_version]
+      properties:
+        ready:
+          type: boolean
+        contract_version:
+          type: string
+          minLength: 1
+    ServiceStatus:
+      type: object
+      required: [service, ready, capabilities]
+      properties:
+        service:
+          type: string
+        python_project_root:
+          type: string
+        ready:
+          type: boolean
+        capabilities:
+          type: object
+          required: [patient_intake, gema, prisma, assistant]
+          properties:
+            patient_intake:
+              $ref: "#/components/schemas/Capability"
+            gema:
+              $ref: "#/components/schemas/Capability"
+            prisma:
+              $ref: "#/components/schemas/Capability"
+            assistant:
+              $ref: "#/components/schemas/Capability"
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    PatientIntake:
+      type: object
+      additionalProperties: false
+      required:
+        - age_years
+        - sex_at_birth
+        - height_cm
+        - weight_kg
+        - cough_duration_days
+        - prior_tb
+        - hemoptysis
+        - smoked_last_7_days
+        - fever_last_30_days
+        - night_sweats_last_30_days
+        - weight_loss_last_30_days
+      properties:
+        age_years:
+          type: integer
+          minimum: 0
+          maximum: 120
+        sex_at_birth:
+          enum: [male, female]
+        height_cm:
+          type: number
+          minimum: 40
+          maximum: 260
+        weight_kg:
+          type: number
+          minimum: 1
+          maximum: 350
+        cough_duration_days:
+          type: integer
+          minimum: 0
+          maximum: 365
+        prior_tb:
+          type: boolean
+        hemoptysis:
+          type: boolean
+        heart_rate_bpm:
+          type: [integer, "null"]
+          minimum: 20
+          maximum: 250
+        temperature_c:
+          type: [number, "null"]
+          minimum: 30
+          maximum: 45
+        smoked_last_7_days:
+          type: boolean
+        fever_last_30_days:
+          type: boolean
+        night_sweats_last_30_days:
+          type: boolean
+        weight_loss_last_30_days:
+          type: boolean
+    Estimate:
+      type: object
+      required: [probability, band, calibrated, calibration_status]
+      properties:
+        probability:
+          type: number
+          minimum: 0
+          maximum: 1
+        band:
+          enum: [lower, intermediate, higher]
+        calibrated:
+          const: true
+        calibration_status:
+          type: string
+    Inspection:
+      type: object
+      required: [available, label]
+      properties:
+        url:
+          type: string
+          format: uri
+        available:
+          type: boolean
+        label:
+          type: string
+    GemaResult:
+      type: object
+      required: [request_id, signal, contract_version, schema_version, quality, estimate, mandatory_next_step, metadata]
+      properties:
+        request_id:
+          type: string
+        signal:
+          const: gema
+        contract_version:
+          const: triage-v1
+        schema_version:
+          const: clinical-v1
+        quality:
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            type: object
+            required: [index, quality]
+            properties:
+              index:
+                type: integer
+                minimum: 1
+                maximum: 5
+              quality:
+                enum: [accepted, retryable, system_error]
+              reason_code:
+                type: string
+        estimate:
+          oneOf:
+            - $ref: "#/components/schemas/Estimate"
+            - type: "null"
+        mandatory_next_step:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/GemaMetadata"
+        inspection:
+          $ref: "#/components/schemas/Inspection"
+    GemaMetadata:
+      type: object
+      required: [model_version, contract_version, schema_version, cohort, limitations]
+      properties:
+        model_version:
+          type: string
+        contract_version:
+          const: triage-v1
+        schema_version:
+          const: clinical-v1
+        cohort:
+          type: string
+        limitations:
+          type: array
+          items:
+            type: string
+    CxrResult:
+      type: object
+      required: [request_id, signal, contract_version, schema_version, estimate, mandatory_next_step, metadata]
+      properties:
+        request_id:
+          type: string
+        signal:
+          const: prisma
+        contract_version:
+          const: cxr-v1
+        schema_version:
+          const: cxr-image-v1
+        estimate:
+          oneOf:
+            - $ref: "#/components/schemas/Estimate"
+            - type: "null"
+        mandatory_next_step:
+          type: string
+        metadata:
+          type: object
+          required: [model_version, contract_version, cohort, limitations]
+          properties:
+            model_version:
+              type: string
+            contract_version:
+              const: cxr-v1
+            cohort:
+              type: string
+            limitations:
+              type: array
+              items:
+                type: string
+        inspection:
+          $ref: "#/components/schemas/Inspection"
+    AssistantMessage:
+      type: object
+      additionalProperties: false
+      required: [role, content]
+      properties:
+        role:
+          enum: [user, assistant]
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+    AssistantRequest:
+      type: object
+      additionalProperties: false
+      required: [contract_version, locale, screen, messages]
+      properties:
+        contract_version:
+          const: assistant-v1
+        locale:
+          enum: [en, id]
+        screen:
+          enum: [gate, clinical, coughs, review, result, cxr, cxr_result]
+        field_key:
+          type: string
+        messages:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items:
+            $ref: "#/components/schemas/AssistantMessage"
+    AssistantResponse:
+      type: object
+      required: [request_id, reply, disposition, provider, model, contract_version]
+      properties:
+        request_id:
+          type: string
+        reply:
+          type: string
+        disposition:
+          enum: [answer, safety_redirect]
+        provider:
+          type: string
+        model:
+          type: string
+        contract_version:
+          const: assistant-v1
+    ApiError:
+      type: object
+      required: [code, message, request_id, retryable]
+      properties:
+        code:
+          enum: [VALIDATION_ERROR, CONTRACT_MISMATCH, UNSUPPORTED_MEDIA_TYPE, PAYLOAD_TOO_LARGE, COUGH_QUALITY_REJECTED, INVALID_CXR_SOURCE, MODEL_UNAVAILABLE, UPSTREAM_TIMEOUT]
+        message:
+          type: string
+        request_id:
+          type: string
+        retryable:
+          type: boolean
+        field_errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldError"
+        attempt_errors:
+          type: array
+          items:
+            type: object
+            required: [index, reason_code]
+            properties:
+              index:
+                type: integer
+                minimum: 1
+                maximum: 5
+              reason_code:
+                type: string

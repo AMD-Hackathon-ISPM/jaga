@@ -1,0 +1,34 @@
+{
+  "request_id": "synthetic-gema-001",
+  "signal": "gema",
+  "contract_version": "triage-v1",
+  "schema_version": "clinical-v1",
+  "quality": [
+    { "index": 1, "quality": "accepted" },
+    { "index": 2, "quality": "accepted" },
+    { "index": 3, "quality": "accepted" },
+    { "index": 4, "quality": "accepted" },
+    { "index": 5, "quality": "accepted" }
+  ],
+  "estimate": {
+    "probability": 0.42,
+    "band": "intermediate",
+    "calibrated": true,
+    "calibration_status": "calibrated synthetic fixture"
+  },
+  "mandatory_next_step": "This person should receive confirmatory TB evaluation regardless of this estimate.",
+  "metadata": {
+    "model_version": "synthetic-gema-v1",
+    "contract_version": "triage-v1",
+    "schema_version": "clinical-v1",
+    "cohort": "symptomatic adults 18+",
+    "limitations": [
+      "Synthetic fixture; not evidence of model performance.",
+      "Research estimate only; not a diagnosis."
+    ]
+  },
+  "inspection": {
+    "available": false,
+    "label": "Model inspection; not a clinical explanation."
+  }
+}

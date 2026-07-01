@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PrototypeBanner } from "@/components/common/prototype-banner";
+import { config } from "@/lib/config";
 
 /**
  * Gate (step 0) — PLACEHOLDER. Real version blocks Clinical until all
@@ -30,6 +31,11 @@ export function GateScreen() {
       <Button asChild>
         <Link href="/clinical">Continue</Link>
       </Button>
+      {config.enablePrisma && (
+        <Button asChild variant="secondary">
+          <Link href="/cxr">Upload a digital CXR for Prisma</Link>
+        </Button>
+      )}
     </div>
   );
 }

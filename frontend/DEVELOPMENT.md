@@ -2,7 +2,7 @@
 
 Deep reference for working on `frontend`. The [README](README.md) is the overview; this file documents **how every part works, how to use it, and how to extend it**. Product/safety rules are canonical in [`../.agent/`](../.agent/) — this guide does not restate them, it points to them.
 
-> **Golden invariants (do not break):** no patient input is ever persisted (no `localStorage`/`IndexedDB`/SW cache); services never call a real endpoint until `ARCH-1` is signed; Gema (cough+clinical) and Prisma (CXR) results are never fused; a failure never shows a stale or fabricated estimate; mandatory safety/referral copy is deterministic and human-reviewed, never machine-translated.
+> **Golden invariants (do not break):** no patient input is ever persisted (no `localStorage`/`IndexedDB`/SW cache); live mode calls only the Go gateway contracts reviewed under `ARCH-1`; Gema (cough+clinical) and Prisma (CXR) results are never fused; a failure never shows a stale or fabricated estimate; mandatory safety/referral copy is deterministic and human-reviewed, never machine-translated.
 
 ---
 
@@ -36,10 +36,10 @@ Deep reference for working on `frontend`. The [README](README.md) is the overvie
 | Language | TypeScript (strict) |
 | Styling | Tailwind CSS 4 + CSS custom properties (OKLCH tokens) |
 | Components | shadcn/ui CLI with Radix/Nova preset `b85jYWWKi8` |
-| Server state | TanStack Query (one future triage mutation) |
+| Server state | TanStack Query mutations for intake, Gema, and Prisma |
 | Client state | Zustand (in-memory, no `persist`) |
 | Forms | React Hook Form + Zod (`@hookform/resolvers`) |
-| HTTP | Axios — **configured but unused** |
+| HTTP | Axios behind fixture/live service factories |
 | Lint/format | ESLint (`next/core-web-vitals` + `next/typescript`), Prettier |
 
 ```bash
@@ -87,8 +87,8 @@ src/
 │   ├── layout/             # Header, Footer, StepIndicator, LanguageSwitcher, Navbar/Sidebar*
 │   └── common/             # ErrorBoundary, PrototypeBanner
 ├── hooks/                  # useSession, useLanguage, useT, useMediaQuery, useCoughRecorder
-├── services/               # auth/patient/triage/cxr/health — all throw until ARCH-1
-├── store/                  # Zustand: session, language, auth (mock)
+├── services/               # status, patient, Gema, Prisma, assistant adapters
+├── store/                  # in-memory session, Prisma, language, auth
 ├── context/                # AuthContext (wraps mock auth store)
 ├── guards/                 # ProtectedRoute, GuestRoute (placeholder)
 ├── providers/              # AppProviders (QueryClient + Auth + ErrorBoundary)
@@ -132,7 +132,7 @@ Key points:
 
 - **`session.store.ts`** exposes `setStep`, `setClinical` (merges), `setSubmitState`, `setResult`, and `reset()`. `reset()` restores the initial state and a fresh 5-element `coughs` array — call it on reset, success acknowledgement, and session timeout (PRD-08).
 - **No global library was strictly required** (design §3.2 says a `useReducer` step machine is acceptable). Zustand is used because it is requested and keeps the in-memory model in one place; the absence of `persist` is what preserves the no-storage safety rule.
-- The future submit mutation belongs in **TanStack Query** (`lib/query-client.ts`), not in a store. Keep server state (the triage call) and client state (form/audio) separate.
+- Submit mutations belong in **TanStack Query** (`lib/query-client.ts`), not in a store. Stores keep only transient inputs and the current session result.
 
 ---
 
@@ -141,7 +141,7 @@ Key points:
 `types/` is split by trust level:
 
 - **`patient.ts` — SIGNED / live.** Mirrors `backend/go/internal/models/patient.go` exactly. Field names are **snake_case** because that is the wire contract (Go `json` tags). `PATIENT_BOUNDS` copies the numeric ranges from `backend/go/internal/validation/patient.go`. **If the Go validator changes, update this file and the Zod schema together.**
-- **`triage.ts`, `cxr.ts` — PROVISIONAL.** The `POST /api/v1/triage` and `POST /api/v1/cxr` contracts are unsigned (Daffa `ARCH-1`). These shapes are inferred only so the UI compiles against mocks. Do not treat any field as final; do not invent URLs around them.
+- **`triage.ts`, `cxr.ts` — frontend integration proposal.** Runtime Zod schemas and [`../contracts/openapi/jaga-v1.yaml`](../contracts/openapi/jaga-v1.yaml) define the backend handoff pending Daffa's `ARCH-1` sign-off.
 - **`api.ts`** — health/status shapes (mirror the live Go handlers) + `ApiNotConnectedError`.
 - **`common.ts`** — `Language`, `FlowStep`, `SubmitState`, `SessionMeta`.
 
@@ -154,7 +154,7 @@ Barrel: `import { … } from "@/types"`.
 Example and template: **the clinical form** (`features/clinical/`).
 
 - **`clinical-schema.ts`** — Zod schema whose bounds **mirror the Go validator**. `ClinicalFormValues = z.infer<typeof clinicalSchema>`.
-- **`clinical-form.tsx`** — RHF (`useForm` + `zodResolver`), `mode: "onBlur"`. Submit writes to the session store and advances the step. **No API call.** Field labels are English inline for now and move to the locale bundle once `UX-1` signs paired strings.
+- **`clinical-form.tsx`** — RHF (`useForm` + `zodResolver`), `mode: "onBlur"`. Submit validates through `patientService`, maps backend field errors into RHF, stores normalized values, and advances the step.
 
 Two patterns worth copying:
 
@@ -301,12 +301,12 @@ Do not put the capture flow behind these. If real auth is ever needed, replace t
 **Add a clinical field**
 Backend owner adds it to the Go model + validator → mirror in `types/patient.ts` (+ `PATIENT_BOUNDS`) → add to `clinical-schema.ts` → render in `clinical-form.tsx`. Keep bounds identical in all three.
 
-**Wire the API (after `ARCH-1` is signed)**
-1. Pin the contract in `types/triage.ts` / `cxr.ts` (remove "provisional"); add `schema_version`.
-2. Set `NEXT_PUBLIC_API_BASE_URL`; add version header + error-normalization interceptors in `lib/http.ts`.
-3. Replace the `throw` in one `services/*.ts` with a real `http` call (start with `patientService.submitIntake` — the only live endpoint).
-4. In `features/review/`, call it via a TanStack Query `useMutation`; map states/errors per design §3.3 into `SubmitState`.
-5. Swap `mocks/triage-result.mock.json` in `features/result/` for the live result; keep the locked hierarchy and the unconditional banner + next-step panel.
+**Connect a backend implementation**
+1. Review and sign `contracts/openapi/jaga-v1.yaml`; update runtime Zod schemas and fixtures in the same change if the contract moves.
+2. Implement all public paths behind the Go gateway, including capability readiness and structured errors.
+3. Put Fireworks/Featherless credentials, model selection, system prompts, and safety enforcement on the server.
+4. Set `NEXT_PUBLIC_API_MODE=live` and `NEXT_PUBLIC_API_BASE_URL`; no component changes are required.
+5. Run contract, type, lint, build, and browser flow checks before enabling a capability in production.
 
 **Add a UI primitive:** from `frontend/`, run `npx shadcn@latest add <component> --dry-run`. For an existing file, follow with `npx shadcn@latest add <component> --diff <file>` and merge manually. For a new file, add it normally, review it against the signed tokens and ≥44 px target rule, then export it from the barrel. Never bulk-overwrite.
 
@@ -321,4 +321,4 @@ Backend owner adds it to the Go model + validator → mirror in `types/patient.t
 - **Duplicate language state:** `session.store.ts` also has a `language` field, but i18n reads from `language.store.ts` via `useLanguage()`. The session copy is currently unused for rendering — pick one source before this drifts (recommend: drop `language` from the session store and keep `language.store`).
 - **`useSession()` returns the whole store** (no selector) → components using it re-render on any session change. For hot paths, subscribe with a selector (`useSessionStore(s => s.x)`) instead.
 - **Shadcn updates are source merges** — use `--dry-run` and `--diff` per component, then preserve Jaga's token styling, 44 px targets, and public API.
-- **Provisional triage/cxr types** — anything importing them is compiling against a guess; re-verify after `ARCH-1`.
+- **Contract ownership** — the OpenAPI document is a frontend-ready handoff, not backend owner sign-off; reconcile changes under `ARCH-1` before live deployment.
