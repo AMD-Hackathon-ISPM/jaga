@@ -5,17 +5,18 @@ import (
 
 	"jaga/backend/go/internal/config"
 	patienthandlers "jaga/backend/go/internal/handlers"
+	"jaga/backend/go/internal/inference"
 	"jaga/backend/go/internal/llm/featherless"
 	"jaga/backend/go/internal/memory"
 	"jaga/backend/go/internal/metrics"
 	"jaga/backend/go/internal/routes"
 )
 
-func NewRouter(cfg config.Config, memoryHealth memory.HealthChecker, assistant *featherless.Service, recorder *metrics.Recorder) http.Handler {
+func NewRouter(cfg config.Config, memoryHealth memory.HealthChecker, assistant *featherless.Service, recorder *metrics.Recorder, triageInf inference.TriageInferencer, cxrInf inference.CxrInferencer) http.Handler {
 	serviceHandlers := NewHandlers(cfg, memoryHealth)
 	patientHandler := patienthandlers.NewPatientHandler()
 	assistantHandler := patienthandlers.NewAssistantHandler(assistant)
-	signalHandler := patienthandlers.NewSignalHandler()
+	signalHandler := patienthandlers.NewSignalHandler(triageInf, cxrInf)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", serviceHandlers.Health)

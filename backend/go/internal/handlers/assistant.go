@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"strings"
 
@@ -125,12 +124,4 @@ func isValidScreen(screen string) bool {
 
 func writeAPIError(w http.ResponseWriter, status int, payload models.ApiError) {
 	writeJSON(w, status, payload)
-}
-
-// discardBody drains and closes a request body so connections can be reused.
-func discardBody(r *http.Request) {
-	if r.Body != nil {
-		_, _ = io.Copy(io.Discard, io.LimitReader(r.Body, 1<<20))
-		r.Body.Close()
-	}
 }
