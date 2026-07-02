@@ -13,14 +13,18 @@ $minioImage = Get-EnvValue -Key 'MINIO_IMAGE' -Default 'jaga/minio:local'
 $cogneeImage = Get-EnvValue -Key 'COGNEE_IMAGE' -Default 'jaga/cognee:local'
 $nextPublicApiBaseUrl = Get-EnvValue -Key 'NEXT_PUBLIC_API_BASE_URL' -Default ''
 $nextPublicAppEnv = Get-EnvValue -Key 'NEXT_PUBLIC_APP_ENV' -Default 'production'
+$nextPublicEnableAssistant = Get-EnvValue -Key 'NEXT_PUBLIC_ENABLE_ASSISTANT' -Default 'true'
+$nextPublicEnablePrisma = Get-EnvValue -Key 'NEXT_PUBLIC_ENABLE_PRISMA' -Default 'true'
 
 docker build -t $goApiImage (Join-Path $paths.RepoRoot 'backend/go')
 docker build -t $prismaWorkerImage (Join-Path $paths.RepoRoot 'backend/python/PrismaServer')
 docker build `
   --build-arg "NEXT_PUBLIC_API_BASE_URL=$nextPublicApiBaseUrl" `
   --build-arg "NEXT_PUBLIC_APP_ENV=$nextPublicAppEnv" `
+  --build-arg "NEXT_PUBLIC_ENABLE_ASSISTANT=$nextPublicEnableAssistant" `
+  --build-arg "NEXT_PUBLIC_ENABLE_PRISMA=$nextPublicEnablePrisma" `
   -t $webImage `
-  (Join-Path $paths.RepoRoot 'apps/web')
+  (Join-Path $paths.RepoRoot 'frontend')
 docker build -t $nginxImage (Join-Path $paths.InfraDir 'nginx')
 docker build -t $postgresImage (Join-Path $paths.InfraDir 'postgres')
 docker build -t $redisImage (Join-Path $paths.InfraDir 'redis')

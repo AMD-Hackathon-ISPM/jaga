@@ -26,8 +26,10 @@ docker build -t "$PRISMA_WORKER_IMAGE" "$REPO_ROOT/backend/python/PrismaServer"
 docker build \
   --build-arg NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-}" \
   --build-arg NEXT_PUBLIC_APP_ENV="${NEXT_PUBLIC_APP_ENV:-production}" \
+  --build-arg NEXT_PUBLIC_ENABLE_ASSISTANT="${NEXT_PUBLIC_ENABLE_ASSISTANT:-true}" \
+  --build-arg NEXT_PUBLIC_ENABLE_PRISMA="${NEXT_PUBLIC_ENABLE_PRISMA:-true}" \
   -t "$WEB_IMAGE" \
-  "$REPO_ROOT/apps/web"
+  "$REPO_ROOT/frontend"
 docker build -t "$NGINX_IMAGE" "$INFRA_DIR/nginx"
 docker build -t "$POSTGRES_IMAGE" "$INFRA_DIR/postgres"
 docker build -t "$REDIS_IMAGE" "$INFRA_DIR/redis"
