@@ -25,3 +25,17 @@ export function toJagaApiError(error: unknown, fallbackMessage: string) {
     retryable: true,
   });
 }
+
+/**
+ * True only when the backend explicitly reported an unwired model
+ * (MODEL_UNAVAILABLE + non-retryable). Transient/network failures fall back to
+ * retryable:true and are intentionally excluded, so callers can show a "not
+ * available yet" state rather than a misleading "try again".
+ */
+export function isModelUnavailable(error: unknown): boolean {
+  return (
+    error instanceof JagaApiError &&
+    error.detail.code === "MODEL_UNAVAILABLE" &&
+    error.detail.retryable === false
+  );
+}

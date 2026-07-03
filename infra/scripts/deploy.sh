@@ -15,12 +15,17 @@ STACK_NAME="${STACK_NAME:-jaga}"
 
 # Content hashes rotate the Swarm config names when a config file changes, so
 # `docker stack deploy` never hits the "only updates to Labels are allowed"
-# immutability error. Uses sha1sum, falling back to shasum.
+# immutability error. A missing/unreadable config file is a hard error so we
+# never silently fall back to the ":-v1" default name.
 hash_file() {
-  if command -v sha1sum >/dev/null 2>&1; then
-    sha1sum "$1" | cut -c1-10
+  if [ ! -r "$1" ]; then
+    echo "deploy: config file not found or unreadable: $1" >&2
+    exit 1
+  fi
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | cut -c1-10
   else
-    shasum "$1" | cut -c1-10
+    shasum -a 256 "$1" | cut -c1-10
   fi
 }
 NGINX_MAIN_HASH=$(hash_file "$INFRA_DIR/nginx/nginx.conf")
@@ -30,3 +35,10 @@ export NGINX_MAIN_HASH NGINX_DEFAULT_HASH POSTGRES_INIT_HASH
 
 docker swarm init >/dev/null 2>&1 || true
 docker stack deploy -c "$INFRA_DIR/docker-stack.yml" "$STACK_NAME"
+
+# Swarm does not auto-remove configs orphaned by a hash rotation. Prune stale
+# jaga_* configs; ones still referenced by a running service cannot be removed
+# and are safely skipped.
+for cfg in $(docker config ls --format '{{.Name}}' 2>/dev/null | grep '^jaga_' || true); do
+  docker config rm "$cfg" >/dev/null 2>&1 || true
+done

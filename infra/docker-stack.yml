@@ -308,9 +308,10 @@ volumes:
 configs:
   # Swarm configs are immutable: an in-place content change is rejected. The
   # deploy scripts export a content hash per file so a changed file yields a NEW
-  # config name — `docker stack deploy` then creates the new one, repoints the
-  # service, and garbage-collects the old one. No stack rm needed. Fallback to
-  # v1 when deployed without the scripts (first run / unchanged content).
+  # config name — `docker stack deploy` creates the new one and repoints the
+  # service. Swarm does NOT auto-remove the old config, so the deploy scripts
+  # prune orphaned jaga_* configs after deploying. No stack rm needed. Falls
+  # back to v1 when deployed without the scripts (first run / unchanged content).
   nginx_main_conf:
     name: jaga_nginx_main_${NGINX_MAIN_HASH:-v1}
     file: ./nginx/nginx.conf

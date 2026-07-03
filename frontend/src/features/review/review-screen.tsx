@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { clinicalSchema } from "@/features/clinical/clinical-schema";
 import { triageService } from "@/services/triage.service";
-import { JagaApiError } from "@/services/api-error";
+import { isModelUnavailable } from "@/services/api-error";
 import { useSessionStore } from "@/store/session.store";
 
 export function ReviewScreen() {
@@ -41,14 +41,7 @@ export function ReviewScreen() {
     onError: () => setSubmitState("retryable_error"),
   });
 
-  // The backend returns MODEL_UNAVAILABLE + retryable:false while the Gema model
-  // is not wired yet. Distinguish that from transient/network failures (which
-  // fall back to retryable:true) so the copy is not misleadingly "try again".
-  const submitError = mutation.error;
-  const modelUnavailable =
-    submitError instanceof JagaApiError &&
-    submitError.detail.code === "MODEL_UNAVAILABLE" &&
-    submitError.detail.retryable === false;
+  const modelUnavailable = isModelUnavailable(mutation.error);
 
   return (
     <div className="flex flex-col gap-4">

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { CXR_ACCEPT, CXR_MAX_BYTES, validateCxrFile } from "@/lib/integration";
 import { cxrService } from "@/services/cxr.service";
-import { JagaApiError } from "@/services/api-error";
+import { isModelUnavailable } from "@/services/api-error";
 import { usePrismaStore } from "@/store/prisma.store";
 
 const FILE_ERRORS = {
@@ -45,13 +45,7 @@ export function CxrScreen() {
     onError: () => setSubmitState("retryable_error"),
   });
 
-  // MODEL_UNAVAILABLE + retryable:false means the Prisma model is not wired yet
-  // (distinct from transient/network failures which fall back to retryable:true).
-  const submitError = mutation.error;
-  const modelUnavailable =
-    submitError instanceof JagaApiError &&
-    submitError.detail.code === "MODEL_UNAVAILABLE" &&
-    submitError.detail.retryable === false;
+  const modelUnavailable = isModelUnavailable(mutation.error);
 
   async function selectFile(file: File | undefined) {
     setFileError(null);

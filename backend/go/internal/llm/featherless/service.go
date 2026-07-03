@@ -21,10 +21,11 @@ STRICT RULES:
 
 // safetyPattern mirrors the frontend fixture guard so live behaviour matches
 // the offline demo: diagnosis/treatment/result-interpretation questions are
-// redirected rather than answered. Bilingual (English + Bahasa Indonesia) so
-// that ID phrasings ("apakah saya kena TB", "positif", "obat") are caught by
-// the deterministic guard, not only by the model prompt.
-var safetyPattern = regexp.MustCompile(`(?i)\b(diagnos|do i have|positive|negative|treat|medicine|medication|drug|cure|my (risk|result)|apakah (saya|aku)|kena tb|terkena tb|positif|negatif|obat|sembuh|hasil saya)\b`)
+// redirected rather than answered. Bilingual (English + Bahasa Indonesia) and
+// stem-based (\w* suffixes) so inflections — diagnosed/diagnosis, treatment/
+// treated, drugs, medications, cured, "my results" — are all caught by the
+// deterministic guard, not only by the model prompt.
+var safetyPattern = regexp.MustCompile(`(?i)\b(diagnos\w*|didiagnos\w*|do i have|positiv\w*|negativ\w*|positif|negatif|treat\w*|medicat\w*|medicin\w*|drug\w*|cure\w*|obat\w*|pengobatan|diobati|sembuh\w*|my (risk|result)s?|hasil (saya|ku)|apakah (saya|aku)|kena tb|terkena tb)\b`)
 
 const (
 	DispositionAnswer   = "answer"
