@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { CXR_ACCEPT, CXR_MAX_BYTES, validateCxrFile } from "@/lib/integration";
 import { cxrService } from "@/services/cxr.service";
+import { JagaApiError } from "@/services/api-error";
 import { usePrismaStore } from "@/store/prisma.store";
 
 const FILE_ERRORS = {
@@ -43,6 +44,14 @@ export function CxrScreen() {
     },
     onError: () => setSubmitState("retryable_error"),
   });
+
+  // MODEL_UNAVAILABLE + retryable:false means the Prisma model is not wired yet
+  // (distinct from transient/network failures which fall back to retryable:true).
+  const submitError = mutation.error;
+  const modelUnavailable =
+    submitError instanceof JagaApiError &&
+    submitError.detail.code === "MODEL_UNAVAILABLE" &&
+    submitError.detail.retryable === false;
 
   async function selectFile(file: File | undefined) {
     setFileError(null);
@@ -95,13 +104,22 @@ export function CxrScreen() {
       </Field>
 
       {mutation.isError && (
-        <Alert variant="destructive">
-          <AlertTitle>Prisma submission failed</AlertTitle>
-          <AlertDescription>The selected image remains available. Try again.</AlertDescription>
+        <Alert variant={modelUnavailable ? "warning" : "destructive"}>
+          <AlertTitle>
+            {modelUnavailable ? "Prisma analysis is not available yet" : "Prisma submission failed"}
+          </AlertTitle>
+          <AlertDescription>
+            {modelUnavailable
+              ? "The chest X-ray model is still being prepared, so no result can be produced yet. Your image is kept — continue with the standard clinical pathway."
+              : "The selected image remains available. Try again."}
+          </AlertDescription>
         </Alert>
       )}
 
-      <Button disabled={!image || !confirmed || mutation.isPending} onClick={() => mutation.mutate()}>
+      <Button
+        disabled={!image || !confirmed || mutation.isPending || modelUnavailable}
+        onClick={() => mutation.mutate()}
+      >
         {mutation.isPending && <Spinner />}
         Submit for Prisma analysis
       </Button>
