@@ -3,6 +3,7 @@
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Message, MessageContent } from "@/components/ui/message";
 import { MessageScrollerItem } from "@/components/ui/message-scroller";
+import { ChatMarkdown } from "./chat-markdown";
 import type { ChatMessage } from "./mock-conversation";
 
 export function ChatMessageItem({
@@ -24,7 +25,9 @@ export function ChatMessageItem({
             </Bubble>
           ) : (
             <Bubble variant="ghost">
-              <BubbleContent className="whitespace-pre-wrap">{message.content}</BubbleContent>
+              <BubbleContent>
+                <ChatMarkdown text={message.content} />
+              </BubbleContent>
             </Bubble>
           )}
         </MessageContent>

@@ -17,7 +17,7 @@ STRICT RULES:
 - Only help the user understand the form, the capture steps, and the general referral guidance.
 - Always reinforce that every participant needs confirmatory clinical evaluation.
 - Keep replies under 120 words, in the requested language.
-- Reply in plain conversational text only. Do NOT use Markdown formatting: no asterisks, bold, italics, bullet points, numbered lists, headings, or backticks.`
+- Format for readability: short paragraphs, and simple Markdown bullet points ("- ") when listing steps or options. Do not use headings, tables, or code blocks.`
 
 // safetyPattern mirrors the frontend fixture guard so live behaviour matches
 // the offline demo: diagnosis/treatment/result-interpretation questions are
@@ -82,30 +82,11 @@ func (s *Service) Guidance(ctx context.Context, locale string, messages []Messag
 		s.logger.Printf("assistant degraded: %v", err)
 		return "", "", err
 	}
-	reply = stripFormatting(reply)
+	reply = strings.TrimSpace(reply)
 	if reply == "" {
 		return "", "", ErrEmptyReply
 	}
 	return reply, DispositionAnswer, nil
-}
-
-// Markdown-stripping safety net: even with the plain-text instruction, models
-// sometimes emit **bold**, bullets, or headings. We remove those markers so the
-// chat UI (which renders plain text) shows clean prose. Underscores are left
-// intact so field names like night_sweats_last_30_days survive.
-var (
-	mdHeadingRe = regexp.MustCompile(`(?m)^[ \t]{0,3}#{1,6}[ \t]*`)
-	mdBulletRe  = regexp.MustCompile(`(?m)^[ \t]{0,3}([-*+•]|\d+\.)[ \t]+`)
-	mdInlineRe  = regexp.MustCompile("[*`]")
-	mdBlankRe   = regexp.MustCompile(`\n{3,}`)
-)
-
-func stripFormatting(s string) string {
-	s = mdHeadingRe.ReplaceAllString(s, "")
-	s = mdBulletRe.ReplaceAllString(s, "")
-	s = mdInlineRe.ReplaceAllString(s, "")
-	s = mdBlankRe.ReplaceAllString(s, "\n\n")
-	return strings.TrimSpace(s)
 }
 
 func safeRedirect(locale string) string {
