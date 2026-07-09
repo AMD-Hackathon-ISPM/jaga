@@ -18,7 +18,16 @@ const config: Config = {
         ink: "var(--ink)",
         "ink-muted": "var(--ink-muted)",
         brand: "var(--brand)",
+        "brand-active": "var(--brand-active)",
+        "brand-soft": "var(--brand-soft)",
         focus: "var(--focus)",
+        // Figma accents & tints (rebrand 2026-07-09).
+        "accent-return": "var(--accent-return)",
+        "warning-cream": "var(--warning-cream)",
+        "tint-brand-5": "var(--tint-brand-5)",
+        "tint-brand-10": "var(--tint-brand-10)",
+        "disabled-fill": "var(--disabled-fill)",
+        "track-muted": "var(--track-muted)",
         info: "var(--info)",
         "info-surface": "var(--info-surface)",
         warning: "var(--warning)",
@@ -33,18 +42,16 @@ const config: Config = {
         "band-higher": "var(--band-higher)",
       },
       fontFamily: {
-        serif: ["var(--font-serif)", "ui-serif", "Georgia", "serif"],
-        heading: ["var(--font-serif)", "ui-serif", "Georgia", "serif"],
+        // Figtree for UI and headings; Ioskeley for numerics (design §5.4).
+        serif: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        heading: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "SF Mono", "monospace"],
-      },
-      letterSpacing: {
-        serif: "-0.03em",
       },
       borderRadius: {
         // One radius scale, no exceptions (§5.5).
         bar: "4px",
-        control: "8px",
+        control: "6px",
         frame: "16px",
       },
       maxWidth: {

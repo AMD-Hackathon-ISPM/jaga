@@ -26,3 +26,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright / local verification
+/.playwright-mcp/
+/test-results/
+/playwright-report/
+/verify-result.png

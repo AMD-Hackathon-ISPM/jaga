@@ -13,7 +13,8 @@ describe("session store", () => {
     expect(useSessionStore.getState().coughFiles).toHaveLength(5);
   });
 
-  it("clears patient data, files, and results on reset", () => {
+  it("clears patient data, files, gate acknowledgements, and results on reset", () => {
+    useSessionStore.getState().setGateAcknowledgement("adultWithCough", true);
     useSessionStore.getState().setClinical({ age_years: 42 });
     useSessionStore.getState().setCough(
       0,
@@ -22,6 +23,10 @@ describe("session store", () => {
     useSessionStore.getState().reset();
 
     expect(useSessionStore.getState().clinical).toEqual({});
+    expect(useSessionStore.getState().gateAcknowledgements).toEqual({
+      adultWithCough: false,
+      confirmatoryEvaluation: false,
+    });
     expect(useSessionStore.getState().coughFiles.every((file) => file === null)).toBe(true);
     expect(useSessionStore.getState().result).toBeNull();
   });

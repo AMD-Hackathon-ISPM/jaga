@@ -23,4 +23,24 @@ describe("integration configuration", () => {
       }),
     ).toMatchObject({ apiMode: "live", enableAssistant: true, enablePrisma: false });
   });
+
+  it("defaults prototype capability flags to on in production when unset", () => {
+    expect(
+      getIntegrationConfig({
+        NODE_ENV: "production",
+        NEXT_PUBLIC_API_MODE: "live",
+      }),
+    ).toMatchObject({ enableAssistant: true, enablePrisma: true });
+  });
+
+  it("allows opting out of prototype capabilities via env", () => {
+    expect(
+      getIntegrationConfig({
+        NODE_ENV: "production",
+        NEXT_PUBLIC_API_MODE: "live",
+        NEXT_PUBLIC_ENABLE_ASSISTANT: "false",
+        NEXT_PUBLIC_ENABLE_PRISMA: "false",
+      }),
+    ).toMatchObject({ enableAssistant: false, enablePrisma: false });
+  });
 });

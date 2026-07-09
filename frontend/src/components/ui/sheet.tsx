@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import { Dialog as SheetPrimitive } from "radix-ui";
-import { XIcon } from "lucide-react";
+import { IconX } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/hooks/use-t";
 import { cn } from "@/lib/utils";
 
 function Sheet(props: React.ComponentProps<typeof SheetPrimitive.Root>) {
@@ -29,6 +30,8 @@ function SheetOverlay({ className, ...props }: React.ComponentProps<typeof Sheet
 }
 
 function SheetContent({ className, children, ...props }: React.ComponentProps<typeof SheetPrimitive.Content>) {
+  const t = useT();
+
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -39,8 +42,13 @@ function SheetContent({ className, children, ...props }: React.ComponentProps<ty
       >
         {children}
         <SheetPrimitive.Close asChild>
-          <Button type="button" variant="ghost" size="icon-sm" className="absolute right-3 top-3" aria-label="Close guidance">
-            <XIcon />
+          <Button
+            type="button"
+            variant="ghost"
+            className="absolute right-3 top-3 size-11"
+            aria-label={t("common.close")}
+          >
+            <IconX />
           </Button>
         </SheetPrimitive.Close>
       </SheetPrimitive.Content>
@@ -49,7 +57,7 @@ function SheetContent({ className, children, ...props }: React.ComponentProps<ty
 }
 
 function SheetTitle({ className, ...props }: React.ComponentProps<typeof SheetPrimitive.Title>) {
-  return <SheetPrimitive.Title className={cn("font-serif text-lg font-semibold", className)} {...props} />;
+  return <SheetPrimitive.Title className={cn("font-heading text-lg font-semibold", className)} {...props} />;
 }
 
 function SheetDescription({ className, ...props }: React.ComponentProps<typeof SheetPrimitive.Description>) {

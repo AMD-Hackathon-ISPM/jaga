@@ -3,7 +3,7 @@
 **Document type:** Historical decision record
 **Audience:** Contributors, reviewers, and future maintainers
 **Status:** Historical; current revision and decisions are summarized in Sections 15–20
-**Updated:** 2026-07-09
+**Updated:** 2026-07-10
 **Canonical for:** Product history, superseded ideas, and decision rationale
 **Companion documents:** [`evidence-register.md`](evidence-register.md), [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`log.md`](log.md)
 
@@ -211,6 +211,9 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 | **Daffa architects backend and AI; Zeddin implements them** | This separates technical contract ownership from implementation responsibility. |
 | **Billy leads frontend and design; Kei implements capture and result flows** | This gives the frontend a clear specification handoff and implementer. |
 | **Use shadcn/ui Radix/Nova preset `b85jYWWKi8` across the routed frontend without replacing Jaga's signed tokens** | The gate, clinical, coughs, review, result, and shared layout use official component APIs on Tailwind 4. Semantic variables still resolve to Jaga's light-only palette; the safety hierarchy, accessibility constraints, and four custom visuals remain unchanged. |
+| **Use Figtree for UI and headings with 6px control radius** | Supersedes the earlier EB Garamond display + 8px control radius pairing. Figtree loads via `next/font/google` as `--font-sans`; Ioskeley remains the numeric face. Headings and body share one sans family for Bahasa legibility. |
+| **Use Tabler icons for non-brand UI glyphs** | `components.json` sets `iconLibrary: tabler`; `@tabler/icons-react` replaces Lucide and Figma-exported step/action icons. The custom Jaga mark (`src/assets/icon.svg`) remains the only brand SVG. |
+| **Enforce PRD-01 gate acknowledgements in the frontend** | Gate stores two unchecked acknowledgements in memory, blocks Continue and CXR until complete, and redirects direct capture-route navigation when incomplete. |
 | **Make the frontend contract-first and provider-agnostic** | Fixture/live adapters, runtime schemas, sanitized fixtures, and `contracts/openapi/jaga-v1.yaml` give backend owners an exact handoff for patient intake, five WebM coughs, independent digital CXR, results, readiness, and scoped guidance. Fireworks/Featherless credentials and model selection remain behind the Go gateway; no patient form values are sent to the assistant. |
 | **No live web scraping** | The project should depend on user input and stable, permitted data sources. |
 | **Design is part of safety** | Clear hierarchy, accessible states, and precise copy prevent a research risk output from being mistaken for a diagnosis. |

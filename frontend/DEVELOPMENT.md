@@ -221,7 +221,7 @@ Files: `hooks/use-cough-recorder.ts`, `features/coughs/cough-waveform.tsx`, `fea
 - **Bundles:** `locales/en.json` (source-of-truth shape) and `locales/id.json` (same keys). Versioned via `_meta.version`.
 - **Access:** `useT()` (`hooks/use-t.ts`) returns a `t("dot.path.key")` reader over the active language; falls back to the key if missing. Example: `t("result.band.higher")`.
 - **Active language** comes from `language.store` via `useLanguage()`; the `LanguageSwitcher` toggles it without losing step or values.
-- **Safety strings are intentionally English in `id.json`**, prefixed `PENDING UX-1`. Mandatory safety/referral copy (`prototype.banner`, `result.band.*`, `result.nextStep`) must be human-reviewed by `UX-1` and **never machine-translated**. Trivial UI words (`common.*`) are translated. A production build should fail on a missing/unreviewed mandatory key rather than render a raw key.
+- **Safety and referral strings are paired EN/ID copy** in `id.json` and must remain deterministic. They are never model-generated at runtime. A production build should fail on a missing mandatory key rather than render a raw key.
 
 **To add a string:** add the key to both `en.json` and `id.json`, then read it with `t("…")`. Keep the two files structurally identical.
 
@@ -232,7 +232,7 @@ Files: `hooks/use-cough-recorder.ts`, `features/coughs/cough-waveform.tsx`, `fea
 - **`styles/tokens.css`** declares the OKLCH palette as CSS custom properties, ported verbatim from design-guidelines §4. **Change colors here, not in components.**
 - **`tailwind.config.ts`** aliases those variables to Tailwind classes (`bg-brand`, `text-ink-muted`, `border-border-strong`, `bg-band-higher`, `max-w-flow`, radius `bar/control/frame`, etc.). Never hard-code hex in components — use the aliases.
 - **`app/globals.css`** imports Tailwind 4 through the compatibility `@config` bridge, imports shadcn utilities, maps semantic variables to Jaga's palette, and sets base type/focus, reduced-motion, and recorder styles.
-- Fonts: `app/layout.tsx` loads Figtree and EB Garamond with `next/font/google` as `--font-sans`/`--font-serif`, and self-hosts `public/fonts/IoskeleyMono-Regular.woff2` with `next/font/local` as `--font-mono`. Serif and heading tracking is `-0.03em`.
+- Fonts: `app/layout.tsx` loads Figtree with `next/font/google` as `--font-sans` for UI and headings, and self-hosts `public/fonts/IoskeleyMono-Regular.woff2` with `next/font/local` as `--font-mono` for numerics. Heading tracking is `-0.01em`.
 
 ---
 

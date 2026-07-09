@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Controller,
   useForm,
+  useWatch,
   type Control,
   type FieldError as RhfFieldError,
   type UseFormRegister,
@@ -11,6 +13,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { clinicalSchema, type ClinicalFormValues } from "./clinical-schema";
+import { isClinicalComplete } from "./clinical-form-utils";
 import { useSessionStore } from "@/store/session.store";
 import { patientService, PatientValidationError } from "@/services/patient.service";
 import { Button } from "@/components/ui/button";
@@ -27,8 +30,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Spinner } from "@/components/ui/spinner";
+import { useT } from "@/hooks/use-t";
+import { cn } from "@/lib/utils";
+
+const INPUT_CLASS =
+  "min-h-11 border-ink/50 bg-canvas font-mono tabular-nums focus-visible:border-brand";
 
 export function ClinicalForm() {
+  const t = useT();
   const router = useRouter();
   const setClinical = useSessionStore((s) => s.setClinical);
   const clinical = useSessionStore((s) => s.clinical);
@@ -70,66 +79,78 @@ export function ClinicalForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
-      <FieldGroup>
+      <FieldGroup className="gap-4">
         {mutation.isError && !(mutation.error instanceof PatientValidationError) && (
           <Alert variant="destructive">
-            <AlertTitle>Could not validate the form</AlertTitle>
-            <AlertDescription>Check your connection and try again.</AlertDescription>
+            <AlertTitle>{t("clinical.validateFailedTitle")}</AlertTitle>
+            <AlertDescription>{t("clinical.validateFailedBody")}</AlertDescription>
           </Alert>
         )}
-        <NumberField
-          name="age_years"
-          label="Age (years)"
-          hint="0 to 120"
-          register={register}
-          error={errors.age_years}
-          inputMode="numeric"
-        />
 
-        <SexField control={control} error={errors.sex_at_birth} />
+        <div className="grid grid-cols-1 gap-x-3 gap-y-4 min-[480px]:grid-cols-2">
+          <NumberField
+            name="age_years"
+            label={t("clinical.ageYears")}
+            required
+            register={register}
+            error={errors.age_years}
+            inputMode="numeric"
+          />
+          <SexField control={control} error={errors.sex_at_birth} />
+          <NumberField
+            name="height_cm"
+            label={t("clinical.heightCm")}
+            required
+            register={register}
+            error={errors.height_cm}
+            step="0.1"
+          />
+          <NumberField
+            name="weight_kg"
+            label={t("clinical.weightKg")}
+            required
+            register={register}
+            error={errors.weight_kg}
+            step="0.1"
+          />
+        </div>
 
-        <NumberField
-          name="height_cm"
-          label="Height (cm)"
-          hint="40 to 260"
-          register={register}
-          error={errors.height_cm}
-          step="0.1"
-        />
-        <NumberField
-          name="weight_kg"
-          label="Weight (kg)"
-          hint="1 to 350"
-          register={register}
-          error={errors.weight_kg}
-          step="0.1"
-        />
         <NumberField
           name="cough_duration_days"
-          label="Cough duration (days)"
-          hint="0 to 365"
+          label={t("clinical.coughDurationDays")}
+          required
           register={register}
           error={errors.cough_duration_days}
           inputMode="numeric"
         />
 
-        <YesNoField name="prior_tb" legend="Prior TB" control={control} error={errors.prior_tb} />
-        <YesNoField
-          name="hemoptysis"
-          legend="Coughing blood (hemoptysis)"
-          control={control}
-          error={errors.hemoptysis}
-        />
+        <div className="grid grid-cols-1 gap-x-3 gap-y-4 min-[480px]:grid-cols-2">
+          <YesNoField
+            name="prior_tb"
+            legend={t("clinical.priorTb")}
+            control={control}
+            error={errors.prior_tb}
+          />
+          <YesNoField
+            name="hemoptysis"
+            legend={t("clinical.coughingBlood")}
+            control={control}
+            error={errors.hemoptysis}
+          />
+        </div>
 
-        <FieldSet className="rounded-control border border-border-subtle p-4">
-          <FieldLegend variant="label" className="px-1 text-ink-muted">
-            Vitals (optional)
+        <FieldSet className="rounded-control border border-ink/50 px-3 pb-3 pt-0">
+          <FieldLegend
+            variant="label"
+            className="mb-2 bg-canvas px-1.5 text-base font-medium text-ink"
+          >
+            {t("clinical.vitalsOptional")}
           </FieldLegend>
-          <FieldGroup>
+          <div className="grid grid-cols-1 gap-x-3 gap-y-3 min-[480px]:grid-cols-2">
             <NumberField
               name="heart_rate_bpm"
-              label="Heart rate (bpm)"
-              hint="20 to 250 — optional"
+              label={t("clinical.heartRateBpm")}
+              hint={t("clinical.heartRateHint")}
               register={register}
               error={errors.heart_rate_bpm as RhfFieldError | undefined}
               optional
@@ -137,45 +158,42 @@ export function ClinicalForm() {
             />
             <NumberField
               name="temperature_c"
-              label="Temperature (°C)"
-              hint="30 to 45 — optional"
+              label={t("clinical.temperatureC")}
+              hint={t("clinical.temperatureHint")}
               register={register}
               error={errors.temperature_c as RhfFieldError | undefined}
               optional
               step="0.1"
             />
-          </FieldGroup>
+          </div>
         </FieldSet>
 
         <YesNoField
           name="smoked_last_7_days"
-          legend="Smoked in the last 7 days"
+          legend={t("clinical.smokedLast7Days")}
           control={control}
           error={errors.smoked_last_7_days}
         />
         <YesNoField
           name="fever_last_30_days"
-          legend="Fever in the last 30 days"
+          legend={t("clinical.feverLast30Days")}
           control={control}
           error={errors.fever_last_30_days}
         />
         <YesNoField
           name="night_sweats_last_30_days"
-          legend="Night sweats in the last 30 days"
+          legend={t("clinical.nightSweatsLast30Days")}
           control={control}
           error={errors.night_sweats_last_30_days}
         />
         <YesNoField
           name="weight_loss_last_30_days"
-          legend="Weight loss in the last 30 days"
+          legend={t("clinical.weightLossLast30Days")}
           control={control}
           error={errors.weight_loss_last_30_days}
         />
 
-        <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending && <Spinner />}
-          Continue
-        </Button>
+        <ClinicalFormActions control={control} isPending={mutation.isPending} />
       </FieldGroup>
     </form>
   );
@@ -191,6 +209,45 @@ type BooleanFieldName =
   | "night_sweats_last_30_days"
   | "weight_loss_last_30_days";
 
+function ClinicalFormActions({
+  control,
+  isPending,
+}: {
+  control: Control<ClinicalFormValues>;
+  isPending: boolean;
+}) {
+  const t = useT();
+  const values = useWatch({ control });
+  const formValid = isClinicalComplete(values);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {!formValid && !isPending && (
+        <p className="text-base text-ink-muted" role="status">
+          {t("clinical.incompleteHint")}
+        </p>
+      )}
+      <div className="flex gap-3">
+      <Button asChild variant="return" className="min-h-11 flex-1">
+        <Link href="/">{t("clinical.return")}</Link>
+      </Button>
+      <Button type="submit" className="min-h-11 flex-1" disabled={!formValid || isPending}>
+        {isPending && <Spinner />}
+        {t("common.continue")}
+      </Button>
+      </div>
+    </div>
+  );
+}
+
+function RequiredMark() {
+  return (
+    <span className="text-error" aria-hidden="true">
+      *
+    </span>
+  );
+}
+
 function NumberField({
   name,
   label,
@@ -198,6 +255,7 @@ function NumberField({
   register,
   error,
   optional = false,
+  required = false,
   inputMode = "decimal",
   step,
 }: {
@@ -207,30 +265,39 @@ function NumberField({
   register: UseFormRegister<ClinicalFormValues>;
   error?: RhfFieldError;
   optional?: boolean;
+  required?: boolean;
   inputMode?: "numeric" | "decimal";
   step?: string;
 }) {
   const id = String(name);
 
   return (
-    <Field data-invalid={!!error}>
-      <FieldLabel htmlFor={id} className="text-base font-semibold">
-        {label}
+    <Field data-invalid={!!error} className="gap-1.5">
+      <FieldLabel htmlFor={id} className="gap-0 text-base font-medium text-ink">
+        <span>
+          {label}
+          {required ? <RequiredMark /> : null}
+        </span>
       </FieldLabel>
       <Input
         id={id}
         type="number"
         inputMode={inputMode}
         step={step}
-        className="font-mono"
+        className={INPUT_CLASS}
         aria-invalid={!!error}
+        aria-required={required}
         aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
         {...register(name, {
           setValueAs: (value: string) =>
             value === "" ? (optional ? null : Number.NaN) : Number(value),
         })}
       />
-      {hint && !error && <FieldDescription id={`${id}-hint`}>{hint}</FieldDescription>}
+      {hint && !error && (
+        <FieldDescription id={`${id}-hint`} className="font-mono text-sm text-ink-muted">
+          {hint}
+        </FieldDescription>
+      )}
       {error && (
         <FieldError id={`${id}-error`}>
           {error.message || `Enter a valid value (${hint ?? "see range"}).`}
@@ -247,13 +314,18 @@ function SexField({
   control: Control<ClinicalFormValues>;
   error?: RhfFieldError;
 }) {
+  const t = useT();
+
   return (
     <Controller
       name="sex_at_birth"
       control={control}
       render={({ field }) => (
-        <FieldSet data-invalid={!!error}>
-          <FieldLegend>Sex at birth</FieldLegend>
+        <FieldSet data-invalid={!!error} className="gap-1.5">
+          <FieldLegend className="mb-0 text-base font-medium text-ink">
+            {t("clinical.gender")}
+            <RequiredMark />
+          </FieldLegend>
           <RadioGroup
             name={field.name}
             value={field.value ?? ""}
@@ -261,12 +333,23 @@ function SexField({
             onBlur={field.onBlur}
             ref={field.ref}
             aria-invalid={!!error}
-            className="flex gap-4"
+            aria-required="true"
+            className="flex flex-wrap gap-x-4 gap-y-1"
           >
-            <RadioOption id="sex_at_birth-male" value="male" label="Male" ariaInvalid={!!error} />
-            <RadioOption id="sex_at_birth-female" value="female" label="Female" ariaInvalid={!!error} />
+            <RadioOption
+              id="sex_at_birth-male"
+              value="male"
+              label={t("clinical.male")}
+              ariaInvalid={!!error}
+            />
+            <RadioOption
+              id="sex_at_birth-female"
+              value="female"
+              label={t("clinical.female")}
+              ariaInvalid={!!error}
+            />
           </RadioGroup>
-          {error && <FieldError>Select one.</FieldError>}
+          {error && <FieldError>{t("clinical.selectOne")}</FieldError>}
         </FieldSet>
       )}
     />
@@ -284,13 +367,18 @@ function YesNoField({
   control: Control<ClinicalFormValues>;
   error?: RhfFieldError;
 }) {
+  const t = useT();
+
   return (
     <Controller
       name={name}
       control={control}
       render={({ field }) => (
-        <FieldSet data-invalid={!!error}>
-          <FieldLegend>{legend}</FieldLegend>
+        <FieldSet data-invalid={!!error} className="gap-1.5">
+          <FieldLegend className="mb-0 text-base font-medium text-ink">
+            {legend}
+            <RequiredMark />
+          </FieldLegend>
           <RadioGroup
             name={field.name}
             value={typeof field.value === "boolean" ? String(field.value) : ""}
@@ -298,12 +386,23 @@ function YesNoField({
             onBlur={field.onBlur}
             ref={field.ref}
             aria-invalid={!!error}
-            className="flex gap-4"
+            aria-required="true"
+            className="flex flex-wrap gap-x-4 gap-y-1"
           >
-            <RadioOption id={`${name}-true`} value="true" label="Yes" ariaInvalid={!!error} />
-            <RadioOption id={`${name}-false`} value="false" label="No" ariaInvalid={!!error} />
+            <RadioOption
+              id={`${name}-true`}
+              value="true"
+              label={t("clinical.yes")}
+              ariaInvalid={!!error}
+            />
+            <RadioOption
+              id={`${name}-false`}
+              value="false"
+              label={t("clinical.no")}
+              ariaInvalid={!!error}
+            />
           </RadioGroup>
-          {error && <FieldError>Select one.</FieldError>}
+          {error && <FieldError>{t("clinical.selectOne")}</FieldError>}
         </FieldSet>
       )}
     />
@@ -322,7 +421,12 @@ function RadioOption({
   ariaInvalid: boolean;
 }) {
   return (
-    <FieldLabel htmlFor={id} className="min-h-11 gap-2 text-base">
+    <FieldLabel
+      htmlFor={id}
+      className={cn(
+        "min-h-11 cursor-pointer items-center gap-2 text-base font-normal text-ink",
+      )}
+    >
       <RadioGroupItem id={id} value={value} aria-invalid={ariaInvalid} />
       {label}
     </FieldLabel>

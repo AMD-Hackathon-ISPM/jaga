@@ -7,10 +7,38 @@
     "continue": "Continue",
     "back": "Back",
     "retry": "Retry",
-    "submit": "Submit"
+    "submit": "Submit",
+    "skipToMain": "Skip to main content",
+    "close": "Close"
   },
   "prototype": {
     "banner": "Jaga is a research prototype. It does not diagnose or rule out TB."
+  },
+  "footer": {
+    "disclaimer": "Jaga is an investigational research prototype. It does not diagnose or rule out tuberculosis. Every participant should receive confirmatory evaluation."
+  },
+  "steps": {
+    "navLabel": "Progress",
+    "gate": "Eligibility",
+    "clinical": "Clinical",
+    "coughs": "Coughs",
+    "review": "Review",
+    "result": "Results"
+  },
+  "language": {
+    "navLabel": "Language",
+    "switchEn": "Switch to English",
+    "switchId": "Switch to Bahasa Indonesia"
+  },
+  "gate": {
+    "title": "Before you begin...",
+    "lead": "For symptomatic adults aged 18 and over. This tool prioritizes follow-up urgency and does not decide whether a person receives testing.",
+    "acknowledgements": {
+      "adultWithCough": "I confirm this case is an adult aged 18 or over with cough symptoms.",
+      "confirmatoryEvaluation": "I understand confirmatory TB evaluation is required regardless of any estimate."
+    },
+    "incompleteHint": "Complete all acknowledgements to continue.",
+    "uploadCxr": "Upload a digital CXR for Prisma"
   },
   "result": {
     "unavailable": "Result unavailable",
@@ -20,6 +48,185 @@
       "higher": "Higher model-estimated risk"
     },
     "nextStep": "This person should receive confirmatory TB evaluation regardless of this estimate.",
-    "limitationsTitle": "Limitations and model details"
+    "nextStepTitle": "Next step",
+    "limitationsTitle": "Limitations and model details",
+    "limitations": {
+      "contract": "Contract",
+      "cohort": "Cohort"
+    },
+    "empty": {
+      "title": "No Gema result in this session",
+      "description": "Submit the clinical inputs and five coughs first.",
+      "returnToReview": "Return to review"
+    },
+    "riskBandAria": "Model-estimated risk band: {band}"
+  },
+  "review": {
+    "title": "Review and submit",
+    "clinicalTitle": "Clinical inputs",
+    "coughsTitle": "Cough attempts",
+    "return": "Return",
+    "submit": "Submit for Gema Analysis",
+    "notMeasured": "Not measured",
+    "coughLabel": "Cough {n}",
+    "coughMeta": "{size} KiB • {format}",
+    "coughMissing": "Missing",
+    "clinicalIncompleteTitle": "Clinical inputs incomplete",
+    "clinicalIncompleteBody": "Return to the form before submitting.",
+    "boolean": {
+      "true": "True",
+      "false": "False"
+    },
+    "sex": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "fields": {
+      "age_years": "Age (years)",
+      "sex_at_birth": "Sex at birth",
+      "height_cm": "Height (cm)",
+      "weight_kg": "Weight (kg)",
+      "cough_duration_days": "Cough duration (days)",
+      "prior_tb": "Prior TB",
+      "hemoptysis": "Cough blood (hemoptysis)",
+      "heart_rate_bpm": "Heart rate (bpm)",
+      "temperature_c": "Temperature (°C)",
+      "smoked_last_7_days": "Smoked (last 7 days)",
+      "fever_last_30_days": "Fever (30 days)",
+      "night_sweats_last_30_days": "Night sweat (last 30 days)",
+      "weight_loss_last_30_days": "Weight Loss (30 days)"
+    },
+    "values": {
+      "ageYears": "{n} years old",
+      "heightCm": "{n} cm",
+      "weightKg": "{n} kg",
+      "coughDurationDays": "{n} days",
+      "heartRateBpm": "{n} bpm",
+      "temperatureC": "{n} °C"
+    },
+    "error": {
+      "modelUnavailableTitle": "Gema analysis is not available yet",
+      "modelUnavailableBody": "The cough triage model is still being prepared, so no result can be produced yet. Your recordings are kept. Continue with the standard clinical pathway.",
+      "submitFailedTitle": "Submission failed",
+      "submitFailedBody": "The recordings are still available. Try again."
+    }
+  },
+  "clinical": {
+    "title": "Clinical information",
+    "lead": "Only fields supported by the approved model contract are collected.",
+    "ageYears": "Age (years)",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "heightCm": "Height (cm)",
+    "weightKg": "Weight (kg)",
+    "coughDurationDays": "Cough Duration (days)",
+    "priorTb": "Prior TB",
+    "coughingBlood": "Coughing blood",
+    "vitalsOptional": "Vitals (optional)",
+    "heartRateBpm": "Heart rate (bpm)",
+    "temperatureC": "Temperature (°C)",
+    "heartRateHint": "20 to 250",
+    "temperatureHint": "30 to 45",
+    "smokedLast7Days": "Smoked in the last 7 days",
+    "feverLast30Days": "Fever in the last 30 days",
+    "nightSweatsLast30Days": "Night sweats in the last 30 days",
+    "weightLossLast30Days": "Weight loss in the last 30 days",
+    "yes": "Yes",
+    "no": "No",
+    "return": "Return",
+    "selectOne": "Select one.",
+    "validateFailedTitle": "Could not validate the form",
+    "validateFailedBody": "Check your connection and try again.",
+    "incompleteHint": "Complete all required fields to continue."
+  },
+  "coughs": {
+    "title": "Record five coughs",
+    "bullets": {
+      "attempt": "*One attempt* at a time.",
+      "replay": "Each can be *replayed* or *replaced*.",
+      "capture": "Phone capture is *not the same* as a clinic recording."
+    },
+    "attemptPill": "Attempt {n} of {total}",
+    "status": {
+      "idle": "Tap to record a cough",
+      "requesting": "Allow microphone access…",
+      "recording": "Recording… tap to stop",
+      "denied": "Microphone blocked. Enable it in your browser settings, then try again.",
+      "error": "Could not start recording. Try again."
+    },
+    "record": {
+      "start": "Start recording",
+      "stop": "Stop recording"
+    },
+    "row": {
+      "label": "Cough {n}",
+      "waiting": "waiting to be recorded",
+      "empty": "empty",
+      "play": "Play cough {n}",
+      "replace": "Re-record cough {n}"
+    },
+    "waveform": {
+      "live": "Live cough input level",
+      "idle": "Cough waveform, idle"
+    },
+    "return": "Return",
+    "continue": "Continue",
+    "incompleteHint": "Record all five coughs to continue."
+  },
+  "chat": {
+    "title": "Guidance assistant",
+    "disclaimer": "Workflow help only. Not diagnosis or result interpretation",
+    "empty": "Ask about the current screen, form fields, recording steps, or what happens next.",
+    "thinking": "Thinking…",
+    "placeholder": "Type a message",
+    "inputLabel": "Message the guidance assistant",
+    "send": "Send message",
+    "back": "Go back",
+    "error": {
+      "unavailable": "Guidance is temporarily unavailable. Continue with the standard workflow."
+    },
+    "launcher": {
+      "help": "Help",
+      "title": "Jaga guidance",
+      "privacy": "Workflow help only. Do not enter names or personal medical details."
+    }
+  },
+  "cxr": {
+    "title": "Upload a chest X-ray",
+    "lead": "Prisma accepts one digital chest X-ray export. It produces a separate research estimate and is not combined with the cough result.",
+    "imageLabel": "Digital CXR image",
+    "imageHint": "PNG or JPEG, up to 10 MiB.",
+    "confirmLabel": "I confirm this is a digital CXR export, not a photo of a screen or film.",
+    "submit": "Submit for Prisma analysis",
+    "errors": {
+      "unsupportedMedia": "Choose a PNG or JPEG image.",
+      "payloadTooLarge": "The image must be no larger than {maxMiB} MiB.",
+      "invalidSource": "The image could not be decoded. Choose a valid digital CXR export.",
+      "missingSelection": "Select and confirm a digital CXR export."
+    },
+    "error": {
+      "modelUnavailableTitle": "Prisma analysis is not available yet",
+      "modelUnavailableBody": "The chest X-ray model is still being prepared, so no result can be produced yet. Your image is kept — continue with the standard clinical pathway.",
+      "submitFailedTitle": "Prisma submission failed",
+      "submitFailedBody": "The selected image remains available. Try again."
+    },
+    "empty": {
+      "title": "No Prisma result in this session",
+      "description": "Upload a digital CXR image first.",
+      "uploadCta": "Upload CXR"
+    },
+    "result": {
+      "bandTitle": "{band} Prisma band",
+      "unavailable": "Prisma estimate unavailable",
+      "limitationsTitle": "Limitations and model details",
+      "figureAlt": "Uploaded chest X-ray",
+      "figureCaption": "Uploaded chest X-ray. Shown for reference; not a clinical explanation."
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "This page does not exist in the capture flow.",
+    "backToStart": "Back to start"
   }
 }

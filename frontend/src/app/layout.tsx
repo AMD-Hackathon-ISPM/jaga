@@ -1,19 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { EB_Garamond, Figtree } from "next/font/google";
+import { Figtree } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AppProviders } from "@/providers/app-providers";
 import { cn } from "@/lib/utils";
 
+// Figtree is the single UI typeface for body and headings. Ioskeley carries numerics.
 const figtree = Figtree({
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
   variable: "--font-sans",
-  display: "swap",
-});
-
-const ebGaramond = EB_Garamond({
-  subsets: ["latin"],
-  variable: "--font-serif",
   display: "swap",
 });
 
@@ -46,7 +43,7 @@ export const viewport: Viewport = {
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn(figtree.variable, ebGaramond.variable, ioskeley.variable)}>
+    <html lang="en" className={cn(figtree.variable, ioskeley.variable)}>
       <body>
         <AppProviders>{children}</AppProviders>
       </body>

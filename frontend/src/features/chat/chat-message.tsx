@@ -1,37 +1,31 @@
 "use client";
 
-import { Bubble, BubbleContent } from "@/components/ui/bubble";
-import { Message, MessageContent } from "@/components/ui/message";
-import { MessageScrollerItem } from "@/components/ui/message-scroller";
 import { ChatMarkdown } from "./chat-markdown";
 import type { ChatMessage } from "./mock-conversation";
 
-export function ChatMessageItem({
-  message,
-  scrollAnchor = false,
-}: {
-  message: ChatMessage;
-  scrollAnchor?: boolean;
-}) {
+/**
+ * A single chat turn. User turns render as a right-aligned teal-tint bubble
+ * (Figma radius 15px with a 5px square top-right corner); assistant turns render
+ * as plain left-aligned Markdown so the typewriter reveal reads as flowing text.
+ */
+export function ChatMessageItem({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
 
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        <div className="max-w-[80%] rounded-[15px] rounded-tr-[5px] bg-tint-brand-10 px-4 py-2.5 text-base leading-relaxed text-ink">
+          {message.content}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <MessageScrollerItem scrollAnchor={scrollAnchor}>
-      <Message align={isUser ? "end" : "start"}>
-        <MessageContent>
-          {isUser ? (
-            <Bubble variant="secondary" align="end">
-              <BubbleContent className="rounded-2xl rounded-tr-sm">{message.content}</BubbleContent>
-            </Bubble>
-          ) : (
-            <Bubble variant="ghost">
-              <BubbleContent>
-                <ChatMarkdown text={message.content} />
-              </BubbleContent>
-            </Bubble>
-          )}
-        </MessageContent>
-      </Message>
-    </MessageScrollerItem>
+    <div className="flex justify-start">
+      <div className="max-w-full text-base leading-relaxed text-ink">
+        <ChatMarkdown text={message.content} />
+      </div>
+    </div>
   );
 }

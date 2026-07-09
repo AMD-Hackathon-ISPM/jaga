@@ -9,18 +9,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { useT } from "@/hooks/use-t";
 import { CXR_ACCEPT, CXR_MAX_BYTES, validateCxrFile } from "@/lib/integration";
 import { cxrService } from "@/services/cxr.service";
 import { isModelUnavailable } from "@/services/api-error";
 import { usePrismaStore } from "@/store/prisma.store";
 
-const FILE_ERRORS = {
-  UNSUPPORTED_MEDIA_TYPE: "Choose a PNG or JPEG image.",
-  PAYLOAD_TOO_LARGE: `The image must be no larger than ${CXR_MAX_BYTES / 1024 / 1024} MiB.`,
-  INVALID_CXR_SOURCE: "The image could not be decoded. Choose a valid digital CXR export.",
-};
+type FileErrorCode = "UNSUPPORTED_MEDIA_TYPE" | "PAYLOAD_TOO_LARGE" | "INVALID_CXR_SOURCE";
 
 export function CxrScreen() {
+  const t = useT();
   const router = useRouter();
   const image = usePrismaStore((state) => state.image);
   const setImage = usePrismaStore((state) => state.setImage);
@@ -29,9 +27,18 @@ export function CxrScreen() {
   const [confirmed, setConfirmed] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
 
+  const fileErrors: Record<FileErrorCode, string> = {
+    UNSUPPORTED_MEDIA_TYPE: t("cxr.errors.unsupportedMedia"),
+    PAYLOAD_TOO_LARGE: t("cxr.errors.payloadTooLarge").replace(
+      "{maxMiB}",
+      String(CXR_MAX_BYTES / 1024 / 1024),
+    ),
+    INVALID_CXR_SOURCE: t("cxr.errors.invalidSource"),
+  };
+
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!image || !confirmed) throw new Error("Select and confirm a digital CXR export.");
+      if (!image || !confirmed) throw new Error(t("cxr.errors.missingSelection"));
       setSubmitState("uploading");
       return cxrService.submitCxr(image, {
         onUploadProgress: (progress) => setSubmitState(progress < 1 ? "uploading" : "processing"),
@@ -53,7 +60,7 @@ export function CxrScreen() {
     if (!file) return;
     const validation = await validateCxrFile(file);
     if (!validation.ok) {
-      setFileError(FILE_ERRORS[validation.code]);
+      setFileError(fileErrors[validation.code]);
       return;
     }
     setImage(file);
@@ -61,14 +68,11 @@ export function CxrScreen() {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="font-serif text-2xl font-semibold">Upload a chest X-ray</h1>
-      <p className="text-ink-muted">
-        Prisma accepts one digital chest X-ray export. It produces a separate research estimate and
-        is not combined with the cough result.
-      </p>
+      <h1 className="font-heading text-2xl font-semibold">{t("cxr.title")}</h1>
+      <p className="text-ink-muted">{t("cxr.lead")}</p>
 
       <Field data-invalid={!!fileError}>
-        <FieldLabel htmlFor="cxr-image">Digital CXR image</FieldLabel>
+        <FieldLabel htmlFor="cxr-image">{t("cxr.imageLabel")}</FieldLabel>
         <Input
           id="cxr-image"
           type="file"
@@ -80,7 +84,7 @@ export function CxrScreen() {
         {fileError ? (
           <FieldError id="cxr-image-error">{fileError}</FieldError>
         ) : (
-          <FieldDescription id="cxr-image-description">PNG or JPEG, up to 10 MiB.</FieldDescription>
+          <FieldDescription id="cxr-image-description">{t("cxr.imageHint")}</FieldDescription>
         )}
       </Field>
 
@@ -93,19 +97,19 @@ export function CxrScreen() {
           onCheckedChange={(checked) => setConfirmed(checked === true)}
         />
         <FieldLabel htmlFor="cxr-source" className="min-h-11">
-          I confirm this is a digital CXR export, not a photo of a screen or film.
+          {t("cxr.confirmLabel")}
         </FieldLabel>
       </Field>
 
       {mutation.isError && (
         <Alert variant={modelUnavailable ? "warning" : "destructive"}>
           <AlertTitle>
-            {modelUnavailable ? "Prisma analysis is not available yet" : "Prisma submission failed"}
+            {modelUnavailable ? t("cxr.error.modelUnavailableTitle") : t("cxr.error.submitFailedTitle")}
           </AlertTitle>
           <AlertDescription>
             {modelUnavailable
-              ? "The chest X-ray model is still being prepared, so no result can be produced yet. Your image is kept — continue with the standard clinical pathway."
-              : "The selected image remains available. Try again."}
+              ? t("cxr.error.modelUnavailableBody")
+              : t("cxr.error.submitFailedBody")}
           </AlertDescription>
         </Alert>
       )}
@@ -115,7 +119,7 @@ export function CxrScreen() {
         onClick={() => mutation.mutate()}
       >
         {mutation.isPending && <Spinner />}
-        Submit for Prisma analysis
+        {t("cxr.submit")}
       </Button>
     </div>
   );

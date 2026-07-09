@@ -3,6 +3,7 @@
 **Document type:** Historical change ledger
 **Audience:** All contributors
 **Status:** Active
+**Updated:** 2026-07-10
 **Canonical for:** Chronology of significant documentation and product decisions
 **Companion documents:** [`context-dump.md`](context-dump.md), [`../AGENT.md`](../AGENT.md)
 
@@ -11,6 +12,10 @@
 Entries are newest first. Older entries preserve what was decided at that time and may be superseded by later entries. Current decisions belong in [`context-dump.md`](context-dump.md) Section 16; rejected decisions belong in Section 17.
 
 ---
+
+- 2026-07-10 — **Staged review fixes: PRD-01 gate, Tabler icons, Figtree contract.** Enforced in-memory eligibility acknowledgements with route guards, including Prisma results; migrated non-brand UI icons from Figma/Lucide to Tabler via shadcn; restored Figtree for UI and headings with a globally enforced 6px control radius; completed deterministic EN/ID safety strings; removed generated Playwright artifacts and accidental root npm manifest/lockfile. (Billy, via Cursor)
+
+- 2026-07-09 — **Frontend audit polish (P1–P3).** Synced `document.lang` with locale store; fixed disabled-button contrast (`surface-sunken` + `ink-muted`, §4.6 row added); completed EN/ID for CXR, stepper, launcher, footer, result empty state; CXR result banner + next-step no longer motion-gated; `aria-required` on clinical fields; responsive 1→2-col grids; card shadow-none default + semantic `CardTitle`; flattened review sections; chat disclaimer 16px + warning-cream; `--brand-active` token; removed dead `.record-orb` CSS; skip-to-main links; `next/image` for static SVGs; chat `max-w-flow`; typewriter 50ms interval; clinical submit uses isolated `useWatch`. (Billy, via Cursor)
 
 - 2026-07-09 — **Rebranded the frontend to white + teal and wired the logo mark.** Tokens moved from cream + deep-green (`#FFFFEB` / `#024F46` / `#1A1A1A`) to white + teal (`#FFFFFF` canvas/surface, `#007A87` brand/success/focus-hue, `#2D3748` ink, cool-gray neutrals); record-orb gradients, viewport themeColor, manifest colors, and the waveform fallback re-derived; `--border-strong` kept at L 0.62 to preserve the ≥3:1 essential-outline floor. `src/assets/icon.svg` now serves as the favicon (`src/app/icon.svg`), the PWA manifest icon, and the header mark beside the wordmark. Also: removed dead UI primitives (bespoke dialog/modal/empty-state, attachment, table, navbar, sidebar), dropped the redundant `@radix-ui/react-dialog` dep, moved the `shadcn` CLI to devDependencies, rebuilt the chat composer on shadcn `InputGroup`/`Textarea`, and added reduced-motion-guarded motion (route transitions, staggered result reveal, risk-band fill, step-indicator/attempt-list transitions, image skeletons). Status hues and the risk-band ramp are unchanged. Updated `design-guidelines.md` §1/§4.3 and `context-dump.md` §16; §4.6 contrast table re-verification remains open. (Billy)
 

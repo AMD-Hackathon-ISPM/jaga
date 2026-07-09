@@ -1,7 +1,11 @@
 import { create } from "zustand";
+import {
+  EMPTY_GATE_ACKNOWLEDGEMENTS,
+  type GateAcknowledgementKey,
+  type GateAcknowledgements,
+} from "@/features/gate/gate-utils";
 import type {
   FlowStep,
-  Language,
   PatientIntakeRequest,
   SubmitState,
   TriageResult,
@@ -26,7 +30,7 @@ interface CoughAttempt {
 
 interface SessionState {
   step: FlowStep;
-  language: Language;
+  gateAcknowledgements: GateAcknowledgements;
   clinical: Partial<PatientIntakeRequest>;
   coughs: CoughAttempt[];
   coughFiles: Array<File | null>;
@@ -36,7 +40,7 @@ interface SessionState {
 
   // actions
   setStep: (step: FlowStep) => void;
-  setLanguage: (language: Language) => void;
+  setGateAcknowledgement: (key: GateAcknowledgementKey, value: boolean) => void;
   setClinical: (values: Partial<PatientIntakeRequest>) => void;
   setCough: (index: number, file: File) => void;
   setSubmitState: (state: SubmitState) => void;
@@ -51,7 +55,7 @@ const emptyCoughs: CoughAttempt[] = Array.from({ length: 5 }, (_, i) => ({
 
 const initialState = {
   step: "gate" as FlowStep,
-  language: "en" as Language,
+  gateAcknowledgements: { ...EMPTY_GATE_ACKNOWLEDGEMENTS },
   clinical: {} as Partial<PatientIntakeRequest>,
   coughs: emptyCoughs,
   coughFiles: Array.from({ length: 5 }, () => null) as Array<File | null>,
@@ -63,7 +67,10 @@ const initialState = {
 export const useSessionStore = create<SessionState>((set) => ({
   ...initialState,
   setStep: (step) => set({ step }),
-  setLanguage: (language) => set({ language }),
+  setGateAcknowledgement: (key, value) =>
+    set((state) => ({
+      gateAcknowledgements: { ...state.gateAcknowledgements, [key]: value },
+    })),
   setClinical: (values) => set((s) => ({ clinical: { ...s.clinical, ...values } })),
   setCough: (index, file) =>
     set((state) => ({
@@ -79,6 +86,7 @@ export const useSessionStore = create<SessionState>((set) => ({
   reset: () =>
     set({
       ...initialState,
+      gateAcknowledgements: { ...EMPTY_GATE_ACKNOWLEDGEMENTS },
       coughs: emptyCoughs.map((c) => ({ ...c })),
       coughFiles: Array.from({ length: 5 }, () => null),
     }),

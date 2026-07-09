@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
  */
 export default function Template({ children }: { children: ReactNode }) {
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out motion-reduce:animate-none">
+    <div className="pointer-events-auto animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out motion-reduce:animate-none">
       {children}
     </div>
   );

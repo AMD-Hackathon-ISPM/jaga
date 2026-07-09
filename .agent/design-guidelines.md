@@ -3,7 +3,7 @@
 **Document type:** Design guidelines
 **Audience:** Frontend, design, product, QA, and reviewers
 **Status:** Active · signed visual direction (Billy, 2026-06-28; palette rebranded to white + teal by Billy, 2026-07-09). Implementable.
-**Updated:** 2026-07-09
+**Updated:** 2026-07-10
 **Canonical for:** Frontend information architecture, visual system, interaction states, microcopy, localization, accessibility, responsive behavior, and motion
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`product-brief.md`](product-brief.md), [`implementation-plan.md`](implementation-plan.md)
 
@@ -13,11 +13,11 @@ Sections labelled **Locked** are product and safety constraints and may not be r
 
 ## 1. Design direction
 
-Jaga should feel **warm, calm, considered, and trustworthy** — closer to a well-made reading or note-taking tool ([mymind](https://mymind.com), [Wisprflow](https://wisprflow.ai)) than to a clinical dashboard or a "medical AI" product. Clean white surfaces with a teal brand accent, a serif voice for headings and the result, generous space, and quiet, purposeful motion. The community health worker should feel guided and unhurried, and the participant should never feel alarmed or falsely reassured.
+Jaga should feel **warm, calm, considered, and trustworthy** — closer to a well-made reading or note-taking tool ([mymind](https://mymind.com), [Wisprflow](https://wisprflow.ai)) than to a clinical dashboard or a "medical AI" product. Clean white surfaces with a teal brand accent, Figtree for UI and headings, generous space, and quiet, purposeful motion. The community health worker should feel guided and unhurried, and the participant should never feel alarmed or falsely reassured.
 
-**Guiding principle — constraints are a budget, not a ceiling.** Low-end Android, intermittent network, and the accessibility floors (§9) define a *performance budget* and a *legibility floor*. They do **not** cap ambition or require a plain UI. The interface is fully expressive — white + teal, the serif voice, Ioskeley numerics, the live cough waveform, a real result reveal — *within* that budget (§5 performance budget). Reduced-motion and the 320 px layout are **graceful degradations of an already-beautiful default**, never a downgrade path.
+**Guiding principle — constraints are a budget, not a ceiling.** Low-end Android, intermittent network, and the accessibility floors (§9) define a *performance budget* and a *legibility floor*. They do **not** cap ambition or require a plain UI. The interface is fully expressive — white + teal, Figtree + Ioskeley numerics, the live cough waveform, a real result reveal — *within* that budget (§5 performance budget). Reduced-motion and the 320 px layout are **graceful degradations of an already-beautiful default**, never a downgrade path.
 
-**Avoid:** medical-theatre effects; glass/blur as decoration; alarmist or "scanning" risk visuals; decorative motion that conveys no state; the generic industrial-dashboard look; gradient text; over-rounded cards. The white + teal palette (rebrand 2026-07-09, replacing the original cream + deep-green) is a deliberate, committed choice carried by the serif + Ioskeley pairing.
+**Avoid:** medical-theatre effects; glass/blur as decoration; alarmist or "scanning" risk visuals; decorative motion that conveys no state; the generic industrial-dashboard look; gradient text; over-rounded cards. The white + teal palette (rebrand 2026-07-09, replacing the original cream + deep-green) is a deliberate, committed choice carried by Figtree + Ioskeley.
 
 ## 2. Locked voice and safety language
 
@@ -181,6 +181,7 @@ Computed from the values above (reproducible via [`../design/contrast.mjs`](../d
 | `ink-muted` / `canvas` (incl. placeholder) | 6.18 | body/placeholder ✓ |
 | `brand` / `canvas` (link/button text) | 9.39 | body ✓ |
 | `white` / `brand` (button) | 9.50 | body ✓ |
+| `ink-muted` / `surface-sunken` (disabled button) | 5.74 | body ✓ |
 | `white` / `error-strong` | 6.54 | body ✓ |
 | `warning` / `warning-surface` | 6.55 | body ✓ |
 | `error` / `error-surface` | 6.11 | body ✓ |
@@ -203,21 +204,20 @@ Computed from the values above (reproducible via [`../design/contrast.mjs`](../d
 - Critical information remains readable at 320 CSS-pixel viewport width and 200% zoom.
 - Supported browser floor is Chrome and Android WebView 111 or newer.
 
-### 5.2 Font families (3 roles, contrast-axis pairing)
+### 5.2 Font families (2 roles + numerics)
 
 | Role | Family | Used for |
 |---|---|---|
-| **Display serif** | **EB Garamond** (OFL); fallback `ui-serif, Georgia, serif` | Screen titles, the band-name headline on the result. The warm "voice", used sparingly. |
-| **Body / UI sans** | **Figtree** (OFL); fallback `ui-sans-serif, system-ui, sans-serif` | Forms, labels, buttons, instructions, errors, prose. The workhorse. |
+| **UI / headings sans** | **Figtree** (OFL); fallback `ui-sans-serif, system-ui, sans-serif` | Screen titles, section headings, forms, labels, buttons, instructions, errors, prose. |
 | **Numerics mono** | **Ioskeley Mono** ([ahatem/IoskeleyMono](https://github.com/ahatem/IoskeleyMono), OFL 1.1), ligatures-off "NL" build; fallback `ui-monospace, "SF Mono", monospace` | Every number, unit, vital, percentage, the calibrated estimate, spectrogram axes, model/contract version, request id. Monospace = inherently tabular. |
 
-Three families on a clean contrast axis (serif + humanist sans + geometric mono); none is a near-duplicate of another. Serif is a **voice**, not the system body — this keeps long Bahasa strings legible at 16 px on low-end Android.
+Figtree carries both body and headings so long Bahasa strings stay legible at 16 px on low-end Android. The custom Jaga mark (`src/assets/icon.svg`) is the only brand SVG; all other UI icons use Tabler via shadcn (`@tabler/icons-react`, `components.json` `iconLibrary: tabler`).
 
 ### 5.3 Loading strategy (performance budget)
 
-- Figtree and EB Garamond are delivered through `next/font/google` as build-time assets and exposed as `--font-sans` and `--font-serif`. This supersedes the earlier full-self-host requirement for those two families.
+- Figtree is delivered through `next/font/google` as a build-time asset and exposed as `--font-sans`.
 - Self-host only the Ioskeley Regular woff2 used for numerics through `next/font/local` as `--font-mono`; do not ship its full 10-weight × 3-width family.
-- All three use `font-display: swap`; `next/font` handles preload and asset delivery.
+- Both use `font-display: swap`; `next/font` handles preload and asset delivery.
 - Always declare the system fallbacks above so first paint is legible before webfonts load.
 
 ### 5.4 Type scale (fixed rem, product register)
@@ -226,9 +226,9 @@ App screens use a **fixed rem** scale (not fluid) — consistent DPI, no shrink-
 
 | Step | Size / line-height | Weight · family |
 |---|---|---|
-| Display (result band name) | `clamp(1.5rem, 1.3rem + 1vw, 2rem)` / 1.1 | 600 · serif, letter-spacing -0.03em |
-| H1 (screen title) | `1.5rem` / 1.2 | 600 · serif |
-| H2 (section) | `1.25rem` / 1.3 | 600 · serif |
+| Display (result band name) | `clamp(1.5rem, 1.3rem + 1vw, 2rem)` / 1.1 | 600 · sans, letter-spacing -0.01em |
+| H1 (screen title) | `1.5rem` / 1.2 | 600 · sans |
+| H2 (section) | `1.25rem` / 1.3 | 600 · sans |
 | H3 / lead | `1.125rem` / 1.4 | 600 · sans |
 | Body | `1rem` (16 px floor) / 1.55 | 400 · sans |
 | Body-strong / label | `1rem` / 1.5 | 600 · sans |
@@ -241,7 +241,7 @@ Cap prose at 65–75 ch. `text-wrap: balance` on h1–h3; `text-wrap: pretty` on
 ### 5.5 Spacing, radius, layout
 
 - **Spacing scale (4 px base):** 4, 8, 12, 16, 20, 24, 32, 40, 48, 64. Vary it for rhythm; don't space everything equally.
-- **Radius (one scale, no exceptions):** 8 px for controls, inputs, cards, panels, banners; 4 px for thin bars (the risk-track segments); 16 px for a device/phone frame only; pill (`9999px`) only for the language toggle and tags. No other radii. Match-and-refuse over-rounding.
+- **Radius (one scale, no exceptions):** 6 px for controls, inputs, cards, panels, banners; 4 px for thin bars (the risk-track segments); 16 px for a device/phone frame only; pill (`9999px`) only for the language toggle and tags. No other radii. Match-and-refuse over-rounding.
 - **Content widths:** single-column form/flow max `32rem` (512 px), centered, comfortable side padding (16 px mobile / 24 px+ desktop). Prose 65–75 ch.
 - **Breakpoints:** 320 px floor (everything works), `sm` 480, `md` 768, `lg` 1024. Mobile-first; responsive behavior is structural, not fluid type.
 - **Safe area:** respect `env(safe-area-inset-*)` for the sticky progress/footer on phones.
@@ -257,7 +257,7 @@ Cap prose at 65–75 ch. `text-wrap: balance` on h1–h3; `text-wrap: pretty` on
 
 Required component families and their specs. Reuse the patterns already proven in [`../components/ClinicalCaptureForm.jsx`](../components/ClinicalCaptureForm.jsx) — 44 px targets, visible focus ring, radiogroup booleans, focusable error summary, bilingual `T` table, in-memory state — **re-skinned to the §4/§5 tokens**. Every interactive component defines all of: default, hover, focus, active, disabled, loading, error.
 
-The routed flow uses official shadcn APIs from preset `b85jYWWKi8`: Button for actions and the recorder; Card/CardContent for surfaces; Field/FieldSet/Input/RadioGroup/Checkbox for clinical and CXR inputs; ToggleGroup for language; Alert/Empty/Badge/Skeleton/Spinner for feedback; Item for cough attempts; Accordion for limitations; and Sheet for shared guidance. Shadcn semantic variables map to §4 tokens, and the application remains light-only without a theme provider.
+The routed flow uses official shadcn APIs from preset `b85jYWWKi8`: Button for actions and the recorder; Card/CardContent for surfaces; Field/FieldSet/Input/RadioGroup/Checkbox for clinical and CXR inputs; ToggleGroup for language; Alert/Empty/Badge/Skeleton/Spinner for feedback; Item for cough attempts; Accordion for limitations; and Sheet for shared guidance. Shadcn semantic variables map to §4 tokens, Tabler icons (`@tabler/icons-react`) supply non-brand glyphs, and the application remains light-only without a theme provider.
 
 | Family | Anatomy / variants | Key states & rules |
 |---|---|---|
@@ -315,7 +315,7 @@ The result reveal may be the signature motion moment, but motion cannot delay or
 
 ### 8.2 Result layout + motion (signed)
 
-- **Layout (single column, 512 px):** prototype banner (always first, `--warning-surface`, calm) → the **band name as the serif headline** ("Higher model-estimated risk") with the calibrated estimate as a **small inline Ioskeley line beneath** (value + calibration status + model version; **never hero-scale**, so the number cannot out-rank the next step) → the named 3-segment risk track (§4.4) → the **mandatory next-step panel as the visually dominant block** (full-width, heaviest weight, serif sub-heading, ink body, equal prominence for every band) → the open-by-default limitations/metadata disclosure → the optional spectrogram/inspection figure last. The eye must land on the next-step panel, not the estimate.
+- **Layout (single column, 512 px):** prototype banner (always first, `--warning-surface`, calm) → the **band name as the Figtree headline** ("Higher model-estimated risk") with the calibrated estimate as a **small inline Ioskeley line beneath** (value + calibration status + model version; **never hero-scale**, so the number cannot out-rank the next step) → the named 3-segment risk track (§4.4) → the **mandatory next-step panel as the visually dominant block** (full-width, heaviest weight, Figtree sub-heading, ink body, equal prominence for every band) → the open-by-default limitations/metadata disclosure → the optional spectrogram/inspection figure last. The eye must land on the next-step panel, not the estimate.
 - **Motion:** **one** reveal — the headline + estimate fade/translate up (`ease-out-quart`, ~360 ms). The **banner and next-step panel render immediately and unconditionally** (not gated behind the animation), so the safety content is never hidden if the transition is skipped, paused on a background tab, or rendered headless. Everything else uses 150–250 ms state transitions. Lower band uses the **same** calm reveal — no green, no checkmark, no celebratory motion.
 - **Reduced motion:** crossfade or instant; no translate.
 - **Screenshot-safe static state:** the fully-revealed layout is the default DOM; with motion disabled the result is complete and legible in a single still frame (for the demo recording).

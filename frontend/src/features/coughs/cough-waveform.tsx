@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type MutableRefObject } from "react";
+import { useT } from "@/hooks/use-t";
 
 /**
  * CoughWaveform — full-bleed, voice-memo-style live waveform on a <canvas>.
@@ -17,9 +18,11 @@ export function CoughWaveform({
   analyserRef: MutableRefObject<AnalyserNode | null>;
   active: boolean;
 }) {
+  const t = useT();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const historyRef = useRef<number[]>([]);
   const rafRef = useRef<number>(0);
+  const timeDomainBufferRef = useRef<Uint8Array | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -45,8 +48,11 @@ export function CoughWaveform({
     const sampleAmplitude = (): number => {
       const analyser = active ? analyserRef.current : null;
       if (!analyser) return 0;
-      const buf = new Uint8Array(analyser.fftSize);
-      analyser.getByteTimeDomainData(buf);
+      if (!timeDomainBufferRef.current || timeDomainBufferRef.current.length !== analyser.fftSize) {
+        timeDomainBufferRef.current = new Uint8Array(analyser.fftSize);
+      }
+      const buf = timeDomainBufferRef.current;
+      analyser.getByteTimeDomainData(buf as Uint8Array<ArrayBuffer>);
       let sum = 0;
       for (let i = 0; i < buf.length; i++) {
         const v = (buf[i] - 128) / 128;
@@ -99,7 +105,7 @@ export function CoughWaveform({
       ref={canvasRef}
       className="h-28 w-full"
       role="img"
-      aria-label={active ? "Live cough input level" : "Cough waveform, idle"}
+      aria-label={active ? t("coughs.waveform.live") : t("coughs.waveform.idle")}
     />
   );
 }

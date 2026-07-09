@@ -64,7 +64,7 @@ describe("useAssistantChat", () => {
     expect(result.current.status).toBe("streaming");
     expect(result.current.messages.at(-1)?.content).toBe("");
 
-    act(() => vi.advanceTimersByTime(18));
+    act(() => vi.advanceTimersByTime(50));
     expect(result.current.messages.at(-1)?.content).toBe("Here");
 
     act(() => vi.runAllTimers());

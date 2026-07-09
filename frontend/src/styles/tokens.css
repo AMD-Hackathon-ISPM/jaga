@@ -17,7 +17,17 @@
 
   /* Brand + focus */
   --brand: #007A87;
+  --brand-active: #005E68; /* recording / pressed teal; darker than brand */
+  --brand-soft: #80BCC3; /* completed-step teal (Figma); decorative, never a clearance signal */
   --focus: oklch(0.53 0.09 205); /* teal ≈ #007A87 hue */
+
+  /* Figma accents & tints (rebrand 2026-07-09) */
+  --accent-return: #FFA450; /* Return button fill; pairs with ink text for AA (≈5.3:1) */
+  --warning-cream: #FFF6E5; /* soft warning-strip background */
+  --tint-brand-5: rgba(0, 122, 135, 0.05); /* row fills */
+  --tint-brand-10: rgba(0, 122, 135, 0.10); /* chat bubble / composer fills */
+  --disabled-fill: #C5C5C5; /* legacy token; buttons use surface-sunken + ink-muted instead */
+  --track-muted: rgba(45, 55, 72, 0.10); /* upcoming stepper bar */
 
   /* Status (text / tint) */
   --info: oklch(0.45 0.095 245);

@@ -1,10 +1,12 @@
 "use client";
 
+import { type ReactNode } from "react";
 import type { TriageResult } from "@/types";
 import Link from "next/link";
-import { PrototypeBanner } from "@/components/common/prototype-banner";
 import { Button } from "@/components/ui/button";
+import { PrototypeBanner } from "@/components/common/prototype-banner";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { cn } from "@/lib/utils";
 import { useT } from "@/hooks/use-t";
 import { useSessionStore } from "@/store/session.store";
 import { RiskBandTrack } from "./risk-band-track";
@@ -20,65 +22,120 @@ import {
 
 /**
  * Result (step 5) — renders MOCK data only (no API). Follows the locked
- * hierarchy (design §8.1): prototype banner → band name + small inline estimate
+ * hierarchy (design §8.1): prototype banner → band name + inline estimate chips
  * → risk track → dominant next-step panel → limitations → optional inspection.
- * The banner and next-step panel render unconditionally.
+ * The banner and next-step panel render unconditionally (not gated behind motion,
+ * §8.2). Only the headline + estimate carry the one reveal.
+ */
+
+type ChipTone = "solid" | "soft" | "outline";
+
+/** Metadata chip (Figma page 5). Teal-tint/soft/outline fills only — never the
+ *  risk-band ramp, and never the risk meaning (§4.4). All combinations meet AA. */
+function Chip({
+  tone,
+  mono,
+  className,
+  children,
+}: {
+  tone: ChipTone;
+  mono?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  const tones: Record<ChipTone, string> = {
+    solid: "bg-brand text-white",
+    soft: "bg-tint-brand-10 text-brand",
+    outline: "border border-brand/40 bg-surface text-ink",
+  };
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium leading-none",
+        tones[tone],
+        mono && "font-mono tabular-nums",
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+/**
+ * Result (step 5) — renders MOCK data only (no API). Follows the locked
+ * hierarchy (design §8.1): prototype banner → band name + inline estimate chips
+ * → risk track → dominant next-step panel → limitations → optional inspection.
+ * The banner and next-step panel render unconditionally (not gated behind motion,
+ * §8.2). Only the headline + estimate carry the one reveal.
  */
 export function ResultScreen() {
   const t = useT();
   const result = useSessionStore((state) => state.result) as TriageResult | null;
+
   if (!result) {
     return (
       <div className="flex flex-col gap-5">
         <PrototypeBanner />
         <Empty className="border border-dashed border-input">
           <EmptyHeader>
-            <EmptyTitle>No Gema result in this session</EmptyTitle>
-            <EmptyDescription>Submit the clinical inputs and five coughs first.</EmptyDescription>
+            <EmptyTitle>{t("result.empty.title")}</EmptyTitle>
+            <EmptyDescription>{t("result.empty.description")}</EmptyDescription>
           </EmptyHeader>
         </Empty>
         <Button asChild>
-          <Link href="/review">Return to review</Link>
+          <Link href="/review">{t("result.empty.returnToReview")}</Link>
         </Button>
       </div>
     );
   }
+
   const estimate = result.estimate;
 
   return (
     <div className="flex flex-col gap-5">
-      <Reveal index={0}>
-        <PrototypeBanner />
-      </Reveal>
+      {/* 1. Prototype banner — immediate, unconditional (§8.2). */}
+      <PrototypeBanner />
 
-      <Reveal index={1}>
+      {/* 2. Band name + inline estimate chips — the one reveal (§8.2). */}
+      <Reveal index={0}>
         {estimate ? (
           <div>
-            <h1 className="font-serif text-2xl font-semibold">
+            <h1 className="text-2xl font-semibold tracking-tight text-ink text-balance">
               {t(`result.band.${estimate.band}`)}
             </h1>
-            {/* Estimate is a small inline line, never hero-scale (§8.2). */}
-            <p className="mt-1 font-mono text-base tabular-nums text-ink-muted">
-              {(estimate.probability * 100).toFixed(0)}% · {estimate.calibrationStatus} ·{" "}
-              {result.metadata.modelVersion}
-            </p>
+            {/* Estimate is a compact chip row, never hero-scale (§8.2). */}
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <Chip tone="solid" mono>
+                {(estimate.probability * 100).toFixed(0)}%
+              </Chip>
+              <Chip tone="soft" className="capitalize">
+                {estimate.calibrationStatus}
+              </Chip>
+              <Chip tone="outline" mono>
+                {result.metadata.modelVersion}
+              </Chip>
+            </div>
           </div>
         ) : (
-          <h1 className="font-serif text-2xl font-semibold">{t("result.unavailable")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-ink text-balance">
+            {t("result.unavailable")}
+          </h1>
         )}
       </Reveal>
 
+      {/* 3. Named 3-segment risk track (§4.4). */}
       {estimate && (
-        <Reveal index={2}>
-          <RiskBandTrack band={estimate.band} />
+        <Reveal index={1}>
+          <RiskBandTrack band={estimate.band} probability={estimate.probability} />
         </Reveal>
       )}
 
-      <Reveal index={3}>
-        <NextStepPanel instruction={result.mandatoryNextStep} />
-      </Reveal>
+      {/* 4. Mandatory next step — dominant, immediate, unconditional (§8.2). */}
+      <NextStepPanel title={t("result.nextStepTitle")} instruction={result.mandatoryNextStep} />
 
-      <Reveal index={4}>
+      {/* 5. Open-by-default limitations / model details. */}
+      <Reveal index={2}>
         <Accordion
           type="single"
           collapsible
@@ -86,11 +143,18 @@ export function ResultScreen() {
           className="rounded-control border border-border-subtle bg-card px-4"
         >
           <AccordionItem value="limitations">
-            <AccordionTrigger>Limitations and model details</AccordionTrigger>
+            <AccordionTrigger className="font-heading text-base font-semibold text-ink">
+              {t("result.limitationsTitle")}
+            </AccordionTrigger>
             <AccordionContent>
-              <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-ink-muted">
-                <li className="font-mono">contract {result.metadata.contractVersion}</li>
-                <li>cohort: {result.metadata.cohort}</li>
+              <ul className="flex list-disc flex-col gap-1.5 pl-5 text-base text-ink-muted">
+                <li>
+                  {t("result.limitations.contract")}{" "}
+                  <span className="font-mono">{result.metadata.contractVersion}</span>
+                </li>
+                <li>
+                  {t("result.limitations.cohort")} {result.metadata.cohort}
+                </li>
                 {result.metadata.limitations.map((l) => (
                   <li key={l}>{l}</li>
                 ))}
@@ -100,8 +164,9 @@ export function ResultScreen() {
         </Accordion>
       </Reveal>
 
+      {/* 6. Optional inspection figure — last (§8.1). */}
       {result.inspection?.available && (
-        <Reveal index={5}>
+        <Reveal index={3}>
           <SpectrogramFigure
             label={result.inspection.label}
             src={result.inspection.spectrogramUrl}

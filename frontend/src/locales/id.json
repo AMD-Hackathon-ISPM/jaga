@@ -1,25 +1,232 @@
 {
   "_meta": {
     "version": "0",
-    "note": "PENDING UX-1. Trivial UI words are translated. Safety/referral strings (prototype.banner, result.band.*, result.nextStep) are left in English ON PURPOSE: they must be human-reviewed by UX-1 and must never be machine-translated. A missing/unreviewed mandatory translation should fail the build, not ship."
+    "note": "String keselamatan dan rujukan ditinjau sebagai pasangan EN/ID deterministik; tidak pernah dibuat oleh model saat runtime."
   },
   "common": {
     "continue": "Lanjutkan",
     "back": "Kembali",
     "retry": "Coba lagi",
-    "submit": "Kirim"
+    "submit": "Kirim",
+    "skipToMain": "Lewati ke konten utama",
+    "close": "Tutup"
   },
   "prototype": {
-    "banner": "PENDING UX-1: Jaga is a research prototype. It does not diagnose or rule out TB."
+    "banner": "Jaga adalah prototipe penelitian. Jaga tidak mendiagnosis atau menyingkirkan kemungkinan TB."
+  },
+  "footer": {
+    "disclaimer": "Jaga adalah prototipe penelitian investigasional. Jaga tidak mendiagnosis atau menyingkirkan kemungkinan tuberkulosis. Setiap peserta harus menjalani evaluasi konfirmatori."
+  },
+  "steps": {
+    "navLabel": "Kemajuan",
+    "gate": "Kelayakan",
+    "clinical": "Klinis",
+    "coughs": "Batuk",
+    "review": "Tinjau",
+    "result": "Hasil"
+  },
+  "language": {
+    "navLabel": "Bahasa",
+    "switchEn": "Beralih ke Bahasa Inggris",
+    "switchId": "Beralih ke Bahasa Indonesia"
+  },
+  "gate": {
+    "title": "Sebelum Anda mulai...",
+    "lead": "Untuk orang dewasa bergejala berusia 18 tahun ke atas. Alat ini memprioritaskan urgensi tindak lanjut dan tidak menentukan apakah seseorang menerima pemeriksaan.",
+    "acknowledgements": {
+      "adultWithCough": "Saya mengonfirmasi kasus ini adalah orang dewasa berusia 18 tahun ke atas dengan gejala batuk.",
+      "confirmatoryEvaluation": "Saya memahami evaluasi TB konfirmatori diperlukan terlepas dari estimasi apa pun."
+    },
+    "incompleteHint": "Lengkapi semua pernyataan untuk melanjutkan.",
+    "uploadCxr": "Unggah CXR digital untuk Prisma"
   },
   "result": {
-    "unavailable": "PENDING UX-1: Result unavailable",
+    "unavailable": "Hasil tidak tersedia",
     "band": {
-      "lower": "PENDING UX-1: Lower model-estimated risk",
-      "intermediate": "PENDING UX-1: Intermediate model-estimated risk",
-      "higher": "PENDING UX-1: Higher model-estimated risk"
+      "lower": "Risiko estimasi model lebih rendah",
+      "intermediate": "Risiko estimasi model menengah",
+      "higher": "Risiko estimasi model lebih tinggi"
     },
-    "nextStep": "PENDING UX-1: This person should receive confirmatory TB evaluation regardless of this estimate.",
-    "limitationsTitle": "Batasan dan detail model"
+    "nextStep": "Orang ini harus menjalani evaluasi TB konfirmatori terlepas dari estimasi ini.",
+    "nextStepTitle": "Langkah berikutnya",
+    "limitationsTitle": "Batasan dan detail model",
+    "limitations": {
+      "contract": "Kontrak",
+      "cohort": "Kohort"
+    },
+    "empty": {
+      "title": "Tidak ada hasil Gema dalam sesi ini",
+      "description": "Kirim data klinis dan lima rekaman batuk terlebih dahulu.",
+      "returnToReview": "Kembali ke tinjauan"
+    },
+    "riskBandAria": "Peringkat risiko estimasi model: {band}"
+  },
+  "review": {
+    "title": "Tinjau dan kirim",
+    "clinicalTitle": "Data klinis",
+    "coughsTitle": "Percobaan batuk",
+    "return": "Kembali",
+    "submit": "Kirim untuk Analisis Gema",
+    "notMeasured": "Tidak diukur",
+    "coughLabel": "Batuk {n}",
+    "coughMeta": "{size} KiB • {format}",
+    "coughMissing": "Belum ada",
+    "clinicalIncompleteTitle": "Data klinis belum lengkap",
+    "clinicalIncompleteBody": "Kembali ke formulir sebelum mengirim.",
+    "boolean": {
+      "true": "Ya",
+      "false": "Tidak"
+    },
+    "sex": {
+      "male": "Laki-laki",
+      "female": "Perempuan"
+    },
+    "fields": {
+      "age_years": "Usia (tahun)",
+      "sex_at_birth": "Jenis kelamin saat lahir",
+      "height_cm": "Tinggi (cm)",
+      "weight_kg": "Berat (kg)",
+      "cough_duration_days": "Durasi batuk (hari)",
+      "prior_tb": "Riwayat TB",
+      "hemoptysis": "Batuk darah (hemoptisis)",
+      "heart_rate_bpm": "Denyut jantung (bpm)",
+      "temperature_c": "Suhu (°C)",
+      "smoked_last_7_days": "Merokok (7 hari terakhir)",
+      "fever_last_30_days": "Demam (30 hari)",
+      "night_sweats_last_30_days": "Keringat malam (30 hari terakhir)",
+      "weight_loss_last_30_days": "Penurunan berat (30 hari)"
+    },
+    "values": {
+      "ageYears": "{n} tahun",
+      "heightCm": "{n} cm",
+      "weightKg": "{n} kg",
+      "coughDurationDays": "{n} hari",
+      "heartRateBpm": "{n} bpm",
+      "temperatureC": "{n} °C"
+    },
+    "error": {
+      "modelUnavailableTitle": "Analisis Gema belum tersedia",
+      "modelUnavailableBody": "Model triase batuk masih disiapkan, jadi hasil belum dapat dihasilkan. Rekaman Anda tetap tersimpan. Lanjutkan dengan jalur klinis standar.",
+      "submitFailedTitle": "Pengiriman gagal",
+      "submitFailedBody": "Rekaman masih tersedia. Coba lagi."
+    }
+  },
+  "clinical": {
+    "title": "Informasi klinis",
+    "lead": "Hanya bidang yang didukung kontrak model yang disetujui yang dikumpulkan.",
+    "ageYears": "Usia (tahun)",
+    "gender": "Jenis kelamin",
+    "male": "Laki-laki",
+    "female": "Perempuan",
+    "heightCm": "Tinggi (cm)",
+    "weightKg": "Berat (kg)",
+    "coughDurationDays": "Durasi batuk (hari)",
+    "priorTb": "Riwayat TB",
+    "coughingBlood": "Batuk darah",
+    "vitalsOptional": "Tanda vital (opsional)",
+    "heartRateBpm": "Denyut jantung (bpm)",
+    "temperatureC": "Suhu (°C)",
+    "heartRateHint": "20 to 250",
+    "temperatureHint": "30 to 45",
+    "smokedLast7Days": "Merokok dalam 7 hari terakhir",
+    "feverLast30Days": "Demam dalam 30 hari terakhir",
+    "nightSweatsLast30Days": "Keringat malam dalam 30 hari terakhir",
+    "weightLossLast30Days": "Penurunan berat dalam 30 hari terakhir",
+    "yes": "Ya",
+    "no": "Tidak",
+    "return": "Kembali",
+    "selectOne": "Pilih salah satu.",
+    "validateFailedTitle": "Formulir tidak dapat divalidasi",
+    "validateFailedBody": "Periksa koneksi Anda dan coba lagi.",
+    "incompleteHint": "Lengkapi semua bidang wajib untuk melanjutkan."
+  },
+  "coughs": {
+    "title": "Rekam lima batuk",
+    "bullets": {
+      "attempt": "*Satu percobaan* dalam satu waktu.",
+      "replay": "Setiap rekaman dapat *diputar ulang* atau *diganti*.",
+      "capture": "Rekaman ponsel *tidak sama* dengan rekaman klinik."
+    },
+    "attemptPill": "Percobaan {n} dari {total}",
+    "status": {
+      "idle": "Ketuk untuk merekam batuk",
+      "requesting": "Izinkan akses mikrofon…",
+      "recording": "Merekam… ketuk untuk berhenti",
+      "denied": "Mikrofon diblokir. Aktifkan di pengaturan browser Anda, lalu coba lagi.",
+      "error": "Tidak dapat memulai perekaman. Coba lagi."
+    },
+    "record": {
+      "start": "Mulai merekam",
+      "stop": "Hentikan perekaman"
+    },
+    "row": {
+      "label": "Batuk {n}",
+      "waiting": "menunggu untuk direkam",
+      "empty": "kosong",
+      "play": "Putar batuk {n}",
+      "replace": "Rekam ulang batuk {n}"
+    },
+    "waveform": {
+      "live": "Tingkat input batuk langsung",
+      "idle": "Gelombang batuk, tidak aktif"
+    },
+    "return": "Kembali",
+    "continue": "Lanjutkan",
+    "incompleteHint": "Rekam kelima batuk untuk melanjutkan."
+  },
+  "chat": {
+    "title": "Asisten panduan",
+    "disclaimer": "Hanya bantuan alur kerja. Bukan diagnosis atau interpretasi hasil",
+    "empty": "Tanyakan tentang layar saat ini, kolom formulir, langkah perekaman, atau apa yang terjadi selanjutnya.",
+    "thinking": "Berpikir…",
+    "placeholder": "Ketik pesan",
+    "inputLabel": "Kirim pesan ke asisten panduan",
+    "send": "Kirim pesan",
+    "back": "Kembali",
+    "error": {
+      "unavailable": "Panduan sementara tidak tersedia. Lanjutkan dengan alur kerja standar."
+    },
+    "launcher": {
+      "help": "Bantuan",
+      "title": "Panduan Jaga",
+      "privacy": "Hanya bantuan alur kerja. Jangan masukkan nama atau detail medis pribadi."
+    }
+  },
+  "cxr": {
+    "title": "Unggah rontgen dada",
+    "lead": "Prisma menerima satu ekspor rontgen dada digital. Ini menghasilkan estimasi penelitian terpisah dan tidak digabungkan dengan hasil batuk.",
+    "imageLabel": "Gambar CXR digital",
+    "imageHint": "PNG atau JPEG, hingga 10 MiB.",
+    "confirmLabel": "Saya mengonfirmasi ini adalah ekspor CXR digital, bukan foto layar atau film.",
+    "submit": "Kirim untuk analisis Prisma",
+    "errors": {
+      "unsupportedMedia": "Pilih gambar PNG atau JPEG.",
+      "payloadTooLarge": "Gambar tidak boleh lebih besar dari {maxMiB} MiB.",
+      "invalidSource": "Gambar tidak dapat didekode. Pilih ekspor CXR digital yang valid.",
+      "missingSelection": "Pilih dan konfirmasi ekspor CXR digital."
+    },
+    "error": {
+      "modelUnavailableTitle": "Analisis Prisma belum tersedia",
+      "modelUnavailableBody": "Model rontgen dada masih disiapkan, jadi hasil belum dapat dihasilkan. Gambar Anda tetap tersimpan — lanjutkan dengan jalur klinis standar.",
+      "submitFailedTitle": "Pengiriman Prisma gagal",
+      "submitFailedBody": "Gambar yang dipilih masih tersedia. Coba lagi."
+    },
+    "empty": {
+      "title": "Tidak ada hasil Prisma dalam sesi ini",
+      "description": "Unggah gambar CXR digital terlebih dahulu.",
+      "uploadCta": "Unggah CXR"
+    },
+    "result": {
+      "bandTitle": "Peringkat Prisma {band}",
+      "unavailable": "Estimasi Prisma tidak tersedia",
+      "limitationsTitle": "Batasan dan detail model",
+      "figureAlt": "Rontgen dada yang diunggah",
+      "figureCaption": "Rontgen dada yang diunggah. Ditampilkan sebagai referensi; bukan penjelasan klinis."
+    }
+  },
+  "notFound": {
+    "title": "Halaman tidak ditemukan",
+    "description": "Halaman ini tidak ada dalam alur penangkapan.",
+    "backToStart": "Kembali ke awal"
   }
 }

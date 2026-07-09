@@ -1,144 +1,142 @@
 "use client";
 
-import { ArrowUpIcon, MessageCircleDashedIcon, RotateCwIcon } from "lucide-react";
+import { IconArrowUp, IconChevronLeft } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupTextarea,
-} from "@/components/ui/input-group";
-import { Marker, MarkerContent } from "@/components/ui/marker";
-import {
-  MessageScroller,
-  MessageScrollerButton,
-  MessageScrollerContent,
-  MessageScrollerProvider,
-  MessageScrollerViewport,
-} from "@/components/ui/message-scroller";
+import { useT } from "@/hooks/use-t";
+import { SkipToMain } from "@/components/layout/skip-to-main";
+import { cn } from "@/lib/utils";
 import { ChatMessageItem } from "./chat-message";
 import { useAssistantChat } from "./use-assistant-chat";
 
-export function ChatScreen() {
-  const { messages, status, isBusy, inputValue, setInputValue, sendMessage, reset } =
-    useAssistantChat();
+type ChatScreenVariant = "standalone" | "sheet";
 
-  return (
-    <MessageScrollerProvider autoScroll={status === "ready"}>
-      <div className="relative mx-auto flex w-full max-w-sm flex-col gap-4">
-        <Card className="h-[35rem] gap-0 overflow-hidden py-0">
-          <CardHeader className="gap-1 border-b border-border-subtle py-4">
-            <CardTitle>Guidance assistant</CardTitle>
-            <CardDescription>Workflow help only—not diagnosis or result interpretation.</CardDescription>
-            <CardAction>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                aria-label="Reset conversation"
-                onClick={reset}
-                disabled={isBusy}
-              >
-                <RotateCwIcon />
-              </Button>
-            </CardAction>
-          </CardHeader>
+/**
+ * Guidance-assistant chat.
+ *
+ * `standalone` renders the full Figma /chat screen: a full-width teal header
+ * band (back chevron + title) over the conversation and a pinned composer.
+ * `sheet` drops the teal band (the launcher Sheet supplies its own title) and
+ * fills the sheet body with the same disclaimer strip, bubbles, and composer.
+ *
+ * All conversation behavior (typewriter reveal, Thinking state, Enter-to-send,
+ * 500-char cap, reduced-motion) lives in useAssistantChat and is left untouched.
+ */
+export function ChatScreen({ variant = "sheet" }: { variant?: ChatScreenVariant }) {
+  const t = useT();
+  const router = useRouter();
+  const { messages, status, isBusy, inputValue, setInputValue, sendMessage } = useAssistantChat();
+  const standalone = variant === "standalone";
 
-          <CardContent className="flex min-h-0 flex-1 overflow-hidden p-0">
-            {messages.length === 0 && status === "ready" ? (
-              <Empty className="h-full border-0">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <MessageCircleDashedIcon />
-                  </EmptyMedia>
-                  <EmptyTitle>Start a conversation</EmptyTitle>
-                  <EmptyDescription>
-                    Ask about the current screen, form fields, recording steps, or what happens next.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            ) : (
-              <MessageScroller>
-                <MessageScrollerViewport>
-                  <MessageScrollerContent aria-busy={isBusy} className="p-4">
-                    {messages.map((message) => (
-                      <ChatMessageItem
-                        key={message.id}
-                        message={message}
-                        scrollAnchor={message.role === "user"}
-                      />
-                    ))}
+  const endRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    endRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "end" });
+    // Follow new turns and status changes, not every streamed token.
+  }, [messages.length, status]);
 
-                    {status === "submitted" && (
-                      <Marker role="status">
-                        <MarkerContent className="shimmer">Thinking…</MarkerContent>
-                      </Marker>
-                    )}
-                  </MessageScrollerContent>
-                </MessageScrollerViewport>
-                <MessageScrollerButton />
-              </MessageScroller>
-            )}
-          </CardContent>
+  const sendDisabled = !inputValue.trim() || isBusy;
 
-          <CardFooter className="flex-col gap-2 py-4">
-            <form
-              className="w-full"
-              onSubmit={(event) => {
-                event.preventDefault();
-                sendMessage();
-              }}
-            >
-              <InputGroup className="rounded-xl border-border-subtle bg-surface-sunken">
-                <InputGroupTextarea
-                  value={inputValue}
-                  onChange={(event) => setInputValue(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      sendMessage();
-                    }
-                  }}
-                  placeholder="Type a message…"
-                  rows={2}
-                  maxLength={500}
-                  disabled={isBusy}
-                  className="min-h-14 px-3 py-2.5 text-base text-ink placeholder:text-ink-muted md:text-sm"
-                />
-                <InputGroupAddon align="block-end" className="justify-end pt-1">
-                  <InputGroupButton
-                    type="submit"
-                    variant="default"
-                    size="icon-sm"
-                    disabled={!inputValue.trim() || isBusy}
-                    className="size-9 shrink-0 rounded-full p-0"
-                    aria-label="Send message"
-                  >
-                    <ArrowUpIcon className="size-4" />
-                  </InputGroupButton>
-                </InputGroupAddon>
-              </InputGroup>
-            </form>
-          </CardFooter>
-        </Card>
+  const conversation = (
+    <>
+      <div className="mx-auto w-full max-w-flow shrink-0 px-4 pt-4">
+        <p className="mx-auto w-fit max-w-full rounded-control border border-border-subtle bg-warning-cream px-4 py-2 text-center text-base italic text-ink">
+          {t("chat.disclaimer")}
+        </p>
       </div>
-    </MessageScrollerProvider>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <div className="mx-auto flex w-full max-w-flow flex-col gap-4">
+          {messages.length === 0 && status === "ready" ? (
+            <p className="py-10 text-center text-base text-ink-muted">{t("chat.empty")}</p>
+          ) : (
+            <>
+              {messages.map((message) => (
+                <ChatMessageItem key={message.id} message={message} />
+              ))}
+              {status === "submitted" && (
+                <p className="text-base text-ink-muted" role="status">
+                  {t("chat.thinking")}
+                </p>
+              )}
+            </>
+          )}
+          <div ref={endRef} />
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-flow shrink-0 px-4 pb-4 pt-2">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            sendMessage();
+          }}
+        >
+          <div className="relative h-28 rounded-control bg-tint-brand-10 focus-within:ring-2 focus-within:ring-brand/40">
+            <textarea
+              value={inputValue}
+              onChange={(event) => setInputValue(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder={t("chat.placeholder")}
+              maxLength={500}
+              disabled={isBusy}
+              aria-label={t("chat.inputLabel")}
+              className="absolute inset-0 resize-none rounded-control bg-transparent px-4 py-3 pr-16 text-base text-ink placeholder:text-ink-muted focus:outline-none disabled:opacity-70"
+            />
+            <button
+              type="submit"
+              disabled={sendDisabled}
+              aria-label={t("chat.send")}
+              className="absolute bottom-3 right-3 flex size-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+            >
+              <span
+                className={cn(
+                  "flex size-9 items-center justify-center rounded-full transition-colors",
+                  sendDisabled
+                    ? "bg-surface-sunken text-ink-muted"
+                    : "bg-brand text-white",
+                )}
+              >
+                <IconArrowUp className="size-4" aria-hidden="true" />
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </>
   );
+
+  if (standalone) {
+    return (
+      <div className="flex h-dvh flex-col bg-canvas">
+        <SkipToMain />
+        <header className="shrink-0 bg-brand">
+          <div className="mx-auto flex w-full max-w-flow items-center gap-1 px-2 py-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label={t("chat.back")}
+              className="flex size-11 items-center justify-center rounded-full text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <IconChevronLeft className="size-6" aria-hidden="true" />
+            </button>
+            <h1 className="text-lg font-medium text-white">{t("chat.title")}</h1>
+          </div>
+        </header>
+        <div id="main-content" className="flex min-h-0 flex-1 flex-col">
+          {conversation}
+        </div>
+      </div>
+    );
+  }
+
+  return <div className="flex min-h-0 flex-1 flex-col">{conversation}</div>;
 }

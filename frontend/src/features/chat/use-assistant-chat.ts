@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { AssistantScreen } from "@/contracts/api";
 import { createAssistantRequest } from "@/lib/integration";
+import { getMessages } from "@/locales/messages";
 import { assistantService } from "@/services/assistant.service";
 import { useLanguageStore } from "@/store/language.store";
 import type { ChatMessage, ChatStatus } from "./mock-conversation";
@@ -22,7 +23,7 @@ function createId() {
   return crypto.randomUUID();
 }
 
-const REVEAL_INTERVAL_MS = 18;
+const REVEAL_INTERVAL_MS = 50;
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -107,12 +108,13 @@ export function useAssistantChat() {
       revealAssistantResponse(response.reply);
     } catch {
       clearReveal();
+      const messages = getMessages(language);
       setMessages((current) => [
         ...current,
         {
           id: createId(),
           role: "assistant",
-          content: "Guidance is temporarily unavailable. Continue with the standard workflow.",
+          content: messages.chat.error.unavailable,
         },
       ]);
       setStatus("ready");

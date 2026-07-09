@@ -30,8 +30,8 @@ export function getIntegrationConfig(env: IntegrationEnvironment) {
     apiBaseUrl: env.NEXT_PUBLIC_API_BASE_URL ?? "",
     appEnv: env.NEXT_PUBLIC_APP_ENV ?? "development",
     apiMode,
-    enableAssistant: parseFlag(env.NEXT_PUBLIC_ENABLE_ASSISTANT, !production),
-    enablePrisma: parseFlag(env.NEXT_PUBLIC_ENABLE_PRISMA, !production),
+    enableAssistant: parseFlag(env.NEXT_PUBLIC_ENABLE_ASSISTANT, true),
+    enablePrisma: parseFlag(env.NEXT_PUBLIC_ENABLE_PRISMA, true),
     sessionTimeoutMs: 15 * 60 * 1000,
   } as const;
 }
