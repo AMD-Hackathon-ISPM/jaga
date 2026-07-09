@@ -242,7 +242,7 @@ Cap prose at 65–75 ch. `text-wrap: balance` on h1–h3; `text-wrap: pretty` on
 
 - **Spacing scale (4 px base):** 4, 8, 12, 16, 20, 24, 32, 40, 48, 64. Vary it for rhythm; don't space everything equally.
 - **Radius (one scale, no exceptions):** 6 px for controls, inputs, cards, panels, banners; 4 px for thin bars (the risk-track segments); 16 px for a device/phone frame only; pill (`9999px`) only for the language toggle and tags. No other radii. Match-and-refuse over-rounding.
-- **Content widths:** single-column form/flow max `32rem` (512 px), centered, comfortable side padding (16 px mobile / 24 px+ desktop). Prose 65–75 ch.
+- **Content widths:** single-column form/flow max `32rem` (512 px), centered, comfortable side padding (16 px mobile / 24 px+ desktop). Prose 65–75 ch. Result-class pages (/result, /cxr/result, /review) widen to a 56rem stage at ≥1024px ("flow-wide") for the two-column evidence layout; capture pages keep the 32rem column.
 - **Breakpoints:** 320 px floor (everything works), `sm` 480, `md` 768, `lg` 1024. Mobile-first; responsive behavior is structural, not fluid type.
 - **Safe area:** respect `env(safe-area-inset-*)` for the sticky progress/footer on phones.
 - **Density:** one primary action per step; generous touch spacing (≥44 px targets, ≥8 px between adjacent targets).
@@ -251,7 +251,7 @@ Cap prose at 65–75 ch. `text-wrap: balance` on h1–h3; `text-wrap: pretty` on
 ### 5.6 Layout examples
 
 - **320 px (low-end Android):** single column; sticky top step indicator; one field/control group per row; the cough waveform fills width with side gutters; result headline wraps to ≤3 lines; the 3-segment risk track stacks above the named band.
-- **Desktop:** the same single column centered at 512 px on `--canvas` with comfortable vertical rhythm; the flow does **not** become a multi-column dashboard. Optional right-aligned demo-mode drawer for the operator.
+- **Desktop (≥1024px):** capture pages (gate, clinical, coughs, cxr upload) keep the single 512px column centered on `--canvas`, with 24px side padding and a looser vertical rhythm. Result-class pages (`/result`, `/cxr/result`, `/review`) widen to a 56rem stage: decision column left (band, track, mandatory next step — §8.1 dominance preserved), evidence column right (limitations, spectrogram/CXR at larger size; summaries side-by-side on review). The flow never becomes a dashboard. Optional right-aligned demo-mode drawer for the operator remains a future option (unbuilt).
 
 ## 6. Component patterns
 

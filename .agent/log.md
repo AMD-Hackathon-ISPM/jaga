@@ -13,6 +13,8 @@ Entries are newest first. Older entries preserve what was decided at that time a
 
 ---
 
+- 2026-07-10 — **Amended §5.5/§5.6: desktop slim slice.** Result-class pages (/result, /cxr/result, /review) widen to a 56rem two-column evidence layout at lg+ (≥1024px); capture pages keep the 512px single column. Implemented in frontend. (Billy, via Cursor)
+
 - 2026-07-10 — **Staged review fixes: PRD-01 gate, Tabler icons, Figtree contract.** Enforced in-memory eligibility acknowledgements with route guards, including Prisma results; migrated non-brand UI icons from Figma/Lucide to Tabler via shadcn; restored Figtree for UI and headings with a globally enforced 6px control radius; completed deterministic EN/ID safety strings; removed generated Playwright artifacts and accidental root npm manifest/lockfile. (Billy, via Cursor)
 
 - 2026-07-09 — **Frontend audit polish (P1–P3).** Synced `document.lang` with locale store; fixed disabled-button contrast (`surface-sunken` + `ink-muted`, §4.6 row added); completed EN/ID for CXR, stepper, launcher, footer, result empty state; CXR result banner + next-step no longer motion-gated; `aria-required` on clinical fields; responsive 1→2-col grids; card shadow-none default + semantic `CardTitle`; flattened review sections; chat disclaimer 16px + warning-cream; `--brand-active` token; removed dead `.record-orb` CSS; skip-to-main links; `next/image` for static SVGs; chat `max-w-flow`; typewriter 50ms interval; clinical submit uses isolated `useWatch`. (Billy, via Cursor)

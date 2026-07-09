@@ -225,6 +225,7 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 | **Treat Featherless as an OpenAI-compatible API surface** | Keeps the orchestration layer vendor-agnostic; Go/Python integrations use standard OpenAI-shaped client flows. |
 | **Add Cognee as an optional semantic-memory layer behind a neutral Go interface** | Preserves PostgreSQL as the system of record while enabling patient-history grounding for LLM explanations, and keeps the memory backend replaceable without leaking provider APIs into the rest of the app. |
 | **Keep Cognee local but use Featherless for generation** | Avoids a separate local LLM service, keeps semantic memory self-hosted, and aligns the memory layer with the same OpenAI-compatible generation surface used elsewhere. |
+| **Desktop slim slice** | 2026-07-10 — Result-class pages get a 56rem two-column evidence layout at lg+ for demo operators/programme reviewers; capture pages stay 512px single-column. Rationale: desktop audience is reviewers inspecting evidence, not CHWs capturing. |
 
 ---
 
@@ -249,6 +250,7 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 | **Attention as model reasoning** | The visualization is not a causal explanation. |
 | **Validated-product language** | Jaga has not completed prospective clinical validation, regulatory review, or deployment evaluation. |
 | **Quantum image or audio processing** | It has no demonstrated advantage here, does not strengthen the AMD story, and creates schedule risk. |
+| **Full desktop rail+tier system** | 2026-07-10 — Vertical step rail, per-page width tiers, clinical 2-col form, chat pane, and demo drawer were set aside as polish beyond ROI for a phone-first capture flow; revisit if desktop capture becomes real. |
 
 ---
 
