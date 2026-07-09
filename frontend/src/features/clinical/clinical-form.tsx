@@ -12,6 +12,7 @@ import {
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { IconChevronRight } from "@tabler/icons-react";
 import { clinicalSchema, type ClinicalFormValues } from "./clinical-schema";
 import { isClinicalComplete } from "./clinical-form-utils";
 import { useSessionStore } from "@/store/session.store";
@@ -233,7 +234,8 @@ function ClinicalFormActions({
       </Button>
       <Button type="submit" className="min-h-11 flex-1" disabled={!formValid || isPending}>
         {isPending && <Spinner />}
-        {t("common.continue")}
+        <span>{t("common.continue")}</span>
+        {!isPending && <IconChevronRight data-icon="inline-end" aria-hidden="true" />}
       </Button>
       </div>
     </div>

@@ -2,9 +2,8 @@ import Image from "next/image";
 import { AssistantLauncher } from "@/features/chat/assistant-launcher";
 import { cn } from "@/lib/utils";
 import jagaLogo from "@/assets/icon.svg";
-import { LanguageSwitcher } from "./language-switcher";
 
-/** Header — logo left; Help + language toggle right. No clinical chrome. */
+/** Header — logo left; Help right. No clinical chrome. */
 export function Header({ wide = false }: { wide?: boolean }) {
   return (
     <header
@@ -21,10 +20,7 @@ export function Header({ wide = false }: { wide?: boolean }) {
         height={27}
         priority
       />
-      <div className="flex items-center gap-2">
-        <AssistantLauncher />
-        <LanguageSwitcher />
-      </div>
+      <AssistantLauncher />
     </header>
   );
 }

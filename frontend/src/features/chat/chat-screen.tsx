@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 
 import { useT } from "@/hooks/use-t";
 import { SkipToMain } from "@/components/layout/skip-to-main";
+import { TextShimmer } from "@/components/ui/text-shimmer";
 import { cn } from "@/lib/utils";
 import { ChatMessageItem } from "./chat-message";
 import { useAssistantChat } from "./use-assistant-chat";
@@ -58,8 +59,8 @@ export function ChatScreen({ variant = "sheet" }: { variant?: ChatScreenVariant 
                 <ChatMessageItem key={message.id} message={message} />
               ))}
               {status === "submitted" && (
-                <p className="text-base text-ink-muted" role="status">
-                  {t("chat.thinking")}
+                <p className="text-base" role="status">
+                  <TextShimmer>{t("chat.thinking")}</TextShimmer>
                 </p>
               )}
             </>

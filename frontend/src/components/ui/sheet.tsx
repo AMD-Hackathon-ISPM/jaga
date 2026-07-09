@@ -23,7 +23,10 @@ function SheetOverlay({ className, ...props }: React.ComponentProps<typeof Sheet
   return (
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
-      className={cn("fixed inset-0 z-50 bg-black/20 data-[state=open]:animate-in data-[state=closed]:animate-out", className)}
+      className={cn(
+        "fixed inset-0 z-50 bg-black/20 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:duration-500 data-[state=closed]:duration-300 motion-reduce:transition-none motion-reduce:animate-none",
+        className,
+      )}
       {...props}
     />
   );
@@ -37,7 +40,10 @@ function SheetContent({ className, children, ...props }: React.ComponentProps<ty
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
-        className={cn("fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col overflow-y-auto border-l border-border-subtle bg-canvas p-4 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out", className)}
+        className={cn(
+          "fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col overflow-y-auto border-l border-border-subtle bg-canvas p-4 shadow-lg outline-none transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:duration-500 data-[state=closed]:duration-300 data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right motion-reduce:transition-none motion-reduce:animate-none",
+          className,
+        )}
         {...props}
       >
         {children}

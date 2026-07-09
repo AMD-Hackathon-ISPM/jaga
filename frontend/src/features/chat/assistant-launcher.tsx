@@ -24,7 +24,7 @@ export function AssistantLauncher() {
         <div className="flex h-full flex-col">
           <div className="shrink-0 px-4 pb-3 pt-4 pr-12">
             <SheetTitle>{t("chat.launcher.title")}</SheetTitle>
-            <SheetDescription>{t("chat.launcher.privacy")}</SheetDescription>
+            <SheetDescription className="sr-only">{t("chat.launcher.privacy")}</SheetDescription>
           </div>
           <ChatScreen variant="sheet" />
         </div>

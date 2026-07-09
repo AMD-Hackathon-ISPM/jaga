@@ -2,6 +2,7 @@
 
 import { Fragment, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { IconChevronRight } from "@tabler/icons-react";
 import { CoughRecorder } from "./cough-recorder";
 import { AttemptList } from "./attempt-list";
 import { Button } from "@/components/ui/button";
@@ -77,7 +78,8 @@ export function CoughsScreen() {
           disabled={!complete}
           onClick={() => router.push("/review")}
         >
-          {t("coughs.continue")}
+          <span>{t("coughs.continue")}</span>
+          <IconChevronRight data-icon="inline-end" aria-hidden="true" />
         </Button>
         </div>
       </div>

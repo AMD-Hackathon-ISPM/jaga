@@ -25,11 +25,6 @@
     "review": "Review",
     "result": "Results"
   },
-  "language": {
-    "navLabel": "Language",
-    "switchEn": "Switch to English",
-    "switchId": "Switch to Bahasa Indonesia"
-  },
   "gate": {
     "title": "Before you begin...",
     "lead": "For symptomatic adults aged 18 and over. This tool prioritizes follow-up urgency and does not decide whether a person receives testing.",
