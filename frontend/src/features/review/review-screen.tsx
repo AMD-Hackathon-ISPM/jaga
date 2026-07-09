@@ -117,50 +117,52 @@ export function ReviewScreen() {
         </Alert>
       )}
 
-      <section className="rounded-control border border-brand bg-card py-4">
-        <h2 className="px-4 text-lg font-semibold text-ink">{t("review.clinicalTitle")}</h2>
-        <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-3 px-4 min-[480px]:grid-cols-2">
-          {Object.entries(clinical).map(([key, value]) => {
-            const labelKey = FIELD_LABEL_KEYS[key];
-            const label = labelKey ? t(labelKey) : key;
-            const formatted = formatClinicalValue(key, value, t);
-            return (
-              <div key={key} className="min-w-0">
-                <dt className="text-sm text-ink-muted">{label}</dt>
-                <dd
-                  className={
-                    formatted.mono
-                      ? "font-mono text-base tabular-nums text-ink"
-                      : "text-base text-ink"
-                  }
-                >
-                  {formatted.text}
-                </dd>
-              </div>
-            );
-          })}
-        </dl>
-      </section>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-x-8">
+        <section className="rounded-control border border-brand bg-card py-4">
+          <h2 className="px-4 text-lg font-semibold text-ink">{t("review.clinicalTitle")}</h2>
+          <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-3 px-4 min-[480px]:grid-cols-2">
+            {Object.entries(clinical).map(([key, value]) => {
+              const labelKey = FIELD_LABEL_KEYS[key];
+              const label = labelKey ? t(labelKey) : key;
+              const formatted = formatClinicalValue(key, value, t);
+              return (
+                <div key={key} className="min-w-0">
+                  <dt className="text-sm text-ink-muted">{label}</dt>
+                  <dd
+                    className={
+                      formatted.mono
+                        ? "font-mono text-base tabular-nums text-ink"
+                        : "text-base text-ink"
+                    }
+                  >
+                    {formatted.text}
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+        </section>
 
-      <section className="rounded-control border border-brand bg-card py-4">
-        <h2 className="px-4 text-lg font-semibold text-ink">{t("review.coughsTitle")}</h2>
-        <ul className="mt-3 flex flex-col gap-2 px-4">
-          {coughFiles.map((file, index) => (
-            <li key={index} className="flex min-h-11 items-center justify-between gap-4">
-              <span className="text-base text-ink">
-                {t("review.coughLabel").replace("{n}", String(index + 1))}
-              </span>
-              <span className="font-mono text-base tabular-nums text-ink">
-                {file
-                  ? t("review.coughMeta")
-                      .replace("{size}", String(Math.max(1, Math.round(file.size / 1024))))
-                      .replace("{format}", "WebM")
-                  : t("review.coughMissing")}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+        <section className="rounded-control border border-brand bg-card py-4">
+          <h2 className="px-4 text-lg font-semibold text-ink">{t("review.coughsTitle")}</h2>
+          <ul className="mt-3 flex flex-col gap-2 px-4">
+            {coughFiles.map((file, index) => (
+              <li key={index} className="flex min-h-11 items-center justify-between gap-4">
+                <span className="text-base text-ink">
+                  {t("review.coughLabel").replace("{n}", String(index + 1))}
+                </span>
+                <span className="font-mono text-base tabular-nums text-ink">
+                  {file
+                    ? t("review.coughMeta")
+                        .replace("{size}", String(Math.max(1, Math.round(file.size / 1024))))
+                        .replace("{format}", "WebM")
+                    : t("review.coughMissing")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
 
       {mutation.isError && (
         <Alert variant={modelUnavailable ? "warning" : "destructive"}>

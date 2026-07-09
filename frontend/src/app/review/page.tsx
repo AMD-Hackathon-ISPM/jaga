@@ -3,7 +3,7 @@ import { ReviewScreen } from "@/features/review/review-screen";
 
 export default function ReviewPage() {
   return (
-    <FlowLayout step="review">
+    <FlowLayout step="review" wide>
       <ReviewScreen />
     </FlowLayout>
   );
