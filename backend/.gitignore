@@ -1,10 +1,10 @@
 /data/
-/python/PrismaTraining/data/Preprocessed Data/
-/python/PrismaTraining/data/TB Chest Radiography Database/
-/python/PrismaTraining/outputs/*
-!/python/PrismaTraining/outputs/.gitkeep
-/python/PrismaServer/artifacts/*
-!/python/PrismaServer/artifacts/.gitkeep
+/modelServerandTraining/PrismaTraining/data/Preprocessed Data/
+/modelServerandTraining/PrismaTraining/data/TB Chest Radiography Database/
+/modelServerandTraining/PrismaTraining/outputs/*
+!/modelServerandTraining/PrismaTraining/outputs/.gitkeep
+/modelServerandTraining/PrismaServer/artifacts/*
+!/modelServerandTraining/PrismaServer/artifacts/.gitkeep
 **/*.pt
 **/*.pth
 **/*.ckpt
@@ -17,5 +17,5 @@
 **/__pycache__/
 **/*.pyc
 **/*.pyo
-/python/GemmaTraining/dataPrep/data/*
-
+/modelServerandTraining/GemmaTraining/dataPrep/data/*
+/modelServerandTraining/GemmaServer/models/*
