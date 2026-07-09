@@ -97,82 +97,90 @@ export function ResultScreen() {
       {/* 1. Prototype banner — immediate, unconditional (§8.2). */}
       <PrototypeBanner />
 
-      {/* 2. Band name + inline estimate chips — the one reveal (§8.2). */}
-      <Reveal index={0}>
-        {estimate ? (
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-ink text-balance">
-              {t(`result.band.${estimate.band}`)}
-            </h1>
-            {/* Estimate is a compact chip row, never hero-scale (§8.2). */}
-            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-              <Chip tone="solid" mono>
-                {(estimate.probability * 100).toFixed(0)}%
-              </Chip>
-              <Chip tone="soft" className="capitalize">
-                {estimate.calibrationStatus}
-              </Chip>
-              <Chip tone="outline" mono>
-                {result.metadata.modelVersion}
-              </Chip>
-            </div>
-          </div>
-        ) : (
-          <h1 className="text-2xl font-semibold tracking-tight text-ink text-balance">
-            {t("result.unavailable")}
-          </h1>
-        )}
-      </Reveal>
+      {/* Desktop (lg+): decision column left, evidence column right (§5.6).
+          Below lg this grid collapses to the original single-column stack. */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:items-start lg:gap-x-10">
+        <div className="flex min-w-0 flex-col gap-5">
+          {/* 2. Band name + inline estimate chips — the one reveal (§8.2). */}
+          <Reveal index={0}>
+            {estimate ? (
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight text-ink text-balance">
+                  {t(`result.band.${estimate.band}`)}
+                </h1>
+                {/* Estimate is a compact chip row, never hero-scale (§8.2). */}
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                  <Chip tone="solid" mono>
+                    {(estimate.probability * 100).toFixed(0)}%
+                  </Chip>
+                  <Chip tone="soft" className="capitalize">
+                    {estimate.calibrationStatus}
+                  </Chip>
+                  <Chip tone="outline" mono>
+                    {result.metadata.modelVersion}
+                  </Chip>
+                </div>
+              </div>
+            ) : (
+              <h1 className="text-2xl font-semibold tracking-tight text-ink text-balance">
+                {t("result.unavailable")}
+              </h1>
+            )}
+          </Reveal>
 
-      {/* 3. Named 3-segment risk track (§4.4). */}
-      {estimate && (
-        <Reveal index={1}>
-          <RiskBandTrack band={estimate.band} probability={estimate.probability} />
-        </Reveal>
-      )}
+          {/* 3. Named 3-segment risk track (§4.4). */}
+          {estimate && (
+            <Reveal index={1}>
+              <RiskBandTrack band={estimate.band} probability={estimate.probability} />
+            </Reveal>
+          )}
 
-      {/* 4. Mandatory next step — dominant, immediate, unconditional (§8.2). */}
-      <NextStepPanel title={t("result.nextStepTitle")} instruction={result.mandatoryNextStep} />
+          {/* 4. Mandatory next step — dominant, immediate, unconditional (§8.2). */}
+          <NextStepPanel title={t("result.nextStepTitle")} instruction={result.mandatoryNextStep} />
+        </div>
 
-      {/* 5. Open-by-default limitations / model details. */}
-      <Reveal index={2}>
-        <Accordion
-          type="single"
-          collapsible
-          defaultValue="limitations"
-          className="rounded-control border border-border-subtle bg-card px-4"
-        >
-          <AccordionItem value="limitations">
-            <AccordionTrigger className="font-heading text-base font-semibold text-ink">
-              {t("result.limitationsTitle")}
-            </AccordionTrigger>
-            <AccordionContent>
-              <ul className="flex list-disc flex-col gap-1.5 pl-5 text-base text-ink-muted">
-                <li>
-                  {t("result.limitations.contract")}{" "}
-                  <span className="font-mono">{result.metadata.contractVersion}</span>
-                </li>
-                <li>
-                  {t("result.limitations.cohort")} {result.metadata.cohort}
-                </li>
-                {result.metadata.limitations.map((l) => (
-                  <li key={l}>{l}</li>
-                ))}
-              </ul>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </Reveal>
+        <div className="flex min-w-0 flex-col gap-5">
+          {/* 5. Open-by-default limitations / model details. */}
+          <Reveal index={2}>
+            <Accordion
+              type="single"
+              collapsible
+              defaultValue="limitations"
+              className="rounded-control border border-border-subtle bg-card px-4"
+            >
+              <AccordionItem value="limitations">
+                <AccordionTrigger className="font-heading text-base font-semibold text-ink">
+                  {t("result.limitationsTitle")}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="flex list-disc flex-col gap-1.5 pl-5 text-base text-ink-muted">
+                    <li>
+                      {t("result.limitations.contract")}{" "}
+                      <span className="font-mono">{result.metadata.contractVersion}</span>
+                    </li>
+                    <li>
+                      {t("result.limitations.cohort")} {result.metadata.cohort}
+                    </li>
+                    {result.metadata.limitations.map((l) => (
+                      <li key={l}>{l}</li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </Reveal>
 
-      {/* 6. Optional inspection figure — last (§8.1). */}
-      {result.inspection?.available && (
-        <Reveal index={3}>
-          <SpectrogramFigure
-            label={result.inspection.label}
-            src={result.inspection.spectrogramUrl}
-          />
-        </Reveal>
-      )}
+          {/* 6. Optional inspection figure — last (§8.1). */}
+          {result.inspection?.available && (
+            <Reveal index={3}>
+              <SpectrogramFigure
+                label={result.inspection.label}
+                src={result.inspection.spectrogramUrl}
+              />
+            </Reveal>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

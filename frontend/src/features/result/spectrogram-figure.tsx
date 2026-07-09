@@ -11,10 +11,10 @@ export function SpectrogramFigure({ label, src }: { label: string; src?: string 
   return (
     <figure className="flex flex-col gap-2">
       {src ? (
-        <FigureImage src={src} alt="Model inspection figure" className="h-32" />
+        <FigureImage src={src} alt="Model inspection figure" className="h-32 lg:h-48" />
       ) : (
         <div
-          className="flex h-32 items-center justify-center rounded-control bg-surface-sunken"
+          className="flex h-32 items-center justify-center rounded-control bg-surface-sunken lg:h-48"
           role="img"
           aria-label="Model inspection figure placeholder"
         >

@@ -7,7 +7,7 @@ import { ResultScreen } from "@/features/result/result-screen";
  */
 export default function ResultPage() {
   return (
-    <FlowLayout step="result">
+    <FlowLayout step="result" wide>
       <ResultScreen />
     </FlowLayout>
   );
