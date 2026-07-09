@@ -5,16 +5,15 @@ import { useRouter } from "next/navigation";
 import {
   Controller,
   useForm,
-  useWatch,
   type Control,
   type FieldError as RhfFieldError,
+  type FieldErrors,
   type UseFormRegister,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { IconChevronRight } from "@tabler/icons-react";
 import { clinicalSchema, type ClinicalFormValues } from "./clinical-schema";
-import { isClinicalComplete } from "./clinical-form-utils";
 import { useSessionStore } from "@/store/session.store";
 import { patientService, PatientValidationError } from "@/services/patient.service";
 import { Button } from "@/components/ui/button";
@@ -37,6 +36,22 @@ import { cn } from "@/lib/utils";
 const INPUT_CLASS =
   "min-h-11 border-ink/50 bg-canvas font-mono tabular-nums focus-visible:border-brand";
 
+const FIELD_ORDER: (keyof ClinicalFormValues)[] = [
+  "age_years",
+  "sex_at_birth",
+  "height_cm",
+  "weight_kg",
+  "cough_duration_days",
+  "prior_tb",
+  "hemoptysis",
+  "heart_rate_bpm",
+  "temperature_c",
+  "smoked_last_7_days",
+  "fever_last_30_days",
+  "night_sweats_last_30_days",
+  "weight_loss_last_30_days",
+];
+
 export function ClinicalForm() {
   const t = useT();
   const router = useRouter();
@@ -52,7 +67,8 @@ export function ClinicalForm() {
     formState: { errors },
   } = useForm<ClinicalFormValues>({
     resolver: zodResolver(clinicalSchema),
-    mode: "onBlur",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     defaultValues: clinical,
   });
 
@@ -78,8 +94,15 @@ export function ClinicalForm() {
 
   const onSubmit = (values: ClinicalFormValues) => mutation.mutate(values);
 
+  const onInvalid = (formErrors: FieldErrors<ClinicalFormValues>) => {
+    const firstErrorFieldName = FIELD_ORDER.find((field) => formErrors[field]);
+    if (!firstErrorFieldName) return;
+    setFocus(firstErrorFieldName);
+    document.getElementById(firstErrorFieldName)?.scrollIntoView({ block: "center" });
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate>
       <FieldGroup className="gap-4">
         {mutation.isError && !(mutation.error instanceof PatientValidationError) && (
           <Alert variant="destructive">
@@ -96,6 +119,7 @@ export function ClinicalForm() {
             register={register}
             error={errors.age_years}
             inputMode="numeric"
+            placeholder="35"
           />
           <SexField control={control} error={errors.sex_at_birth} />
           <NumberField
@@ -105,6 +129,7 @@ export function ClinicalForm() {
             register={register}
             error={errors.height_cm}
             step="0.1"
+            placeholder="170.0"
           />
           <NumberField
             name="weight_kg"
@@ -113,6 +138,7 @@ export function ClinicalForm() {
             register={register}
             error={errors.weight_kg}
             step="0.1"
+            placeholder="62.5"
           />
         </div>
 
@@ -123,6 +149,7 @@ export function ClinicalForm() {
           register={register}
           error={errors.cough_duration_days}
           inputMode="numeric"
+          placeholder="14"
         />
 
         <div className="grid grid-cols-1 gap-x-3 gap-y-4 min-[480px]:grid-cols-2">
@@ -156,6 +183,7 @@ export function ClinicalForm() {
               error={errors.heart_rate_bpm as RhfFieldError | undefined}
               optional
               inputMode="numeric"
+              placeholder="80"
             />
             <NumberField
               name="temperature_c"
@@ -165,6 +193,7 @@ export function ClinicalForm() {
               error={errors.temperature_c as RhfFieldError | undefined}
               optional
               step="0.1"
+              placeholder="36.6"
             />
           </div>
         </FieldSet>
@@ -194,7 +223,7 @@ export function ClinicalForm() {
           error={errors.weight_loss_last_30_days}
         />
 
-        <ClinicalFormActions control={control} isPending={mutation.isPending} />
+        <ClinicalFormActions isPending={mutation.isPending} />
       </FieldGroup>
     </form>
   );
@@ -210,29 +239,16 @@ type BooleanFieldName =
   | "night_sweats_last_30_days"
   | "weight_loss_last_30_days";
 
-function ClinicalFormActions({
-  control,
-  isPending,
-}: {
-  control: Control<ClinicalFormValues>;
-  isPending: boolean;
-}) {
+function ClinicalFormActions({ isPending }: { isPending: boolean }) {
   const t = useT();
-  const values = useWatch({ control });
-  const formValid = isClinicalComplete(values);
 
   return (
     <div className="flex flex-col gap-3">
-      {!formValid && !isPending && (
-        <p className="text-base text-ink-muted" role="status">
-          {t("clinical.incompleteHint")}
-        </p>
-      )}
       <div className="flex gap-3">
       <Button asChild variant="return" className="min-h-11 flex-1">
         <Link href="/">{t("clinical.return")}</Link>
       </Button>
-      <Button type="submit" className="min-h-11 flex-1" disabled={!formValid || isPending}>
+      <Button type="submit" className="min-h-11 flex-1" disabled={isPending}>
         {isPending && <Spinner />}
         <span>{t("common.continue")}</span>
         {!isPending && <IconChevronRight data-icon="inline-end" aria-hidden="true" />}
@@ -260,6 +276,7 @@ function NumberField({
   required = false,
   inputMode = "decimal",
   step,
+  placeholder,
 }: {
   name: FieldName;
   label: string;
@@ -270,6 +287,7 @@ function NumberField({
   required?: boolean;
   inputMode?: "numeric" | "decimal";
   step?: string;
+  placeholder?: string;
 }) {
   const id = String(name);
 
@@ -286,6 +304,7 @@ function NumberField({
         type="number"
         inputMode={inputMode}
         step={step}
+        placeholder={placeholder}
         className={INPUT_CLASS}
         aria-invalid={!!error}
         aria-required={required}

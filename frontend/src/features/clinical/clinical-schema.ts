@@ -10,13 +10,28 @@ const b = PATIENT_BOUNDS;
 
 const radioBoolean = z.boolean({ required_error: "Select one." });
 
+const numberField = {
+  required_error: "Required.",
+  invalid_type_error: "Enter a number.",
+} as const;
+
 export const clinicalSchema = z.object({
-  age_years: z.number().int().min(b.age_years.min).max(b.age_years.max),
+  age_years: z
+    .number(numberField)
+    .int()
+    .min(b.age_years.min)
+    .max(b.age_years.max),
   sex_at_birth: z.enum(["male", "female"]),
-  height_cm: z.number().min(b.height_cm.min).max(b.height_cm.max),
-  weight_kg: z.number().min(b.weight_kg.min).max(b.weight_kg.max),
+  height_cm: z
+    .number(numberField)
+    .min(b.height_cm.min)
+    .max(b.height_cm.max),
+  weight_kg: z
+    .number(numberField)
+    .min(b.weight_kg.min)
+    .max(b.weight_kg.max),
   cough_duration_days: z
-    .number()
+    .number(numberField)
     .int()
     .min(b.cough_duration_days.min)
     .max(b.cough_duration_days.max),
@@ -24,14 +39,14 @@ export const clinicalSchema = z.object({
   hemoptysis: radioBoolean,
   // Optional vitals — validated only when provided.
   heart_rate_bpm: z
-    .number()
+    .number(numberField)
     .int()
     .min(b.heart_rate_bpm.min)
     .max(b.heart_rate_bpm.max)
     .nullable()
     .optional(),
   temperature_c: z
-    .number()
+    .number(numberField)
     .min(b.temperature_c.min)
     .max(b.temperature_c.max)
     .nullable()
