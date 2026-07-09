@@ -8,13 +8,16 @@ export default function CxrResultPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
       <SkipToMain />
-      <Header />
-      <main id="main-content" className="mx-auto w-full max-w-flow flex-1 px-4 py-6">
+      <Header wide />
+      <main
+        id="main-content"
+        className="mx-auto w-full max-w-flow flex-1 px-4 py-6 lg:max-w-flow-wide lg:px-6 lg:py-10"
+      >
         <EligibilityGuard>
           <CxrResultScreen />
         </EligibilityGuard>
       </main>
-      <Footer />
+      <Footer wide />
     </div>
   );
 }

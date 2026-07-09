@@ -9,7 +9,7 @@ export default function CxrPage() {
     <div className="flex min-h-dvh flex-col bg-canvas">
       <SkipToMain />
       <Header />
-      <main id="main-content" className="mx-auto w-full max-w-flow flex-1 px-4 py-6">
+      <main id="main-content" className="mx-auto w-full max-w-flow flex-1 px-4 py-6 lg:px-6 lg:py-10">
         <EligibilityGuard>
           <CxrScreen />
         </EligibilityGuard>
