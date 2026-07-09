@@ -56,6 +56,7 @@ const config: Config = {
       },
       maxWidth: {
         flow: "32rem", // single-column form/flow cap (§5.5)
+        "flow-wide": "56rem", // result/review evidence stage at lg+ (§5.6)
       },
       zIndex: {
         dropdown: "100",
