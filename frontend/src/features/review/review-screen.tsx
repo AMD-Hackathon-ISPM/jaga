@@ -177,15 +177,15 @@ export function ReviewScreen() {
         </Alert>
       )}
 
-      <div className="flex gap-3">
-        <Button asChild variant="return" className="min-h-11 flex-1">
+      <div className="flex gap-3 lg:justify-between">
+        <Button asChild variant="return" className="min-h-11 flex-1 lg:max-w-56">
           <Link href="/coughs">
             <IconChevronLeft data-icon="inline-start" aria-hidden="true" />
             {t("review.return")}
           </Link>
         </Button>
         <Button
-          className="min-h-11 flex-1 whitespace-normal px-3 text-center leading-snug"
+          className="min-h-11 flex-1 whitespace-normal px-3 text-center leading-snug lg:max-w-64"
           disabled={!ready || mutation.isPending || modelUnavailable}
           onClick={() => mutation.mutate()}
         >
