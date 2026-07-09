@@ -19,7 +19,7 @@ export function AttemptList() {
           key={c.index}
           role="listitem"
           variant="outline"
-          className="min-h-11 flex-nowrap bg-card"
+          className="min-h-11 flex-nowrap bg-card animate-in fade-in slide-in-from-bottom-1 duration-300 ease-out motion-reduce:animate-none"
         >
           <ItemContent className="font-mono tabular-nums">Cough {c.index}</ItemContent>
           <Badge

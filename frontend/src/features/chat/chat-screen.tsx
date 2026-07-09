@@ -19,6 +19,12 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@/components/ui/input-group";
 import { Marker, MarkerContent } from "@/components/ui/marker";
 import {
   MessageScroller,
@@ -100,8 +106,8 @@ export function ChatScreen() {
                 sendMessage();
               }}
             >
-              <div className="flex w-full flex-col rounded-xl border border-border-subtle bg-surface-sunken">
-                <textarea
+              <InputGroup className="rounded-xl border-border-subtle bg-surface-sunken">
+                <InputGroupTextarea
                   value={inputValue}
                   onChange={(event) => setInputValue(event.target.value)}
                   onKeyDown={(event) => {
@@ -114,10 +120,10 @@ export function ChatScreen() {
                   rows={2}
                   maxLength={500}
                   disabled={isBusy}
-                  className="field-sizing-content min-h-14 w-full resize-none border-0 bg-transparent px-3 py-2.5 text-base text-ink outline-none placeholder:text-ink-muted disabled:cursor-not-allowed disabled:opacity-60 md:text-sm"
+                  className="min-h-14 px-3 py-2.5 text-base text-ink placeholder:text-ink-muted md:text-sm"
                 />
-                <div className="flex items-center justify-end px-2 pb-2 pt-1">
-                  <Button
+                <InputGroupAddon align="block-end" className="justify-end pt-1">
+                  <InputGroupButton
                     type="submit"
                     variant="default"
                     size="icon-sm"
@@ -126,9 +132,9 @@ export function ChatScreen() {
                     aria-label="Send message"
                   >
                     <ArrowUpIcon className="size-4" />
-                  </Button>
-                </div>
-              </div>
+                  </InputGroupButton>
+                </InputGroupAddon>
+              </InputGroup>
             </form>
           </CardFooter>
         </Card>

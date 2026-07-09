@@ -17,15 +17,21 @@ const FILL: Record<RiskBand, string> = {
 export function RiskBandTrack({ band }: { band: RiskBand }) {
   return (
     <div className="flex gap-1" role="img" aria-label={`Model-estimated risk band: ${band}`}>
-      {ORDER.map((seg) => (
-        <span
-          key={seg}
-          className={cn(
-            "h-2 flex-1 rounded-bar border border-border-strong",
-            seg === band ? FILL[seg] : "bg-surface",
-          )}
-        />
-      ))}
+      {ORDER.map((seg) => {
+        const active = seg === band;
+        return (
+          <span
+            key={seg}
+            className="relative h-2 flex-1 overflow-hidden rounded-bar border border-border-strong bg-surface"
+          >
+            {/* Active band fills to position via a left-anchored scaleX grow
+                (risk-band-fill in globals.css) rather than popping in. */}
+            {active && (
+              <span aria-hidden="true" className={cn("absolute inset-0 risk-band-fill", FILL[seg])} />
+            )}
+          </span>
+        );
+      })}
     </div>
   );
 }

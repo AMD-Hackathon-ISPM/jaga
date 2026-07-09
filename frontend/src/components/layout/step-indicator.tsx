@@ -26,7 +26,7 @@ export function StepIndicator({ current }: { current: FlowStep }) {
               <span
                 aria-current={state === "current" ? "step" : undefined}
                 className={cn(
-                  "h-1 w-full rounded-bar",
+                  "h-1 w-full rounded-bar transition-colors duration-300 ease-out motion-reduce:transition-none",
                   state === "upcoming" ? "bg-border-subtle" : "bg-brand",
                 )}
               />

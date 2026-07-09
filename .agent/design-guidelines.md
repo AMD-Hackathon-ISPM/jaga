@@ -2,7 +2,8 @@
 
 **Document type:** Design guidelines
 **Audience:** Frontend, design, product, QA, and reviewers
-**Status:** Active · signed visual direction (Billy, 2026-06-28). Implementable.
+**Status:** Active · signed visual direction (Billy, 2026-06-28; palette rebranded to white + teal by Billy, 2026-07-09). Implementable.
+**Updated:** 2026-07-09
 **Canonical for:** Frontend information architecture, visual system, interaction states, microcopy, localization, accessibility, responsive behavior, and motion
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`product-brief.md`](product-brief.md), [`implementation-plan.md`](implementation-plan.md)
 
@@ -12,11 +13,11 @@ Sections labelled **Locked** are product and safety constraints and may not be r
 
 ## 1. Design direction
 
-Jaga should feel **warm, calm, considered, and trustworthy** — closer to a well-made reading or note-taking tool ([mymind](https://mymind.com), [Wisprflow](https://wisprflow.ai)) than to a clinical dashboard or a "medical AI" product. Warm cream surfaces, a serif voice for headings and the result, generous space, and quiet, purposeful motion. The community health worker should feel guided and unhurried, and the participant should never feel alarmed or falsely reassured.
+Jaga should feel **warm, calm, considered, and trustworthy** — closer to a well-made reading or note-taking tool ([mymind](https://mymind.com), [Wisprflow](https://wisprflow.ai)) than to a clinical dashboard or a "medical AI" product. Clean white surfaces with a teal brand accent, a serif voice for headings and the result, generous space, and quiet, purposeful motion. The community health worker should feel guided and unhurried, and the participant should never feel alarmed or falsely reassured.
 
-**Guiding principle — constraints are a budget, not a ceiling.** Low-end Android, intermittent network, and the accessibility floors (§9) define a *performance budget* and a *legibility floor*. They do **not** cap ambition or require a plain UI. The interface is fully expressive — warm cream, the serif voice, Ioskeley numerics, the live cough waveform, a real result reveal — *within* that budget (§5 performance budget). Reduced-motion and the 320 px layout are **graceful degradations of an already-beautiful default**, never a downgrade path.
+**Guiding principle — constraints are a budget, not a ceiling.** Low-end Android, intermittent network, and the accessibility floors (§9) define a *performance budget* and a *legibility floor*. They do **not** cap ambition or require a plain UI. The interface is fully expressive — white + teal, the serif voice, Ioskeley numerics, the live cough waveform, a real result reveal — *within* that budget (§5 performance budget). Reduced-motion and the 320 px layout are **graceful degradations of an already-beautiful default**, never a downgrade path.
 
-**Avoid:** medical-theatre effects; glass/blur as decoration; alarmist or "scanning" risk visuals; decorative motion that conveys no state; the generic industrial-dashboard look; gradient text; over-rounded cards. The cream palette here is a deliberate, committed choice carried by the serif + Ioskeley pairing — not an accidental warm-tinted near-white.
+**Avoid:** medical-theatre effects; glass/blur as decoration; alarmist or "scanning" risk visuals; decorative motion that conveys no state; the generic industrial-dashboard look; gradient text; over-rounded cards. The white + teal palette (rebrand 2026-07-09, replacing the original cream + deep-green) is a deliberate, committed choice carried by the serif + Ioskeley pairing.
 
 ## 2. Locked voice and safety language
 
@@ -124,26 +125,26 @@ The frontend proposal in `contracts/openapi/jaga-v1.yaml` pins the current field
 
 ### 4.3 Tokens (OKLCH)
 
-Cream + deep-green palette (hex where the value is fixed, OKLCH where designed). Verified against WCAG 2.2 (computed sRGB → contrast; ratios in §4.6, reproducible via [`../design/contrast.mjs`](../design/contrast.mjs)).
+White + teal palette (rebrand 2026-07-09; hex where the value is fixed, OKLCH where designed). Original cream + deep-green ratios in §4.6 / [`../design/contrast.mjs`](../design/contrast.mjs) predate the rebrand — spot-checked against white (status text ~7.3:1, band-intermediate 3.34:1, band-higher 6.69:1 all pass); full re-verification of §4.6 is open.
 
 | Token | Value | Role |
 |---|---|---|
-| `--canvas` | `#FFFFEB` | Page background (pale warm cream) |
-| `--surface` | `#FFFFF7` | Cards, raised panels |
-| `--surface-sunken` | `#F4F4DC` | Input wells, inset areas |
-| `--border-subtle` | `#E8E8D0` | Decorative dividers (redundant, sub-3:1 allowed) |
-| `--border-strong` | `oklch(0.62 0.020 95)` | **Essential** control/input/track outlines (≥3:1) |
-| `--ink` | `#1A1A1A` | Primary body text (near-black) |
-| `--ink-muted` | `oklch(0.49 0.018 95)` | Secondary text, labels, **placeholders** |
-| `--brand` | `#024F46` | Deep pine green: links, accents, button fill (white text), focus base, success |
-| `--focus` | `oklch(0.50 0.090 165)` | Focus ring (2 px + 1 px offset) |
+| `--canvas` | `#FFFFFF` | Page background (pure white) |
+| `--surface` | `#FFFFFF` | Cards, raised panels |
+| `--surface-sunken` | `#F7FAFC` | Input wells, inset areas |
+| `--border-subtle` | `#E2E8F0` | Decorative dividers (redundant, sub-3:1 allowed) |
+| `--border-strong` | `oklch(0.62 0.030 255)` | **Essential** control/input/track outlines (≥3:1) |
+| `--ink` | `#2D3748` | Primary body text (dark slate) |
+| `--ink-muted` | `oklch(0.447 0.034 261)` | Secondary text, labels, **placeholders** (≈ `#4A5568`) |
+| `--brand` | `#007A87` | Teal: links, accents, button fill (white text), focus base, success. Matches the logo mark (`src/assets/icon.svg`). |
+| `--focus` | `oklch(0.53 0.090 205)` | Focus ring (2 px + 1 px offset) |
 | `--info` / `--info-surface` | `oklch(0.45 0.095 245)` / `oklch(0.95 0.030 240)` | Info text / tint |
 | `--warning` / `--warning-surface` | `oklch(0.45 0.085 70)` / `oklch(0.95 0.040 85)` | Warning text / tint |
 | `--error` / `--error-surface` | `oklch(0.47 0.155 28)` / `oklch(0.95 0.045 25)` | Error text / tint |
 | `--error-strong` | `#B3261E` | Destructive button fill (white text) |
-| `--success` | `#024F46` | Process completion (= the deep green), **not** clinical clearance |
+| `--success` | `#007A87` | Process completion (= the brand teal), **not** clinical clearance |
 
-`--success` reuses `--brand` and is reserved for **process** completion (a captured/accepted attempt), never for a risk band or "all clear" meaning. The deep green carries **actions only** and never appears on a risk band, so a lower estimate cannot read as clearance.
+`--success` reuses `--brand` and is reserved for **process** completion (a captured/accepted attempt), never for a risk band or "all clear" meaning. The brand teal carries **actions only** and never appears on a risk band, so a lower estimate cannot read as clearance.
 
 ### 4.4 Risk-band presentation (Lower / Intermediate / Higher)
 

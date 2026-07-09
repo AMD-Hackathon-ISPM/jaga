@@ -36,7 +36,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   // Allow user zoom to 200% (accessibility, §5.1); do not lock scale.
   maximumScale: 5,
-  themeColor: "#024F46",
+  themeColor: "#007A87",
 };
 
 /**

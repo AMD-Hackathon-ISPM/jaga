@@ -38,7 +38,7 @@ export function CoughWaveform({
     window.addEventListener("resize", resize);
 
     const brand =
-      getComputedStyle(canvas).getPropertyValue("--brand").trim() || "#024F46";
+      getComputedStyle(canvas).getPropertyValue("--brand").trim() || "#007A87";
     const BAR_W = 3 * dpr;
     const GAP = 3 * dpr;
 

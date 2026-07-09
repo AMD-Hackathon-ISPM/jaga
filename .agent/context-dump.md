@@ -3,7 +3,7 @@
 **Document type:** Historical decision record
 **Audience:** Contributors, reviewers, and future maintainers
 **Status:** Historical; current revision and decisions are summarized in Sections 15–20
-**Updated:** 2026-06-30
+**Updated:** 2026-07-09
 **Canonical for:** Product history, superseded ideas, and decision rationale
 **Companion documents:** [`evidence-register.md`](evidence-register.md), [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`log.md`](log.md)
 
@@ -195,6 +195,7 @@ This phase supersedes the current-state summaries written before 28 June. Earlie
 
 | Decision | Reasoning |
 |---|---|
+| **Rebrand to white + teal (`#007A87` brand, `#FFFFFF` canvas, `#2D3748` ink) with the `icon.svg` cube mark as favicon and in-app logo** | Billy signed the new identity on 2026-07-09, superseding the cream + deep-green palette signed 2026-06-28. Token names, safety hierarchy, risk-band ramp, and status hues are unchanged; only surface/brand/ink values moved. See `design-guidelines.md` §4.3 and the 2026-07-09 log entry. |
 | **Build an investigational research prototype for the Unicorn track** | The sprint can demonstrate a technically meaningful product without implying clinical validation or deployment readiness. |
 | **Cough plus supported clinical variables is the [MVP] research core** | CODA pairs these inputs at participant level; CXR data is not paired and cannot support a fused evaluation. |
 | **Use five solicited coughs** | This matches the documented CODA collection protocol and gives the quality gate a concrete contract. |

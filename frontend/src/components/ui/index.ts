@@ -35,8 +35,4 @@ export {
 } from "./item";
 export { RadioGroup, RadioGroupItem } from "./radio-group";
 export { ToggleGroup, ToggleGroupItem } from "./toggle-group";
-export { Table, THead, TBody, TR, TH, TD } from "./table";
-export { Dialog } from "./dialog";
-export { Modal } from "./modal";
-export { EmptyState } from "./empty-state";
 export { ErrorState } from "./error-state";
