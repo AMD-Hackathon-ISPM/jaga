@@ -14,11 +14,9 @@
     "night_sweats_last_30_days": true,
     "weight_loss_last_30_days": true
   },
-  "coughs": [
-    { "index": 1, "status": "accepted" },
-    { "index": 2, "status": "accepted" },
-    { "index": 3, "status": "retryable" },
-    { "index": 4, "status": "empty" },
-    { "index": 5, "status": "empty" }
-  ]
+  "coughRecording": {
+    "fileName": "cough-session.webm",
+    "durationMs": 90000,
+    "coughEvents": [1200, 4800, 9200, 15300, 22800, 41100]
+  }
 }

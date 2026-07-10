@@ -2,6 +2,7 @@
 
 import { useCoughRecorder } from "@/hooks/use-cough-recorder";
 import { useT } from "@/hooks/use-t";
+import type { CoughRecording } from "@/store/session.store";
 import { CoughWaveform } from "./cough-waveform";
 import { RecordButton } from "./record-button";
 
@@ -10,7 +11,7 @@ export function CoughRecorder({
   onCaptured,
 }: {
   attemptIndex: number;
-  onCaptured: (file: File) => void;
+  onCaptured: (rec: CoughRecording) => void;
 }) {
   const t = useT();
   const { state, start, stop, analyserRef } = useCoughRecorder(onCaptured);

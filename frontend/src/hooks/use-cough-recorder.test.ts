@@ -1,5 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
-import { selectRecorderMimeType } from "./use-cough-recorder";
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { RECORDING_MS, selectRecorderMimeType, useCoughRecorder } from "./use-cough-recorder";
+import type { CoughRecording } from "@/store/session.store";
 
 describe("selectRecorderMimeType", () => {
   it("selects a supported WebM recording format", () => {
@@ -9,5 +11,185 @@ describe("selectRecorderMimeType", () => {
 
   it("fails when the browser cannot create WebM audio", () => {
     expect(() => selectRecorderMimeType(() => false)).toThrow("WebM audio recording is unavailable.");
+  });
+});
+
+// --- Mocked media stack for recording semantics -----------------------------
+
+class MockMediaRecorder {
+  static isTypeSupported = vi.fn(() => true);
+  state: "inactive" | "recording" = "inactive";
+  ondataavailable: ((event: { data: Blob }) => void) | null = null;
+  onstop: (() => void) | null = null;
+  readonly mimeType: string;
+
+  constructor(_stream: MediaStream, options: { mimeType: string }) {
+    this.mimeType = options.mimeType;
+  }
+
+  start() {
+    this.state = "recording";
+  }
+
+  // Real MediaRecorders deliver dataavailable/stop ASYNCHRONOUSLY after
+  // stop(). Modeling that with a macrotask is what exercises the
+  // restart-vs-stale-onstop race: a restart() re-arms a new take before the
+  // old recorder's handlers ever run.
+  stop() {
+    this.state = "inactive";
+    setTimeout(() => {
+      this.ondataavailable?.({ data: new Blob(["chunk"], { type: this.mimeType }) });
+      this.onstop?.();
+    }, 0);
+  }
+}
+
+class MockAudioContext {
+  createMediaStreamSource() {
+    return { connect: () => {} };
+  }
+  createAnalyser() {
+    return {
+      fftSize: 1024,
+      smoothingTimeConstant: 0,
+      connect: () => {},
+      getFloatTimeDomainData: () => {},
+    };
+  }
+  close() {
+    return Promise.resolve();
+  }
+}
+
+function installMediaMocks() {
+  const stream = { getTracks: () => [{ stop: () => {} }] } as unknown as MediaStream;
+  const getUserMedia = vi.fn(async () => stream);
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: { getUserMedia },
+  });
+  vi.stubGlobal("MediaRecorder", MockMediaRecorder);
+  vi.stubGlobal("AudioContext", MockAudioContext);
+  // Keep the sampling loop inert so tests exercise cap/restart logic only.
+  vi.stubGlobal("requestAnimationFrame", vi.fn(() => 1));
+  vi.stubGlobal("cancelAnimationFrame", vi.fn());
+  return { getUserMedia };
+}
+
+describe("useCoughRecorder", () => {
+  beforeEach(() => {
+    // Fake `performance` too so elapsed/duration math is deterministic and
+    // advances in lockstep with the timer clock.
+    vi.useFakeTimers({
+      toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval", "Date", "performance"],
+    });
+    installMediaMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("starts recording", async () => {
+    const onCaptured = vi.fn();
+    const { result } = renderHook(() => useCoughRecorder(onCaptured));
+
+    await act(async () => {
+      await result.current.start();
+    });
+
+    expect(result.current.state).toBe("recording");
+    expect(onCaptured).not.toHaveBeenCalled();
+  });
+
+  it("auto-stops at the hard cap and captures a full CoughRecording", async () => {
+    const onCaptured = vi.fn();
+    const { result } = renderHook(() => useCoughRecorder(onCaptured));
+
+    await act(async () => {
+      await result.current.start();
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(RECORDING_MS);
+      vi.advanceTimersByTime(1); // flush the recorder's async onstop (macrotask)
+    });
+
+    expect(onCaptured).toHaveBeenCalledTimes(1);
+    const rec = onCaptured.mock.calls[0][0] as CoughRecording;
+    expect(rec.file).toBeInstanceOf(File);
+    expect(rec.file.type).toBe("audio/webm;codecs=opus");
+    expect(rec.file.name).toMatch(/^cough-\d+\.webm$/);
+    expect(rec.file.size).toBeGreaterThan(0);
+    expect(rec.durationMs).toBe(RECORDING_MS);
+    expect(rec.coughEvents).toEqual([]); // sampling loop inert in jsdom
+    expect(result.current.state).toBe("idle");
+  });
+
+  it("captures with the elapsed duration when stopped manually before the cap", async () => {
+    const onCaptured = vi.fn();
+    const { result } = renderHook(() => useCoughRecorder(onCaptured));
+
+    await act(async () => {
+      await result.current.start();
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(5_000); // record for 5s of fake time
+    });
+    await act(async () => {
+      result.current.stop();
+      vi.advanceTimersByTime(1); // flush the recorder's async onstop (macrotask)
+    });
+
+    expect(onCaptured).toHaveBeenCalledTimes(1);
+    const rec = onCaptured.mock.calls[0][0] as CoughRecording;
+    expect(rec.file).toBeInstanceOf(File);
+    expect(rec.durationMs).toBe(5_000);
+    expect(rec.coughEvents).toEqual([]);
+    expect(result.current.state).toBe("idle");
+  });
+
+  it("restart discards the take even though the old recorder stops asynchronously", async () => {
+    const onCaptured = vi.fn();
+    const { result } = renderHook(() => useCoughRecorder(onCaptured));
+
+    await act(async () => {
+      await result.current.start();
+    });
+    await act(async () => {
+      await result.current.restart();
+    });
+    expect(result.current.state).toBe("recording");
+
+    // The OLD recorder's dataavailable/onstop fire only now — after restart()
+    // has already re-armed a new take. The discarded take must not capture.
+    await act(async () => {
+      vi.advanceTimersByTime(0);
+    });
+    expect(onCaptured).not.toHaveBeenCalled();
+
+    // The re-armed take still captures at the cap, exactly once.
+    await act(async () => {
+      vi.advanceTimersByTime(RECORDING_MS);
+      vi.advanceTimersByTime(1); // flush the recorder's async onstop (macrotask)
+    });
+    expect(onCaptured).toHaveBeenCalledTimes(1);
+    const rec = onCaptured.mock.calls[0][0] as CoughRecording;
+    expect(rec.durationMs).toBe(RECORDING_MS);
+  });
+
+  it("does not capture when unmounted mid-recording", async () => {
+    const onCaptured = vi.fn();
+    const { result, unmount } = renderHook(() => useCoughRecorder(onCaptured));
+
+    await act(async () => {
+      await result.current.start();
+    });
+    unmount();
+    await act(async () => {
+      vi.advanceTimersByTime(1); // flush the recorder's async onstop (macrotask)
+    });
+
+    expect(onCaptured).not.toHaveBeenCalled();
   });
 });

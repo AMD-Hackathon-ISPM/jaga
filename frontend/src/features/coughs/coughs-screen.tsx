@@ -1,13 +1,12 @@
 "use client";
 
-import { Fragment, useCallback, useState } from "react";
+import { Fragment, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { IconChevronRight } from "@tabler/icons-react";
 import { CoughRecorder } from "./cough-recorder";
-import { AttemptList } from "./attempt-list";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/hooks/use-t";
-import { useSessionStore } from "@/store/session.store";
+import { type CoughRecording, useSessionStore } from "@/store/session.store";
 
 /** Splits a "*strong* text" template into <strong> and plain spans. */
 function emphasize(template: string) {
@@ -25,22 +24,16 @@ function emphasize(template: string) {
 export function CoughsScreen() {
   const t = useT();
   const router = useRouter();
-  const coughFiles = useSessionStore((state) => state.coughFiles);
-  const setCough = useSessionStore((state) => state.setCough);
+  const coughRecording = useSessionStore((state) => state.coughRecording);
+  const setCoughRecording = useSessionStore((state) => state.setCoughRecording);
 
-  // Which slot the recorder writes to: the requested replace slot if any, else
-  // the first empty slot (falls back to the last once all five are recorded).
-  const [replaceIndex, setReplaceIndex] = useState<number | null>(null);
-  const firstEmptyIndex = coughFiles.findIndex((file) => file === null);
-  const targetIndex = replaceIndex ?? (firstEmptyIndex === -1 ? 4 : firstEmptyIndex);
-  const complete = coughFiles.every(Boolean);
+  const complete = coughRecording !== null;
 
   const onCaptured = useCallback(
-    (file: File) => {
-      setCough(targetIndex, file);
-      setReplaceIndex(null);
+    (rec: CoughRecording) => {
+      setCoughRecording(rec);
     },
-    [targetIndex, setCough],
+    [setCoughRecording],
   );
 
   return (
@@ -53,9 +46,7 @@ export function CoughsScreen() {
         <li>{emphasize(t("coughs.bullets.capture"))}</li>
       </ul>
 
-      <CoughRecorder attemptIndex={targetIndex + 1} onCaptured={onCaptured} />
-
-      <AttemptList onReplace={setReplaceIndex} />
+      <CoughRecorder attemptIndex={1} onCaptured={onCaptured} />
 
       <div className="mt-2 flex flex-col gap-3">
         {!complete && (

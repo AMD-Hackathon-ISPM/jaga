@@ -78,21 +78,22 @@ export function ReviewScreen() {
   const router = useRouter();
   const t = useT();
   const clinical = useSessionStore((state) => state.clinical);
-  const coughFiles = useSessionStore((state) => state.coughFiles);
+  const coughRecording = useSessionStore((state) => state.coughRecording);
   const setResult = useSessionStore((state) => state.setResult);
   const setSubmitState = useSessionStore((state) => state.setSubmitState);
   const parsedClinical = clinicalSchema.safeParse(clinical);
-  const coughs = coughFiles.filter((file): file is File => file !== null);
-  const ready = parsedClinical.success && coughs.length === 5;
+  const ready = parsedClinical.success && coughRecording !== null;
 
   const mutation = useMutation({
     mutationFn: () => {
-      if (!parsedClinical.success || coughs.length !== 5) {
-        throw new Error("Complete the clinical form and five cough recordings first.");
+      if (!parsedClinical.success || !coughRecording) {
+        throw new Error("Complete the clinical form and cough recording first.");
       }
       setSubmitState("uploading");
+      // NOTE: Task 7 (D4) reworks the contract/service to a single cough field.
+      // For now we pass the single recording as a one-element File[].
       return triageService.submitTriage(
-        { clinical: parsedClinical.data, coughs },
+        { clinical: parsedClinical.data, coughs: [coughRecording.file] },
         { onUploadProgress: (progress) => setSubmitState(progress < 1 ? "uploading" : "processing") },
       );
     },
@@ -146,20 +147,18 @@ export function ReviewScreen() {
         <section className="rounded-control border border-brand bg-card py-4">
           <h2 className="px-4 text-lg font-semibold text-ink">{t("review.coughsTitle")}</h2>
           <ul className="mt-3 flex flex-col gap-2 px-4">
-            {coughFiles.map((file, index) => (
-              <li key={index} className="flex min-h-11 items-center justify-between gap-4">
-                <span className="text-base text-ink">
-                  {t("review.coughLabel").replace("{n}", String(index + 1))}
-                </span>
-                <span className="font-mono text-base tabular-nums text-ink">
-                  {file
-                    ? t("review.coughMeta")
-                        .replace("{size}", String(Math.max(1, Math.round(file.size / 1024))))
-                        .replace("{format}", "WebM")
-                    : t("review.coughMissing")}
-                </span>
-              </li>
-            ))}
+            <li className="flex min-h-11 items-center justify-between gap-4">
+              <span className="text-base text-ink">
+                {t("review.coughLabel").replace("{n}", "1")}
+              </span>
+              <span className="font-mono text-base tabular-nums text-ink">
+                {coughRecording
+                  ? t("review.coughMeta")
+                      .replace("{size}", String(Math.max(1, Math.round(coughRecording.file.size / 1024))))
+                      .replace("{format}", "WebM")
+                  : t("review.coughMissing")}
+              </span>
+            </li>
           </ul>
         </section>
       </div>

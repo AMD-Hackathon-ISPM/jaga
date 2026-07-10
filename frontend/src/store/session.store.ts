@@ -23,17 +23,22 @@ import type {
  * request for a Zustand store.
  */
 
-interface CoughAttempt {
-  index: number; // 1..5
-  status: "empty" | "recording" | "captured" | "accepted" | "retryable";
+/**
+ * A single ≤90-second cough recording plus the client-side detection metadata.
+ * `coughEvents` are millisecond offsets from the start of the recording where
+ * the heuristic detector (illustrative prototype) registered a cough.
+ */
+export interface CoughRecording {
+  file: File;
+  durationMs: number;
+  coughEvents: number[];
 }
 
 interface SessionState {
   step: FlowStep;
   gateAcknowledgements: GateAcknowledgements;
   clinical: Partial<PatientIntakeRequest>;
-  coughs: CoughAttempt[];
-  coughFiles: Array<File | null>;
+  coughRecording: CoughRecording | null;
   submitState: SubmitState;
   result: TriageResult | null;
   requestId: string | null;
@@ -42,23 +47,17 @@ interface SessionState {
   setStep: (step: FlowStep) => void;
   setGateAcknowledgement: (key: GateAcknowledgementKey, value: boolean) => void;
   setClinical: (values: Partial<PatientIntakeRequest>) => void;
-  setCough: (index: number, file: File) => void;
+  setCoughRecording: (rec: CoughRecording | null) => void;
   setSubmitState: (state: SubmitState) => void;
   setResult: (result: TriageResult | null) => void;
   reset: () => void;
 }
 
-const emptyCoughs: CoughAttempt[] = Array.from({ length: 5 }, (_, i) => ({
-  index: i + 1,
-  status: "empty",
-}));
-
 const initialState = {
   step: "gate" as FlowStep,
   gateAcknowledgements: { ...EMPTY_GATE_ACKNOWLEDGEMENTS },
   clinical: {} as Partial<PatientIntakeRequest>,
-  coughs: emptyCoughs,
-  coughFiles: Array.from({ length: 5 }, () => null) as Array<File | null>,
+  coughRecording: null as CoughRecording | null,
   submitState: "idle" as SubmitState,
   result: null as TriageResult | null,
   requestId: null as string | null,
@@ -72,22 +71,14 @@ export const useSessionStore = create<SessionState>((set) => ({
       gateAcknowledgements: { ...state.gateAcknowledgements, [key]: value },
     })),
   setClinical: (values) => set((s) => ({ clinical: { ...s.clinical, ...values } })),
-  setCough: (index, file) =>
-    set((state) => ({
-      coughFiles: state.coughFiles.map((current, currentIndex) =>
-        currentIndex === index ? file : current,
-      ),
-      coughs: state.coughs.map((attempt, currentIndex) =>
-        currentIndex === index ? { ...attempt, status: "captured" } : attempt,
-      ),
-    })),
+  setCoughRecording: (coughRecording) => set({ coughRecording }),
   setSubmitState: (submitState) => set({ submitState }),
   setResult: (result) => set({ result }),
   reset: () =>
     set({
       ...initialState,
       gateAcknowledgements: { ...EMPTY_GATE_ACKNOWLEDGEMENTS },
-      coughs: emptyCoughs.map((c) => ({ ...c })),
-      coughFiles: Array.from({ length: 5 }, () => null),
+      clinical: {},
+      coughRecording: null,
     }),
 }));
