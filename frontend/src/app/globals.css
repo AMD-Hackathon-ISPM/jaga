@@ -28,6 +28,13 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  /* Focus ramp (salience-only, non-risk) — see tokens.css. Consumed by the
+     cough detection pulse and the result focus strip (Task 8). */
+  --color-focus-ramp-1: var(--focus-ramp-1);
+  --color-focus-ramp-2: var(--focus-ramp-2);
+  --color-focus-ramp-3: var(--focus-ramp-3);
+  --color-focus-ramp-4: var(--focus-ramp-4);
+  --color-focus-ramp-5: var(--focus-ramp-5);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -168,5 +175,30 @@
     -webkit-background-clip: unset;
     background-clip: unset;
     @apply text-ink-muted;
+  }
+}
+
+/*
+ * Cough-detection pulse — a brief warm bloom over the live waveform each time
+ * the heuristic registers a cough. Salience feedback only (focus ramp, never a
+ * risk color). Keyed on the detection count so a remount re-triggers it. Under
+ * the global reduced-motion guard above, the near-zero duration snaps straight
+ * to opacity 0 — no visible flash, count-only, as required.
+ */
+.cough-pulse {
+  background: radial-gradient(
+    70% 130% at 50% 50%,
+    var(--focus-ramp-4) 0%,
+    transparent 72%
+  );
+  animation: cough-pulse 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cough-pulse {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0;
   }
 }

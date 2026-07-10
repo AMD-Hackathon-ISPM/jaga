@@ -44,4 +44,17 @@
   --band-intermediate: oklch(0.65 0.11 58);
   --band-higher: oklch(0.49 0.14 36);
 
+  /*
+   * Focus ramp (cream → deep orange) — SALIENCE ONLY, NON-RISK.
+   * Marks where the client-side heuristic "paid attention" (cough detection
+   * pulse, result focus strip). It NEVER carries clinical risk meaning and is
+   * deliberately distinct from --band-* (risk) and --brand (teal, interaction).
+   * Monotonic lightness so a single swatch reads as low→high salience.
+   */
+  --focus-ramp-1: oklch(0.96 0.028 68); /* low focus — warm cream */
+  --focus-ramp-2: oklch(0.88 0.075 62);
+  --focus-ramp-3: oklch(0.78 0.13 55);
+  --focus-ramp-4: oklch(0.66 0.17 48); /* pulse flash color */
+  --focus-ramp-5: oklch(0.53 0.16 44); /* high focus — deep burnt orange ≈ #B33A00 */
+
 }

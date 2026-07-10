@@ -1,65 +1,153 @@
 "use client";
 
-import { useCoughRecorder } from "@/hooks/use-cough-recorder";
+import { RECORDING_MS, useCoughRecorder } from "@/hooks/use-cough-recorder";
 import { useT } from "@/hooks/use-t";
 import type { CoughRecording } from "@/store/session.store";
+import { Button } from "@/components/ui/button";
 import { CoughWaveform } from "./cough-waveform";
 import { RecordButton } from "./record-button";
 
+/** Format a millisecond value as clock time (m:ss). */
+function formatClock(ms: number): string {
+  const total = Math.max(0, Math.round(ms / 1000));
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+/**
+ * Single-session cough recorder card. Three live faces, one calm frame:
+ *  · prompt   — idle / requesting / denied / error: mic button + status.
+ *  · recording — remaining-time countdown, live waveform with a warm detection
+ *    pulse, running "N coughs detected" count, stop button.
+ *  · captured  — summary (length + detected count) and "Record again".
+ *
+ * The heuristic cough count is interaction feedback, labelled on-screen as
+ * illustrative (safety invariant: client-side detection is never presented as
+ * a clinical measurement). Continue lives in the parent screen.
+ */
 export function CoughRecorder({
-  attemptIndex,
+  coughRecording,
   onCaptured,
 }: {
-  attemptIndex: number;
+  coughRecording: CoughRecording | null;
   onCaptured: (rec: CoughRecording) => void;
 }) {
   const t = useT();
-  const { state, start, stop, analyserRef } = useCoughRecorder(onCaptured);
+  const { state, start, stop, restart, elapsedMs, coughEvents, analyserRef } =
+    useCoughRecorder(onCaptured);
+
   const recording = state === "recording";
+  const requesting = state === "requesting";
+  const failed = state === "denied" || state === "error";
+  const captured = !recording && !requesting && !failed && coughRecording !== null;
+
+  const detectedText = (count: number) =>
+    t(count === 1 ? "coughs.detected.one" : "coughs.detected.other").replace(
+      "{n}",
+      String(count),
+    );
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Attempt counter — teal pill, numerals in Ioskeley Mono. */}
-      <div className="flex justify-center">
-        <span className="inline-flex min-h-6 items-center rounded-full bg-brand px-3 py-1 text-sm font-medium text-white">
-          {t("coughs.attemptPill")
-            .split(/(\{n\}|\{total\})/)
-            .map((part, i) =>
-              part === "{n}" || part === "{total}" ? (
-                <span key={i} className="font-mono tabular-nums">
-                  {part === "{n}" ? attemptIndex : 5}
-                </span>
-              ) : (
-                <span key={i} className="whitespace-pre-wrap">
-                  {part}
-                </span>
-              ),
+    <div className="rounded-frame border border-border-subtle bg-surface p-6">
+      {recording ? (
+        <div className="flex flex-col items-center gap-5">
+          {/* Remaining time — the dominant, calm readout. */}
+          <div className="flex flex-col items-center">
+            <span
+              className="font-mono text-4xl font-semibold tabular-nums text-ink"
+              aria-hidden="true"
+            >
+              {formatClock(RECORDING_MS - elapsedMs)}
+            </span>
+            <span className="mt-1 text-xs text-ink-muted">{t("coughs.remaining")}</span>
+          </div>
+
+          {/* Live waveform with a brief warm pulse at each detection. Full-bleed
+              within the card padding. */}
+          <div className="relative -mx-6 overflow-hidden">
+            <CoughWaveform analyserRef={analyserRef} active={recording} />
+            {coughEvents.length > 0 && (
+              <span
+                key={coughEvents.length}
+                aria-hidden="true"
+                className="cough-pulse pointer-events-none absolute inset-0"
+              />
             )}
-        </span>
-      </div>
+          </div>
 
-      {/* Dotted teal separator across the content width. */}
-      <div className="h-0 border-t-2 border-dotted border-brand" role="presentation" />
+          <div className="flex flex-col items-center gap-1.5">
+            <span
+              aria-live="polite"
+              className="inline-flex items-center rounded-full bg-focus-ramp-1 px-3 py-1 text-sm font-medium text-focus-ramp-5"
+            >
+              {detectedText(coughEvents.length)}
+            </span>
+            <span className="max-w-[34ch] text-center text-xs text-ink-muted">
+              {t("coughs.detectedNote")}
+            </span>
+          </div>
 
-      <div className="flex flex-col items-center gap-3">
-        <RecordButton
-          recording={recording}
-          onClick={recording ? stop : start}
-          disabled={state === "requesting"}
-          startLabel={t("coughs.record.start")}
-          stopLabel={t("coughs.record.stop")}
-        />
-        <p aria-live="polite" className="min-h-[1.25rem] text-center text-base text-ink-muted">
-          {t(`coughs.status.${state}`)}
-        </p>
-      </div>
+          <RecordButton
+            recording
+            onClick={stop}
+            startLabel={t("coughs.record.start")}
+            stopLabel={t("coughs.record.stop")}
+          />
+        </div>
+      ) : captured && coughRecording ? (
+        <div className="flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col rounded-control bg-surface-sunken px-4 py-3">
+              <span className="text-xs text-ink-muted">{t("coughs.captured.duration")}</span>
+              <span className="mt-0.5 font-mono text-2xl font-semibold tabular-nums text-ink">
+                {formatClock(coughRecording.durationMs)}
+              </span>
+            </div>
+            <div className="flex flex-col rounded-control bg-surface-sunken px-4 py-3">
+              <span className="text-xs text-ink-muted">{t("coughs.captured.coughs")}</span>
+              <span className="mt-0.5 font-mono text-2xl font-semibold tabular-nums text-focus-ramp-5">
+                {coughRecording.coughEvents.length}
+              </span>
+            </div>
+          </div>
 
-      {/* Live waveform only while recording — keeps the idle screen clean like
-          the Figma reference. CoughWaveform handles its own reduced-motion path
-          (static level meter). Full-bleed: -mx-4 cancels the flow padding. */}
-      {recording && (
-        <div className="-mx-4 overflow-hidden">
-          <CoughWaveform analyserRef={analyserRef} active={recording} />
+          <p className="text-xs text-ink-muted">{t("coughs.detectedNote")}</p>
+
+          {coughRecording.durationMs <= 2000 && (
+            <p className="text-sm text-error" role="status">
+              {t("coughs.captured.tooShort")}
+            </p>
+          )}
+
+          <Button type="button" variant="return" onClick={restart} className="self-start">
+            {t("coughs.captured.again")}
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-4">
+          <RecordButton
+            recording={false}
+            onClick={start}
+            disabled={requesting}
+            startLabel={t("coughs.record.start")}
+            stopLabel={t("coughs.record.stop")}
+          />
+          <div className="flex flex-col items-center gap-1">
+            <p
+              aria-live="polite"
+              className={`min-h-[1.25rem] text-center text-base ${
+                failed ? "text-error" : "text-ink-muted"
+              }`}
+            >
+              {t(`coughs.status.${state}`)}
+            </p>
+            {state === "idle" && (
+              <span className="font-mono text-sm tabular-nums text-ink-muted">
+                {t("coughs.hint")}
+              </span>
+            )}
+          </div>
         </div>
       )}
     </div>

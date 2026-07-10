@@ -165,15 +165,15 @@
     "incompleteHint": "Lengkapi semua bidang wajib untuk melanjutkan."
   },
   "coughs": {
-    "title": "Rekam lima batuk",
+    "title": "Rekam batuk Anda",
     "bullets": {
-      "attempt": "*Satu percobaan* dalam satu waktu.",
-      "replay": "Setiap rekaman dapat *diputar ulang* atau *diganti*.",
-      "capture": "Rekaman ponsel *tidak sama* dengan rekaman klinik."
+      "duration": "Rekam hingga *1 menit 30 detik*.",
+      "natural": "Batuklah *secara alami, beberapa kali* selama perekaman berlangsung.",
+      "finish": "Berhenti saat sudah selesai, atau biarkan rekaman *berhenti sendiri*.",
+      "retry": "Merekam ulang akan *menghapus rekaman ini* dan memulai lagi dari nol."
     },
-    "attemptPill": "Percobaan {n} dari {total}",
     "status": {
-      "idle": "Ketuk untuk merekam batuk",
+      "idle": "Ketuk untuk mulai merekam",
       "requesting": "Izinkan akses mikrofon…",
       "recording": "Merekam… ketuk untuk berhenti",
       "denied": "Mikrofon diblokir. Aktifkan di pengaturan browser Anda, lalu coba lagi.",
@@ -183,20 +183,25 @@
       "start": "Mulai merekam",
       "stop": "Hentikan perekaman"
     },
-    "row": {
-      "label": "Batuk {n}",
-      "waiting": "menunggu untuk direkam",
-      "empty": "kosong",
-      "play": "Putar batuk {n}",
-      "replace": "Rekam ulang batuk {n}"
+    "hint": "Hingga 1:30",
+    "remaining": "tersisa",
+    "detected": {
+      "one": "{n} batuk terdeteksi",
+      "other": "{n} batuk terdeteksi"
     },
+    "detectedNote": "Deteksi batuk berjalan di perangkat dan bersifat ilustratif, bukan pengukuran klinis.",
     "waveform": {
       "live": "Tingkat input batuk langsung",
       "idle": "Gelombang batuk, tidak aktif"
     },
+    "captured": {
+      "duration": "Durasi",
+      "coughs": "Batuk terdeteksi",
+      "again": "Rekam ulang",
+      "tooShort": "Rekaman terlalu pendek. Rekam ulang agar cukup untuk dianalisis."
+    },
     "return": "Kembali",
-    "continue": "Lanjutkan",
-    "incompleteHint": "Rekam kelima batuk untuk melanjutkan."
+    "continue": "Lanjutkan"
   },
   "chat": {
     "title": "Asisten panduan",

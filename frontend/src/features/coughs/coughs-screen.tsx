@@ -27,7 +27,8 @@ export function CoughsScreen() {
   const coughRecording = useSessionStore((state) => state.coughRecording);
   const setCoughRecording = useSessionStore((state) => state.setCoughRecording);
 
-  const complete = coughRecording !== null;
+  // A recording exists and is long enough to be worth analysing.
+  const canContinue = coughRecording !== null && coughRecording.durationMs > 2000;
 
   const onCaptured = useCallback(
     (rec: CoughRecording) => {
@@ -41,20 +42,15 @@ export function CoughsScreen() {
       <h1 className="text-2xl font-semibold text-ink">{t("coughs.title")}</h1>
 
       <ul className="flex list-disc flex-col gap-1 pl-5 text-ink-muted marker:text-ink">
-        <li>{emphasize(t("coughs.bullets.attempt"))}</li>
-        <li>{emphasize(t("coughs.bullets.replay"))}</li>
-        <li>{emphasize(t("coughs.bullets.capture"))}</li>
+        <li>{emphasize(t("coughs.bullets.duration"))}</li>
+        <li>{emphasize(t("coughs.bullets.natural"))}</li>
+        <li>{emphasize(t("coughs.bullets.finish"))}</li>
+        <li>{emphasize(t("coughs.bullets.retry"))}</li>
       </ul>
 
-      <CoughRecorder attemptIndex={1} onCaptured={onCaptured} />
+      <CoughRecorder coughRecording={coughRecording} onCaptured={onCaptured} />
 
-      <div className="mt-2 flex flex-col gap-3">
-        {!complete && (
-          <p className="text-base text-ink-muted" role="status">
-            {t("coughs.incompleteHint")}
-          </p>
-        )}
-        <div className="flex gap-3">
+      <div className="mt-2 flex gap-3">
         <Button
           type="button"
           variant="return"
@@ -66,13 +62,12 @@ export function CoughsScreen() {
         <Button
           type="button"
           className="flex-1"
-          disabled={!complete}
+          disabled={!canContinue}
           onClick={() => router.push("/review")}
         >
           <span>{t("coughs.continue")}</span>
           <IconChevronRight data-icon="inline-end" aria-hidden="true" />
         </Button>
-        </div>
       </div>
     </div>
   );

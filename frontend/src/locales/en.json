@@ -165,15 +165,15 @@
     "incompleteHint": "Complete all required fields to continue."
   },
   "coughs": {
-    "title": "Record five coughs",
+    "title": "Record your cough",
     "bullets": {
-      "attempt": "*One attempt* at a time.",
-      "replay": "Each can be *replayed* or *replaced*.",
-      "capture": "Phone capture is *not the same* as a clinic recording."
+      "duration": "Record for up to *1 minute 30 seconds*.",
+      "natural": "Cough *naturally, several times* while it records.",
+      "finish": "Stop when you're done, or let the recording *finish on its own*.",
+      "retry": "Recording again *discards this take* and starts over from zero."
     },
-    "attemptPill": "Attempt {n} of {total}",
     "status": {
-      "idle": "Tap to record a cough",
+      "idle": "Tap to start recording",
       "requesting": "Allow microphone access…",
       "recording": "Recording… tap to stop",
       "denied": "Microphone blocked. Enable it in your browser settings, then try again.",
@@ -183,20 +183,25 @@
       "start": "Start recording",
       "stop": "Stop recording"
     },
-    "row": {
-      "label": "Cough {n}",
-      "waiting": "waiting to be recorded",
-      "empty": "empty",
-      "play": "Play cough {n}",
-      "replace": "Re-record cough {n}"
+    "hint": "Up to 1:30",
+    "remaining": "remaining",
+    "detected": {
+      "one": "{n} cough detected",
+      "other": "{n} coughs detected"
     },
+    "detectedNote": "Cough detection runs on-device and is illustrative, not a clinical measurement.",
     "waveform": {
       "live": "Live cough input level",
       "idle": "Cough waveform, idle"
     },
+    "captured": {
+      "duration": "Length",
+      "coughs": "Coughs detected",
+      "again": "Record again",
+      "tooShort": "That recording was too short. Record again so there's enough to analyze."
+    },
     "return": "Return",
-    "continue": "Continue",
-    "incompleteHint": "Record all five coughs to continue."
+    "continue": "Continue"
   },
   "chat": {
     "title": "Guidance assistant",

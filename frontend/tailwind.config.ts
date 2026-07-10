@@ -40,6 +40,14 @@ const config: Config = {
         "band-lower": "var(--band-lower)",
         "band-intermediate": "var(--band-intermediate)",
         "band-higher": "var(--band-higher)",
+        // Focus ramp — salience only, NON-RISK (cream → deep orange). Marks
+        // heuristic attention (cough pulse, result focus strip). Never a risk
+        // or interaction color. See tokens.css.
+        "focus-ramp-1": "var(--focus-ramp-1)",
+        "focus-ramp-2": "var(--focus-ramp-2)",
+        "focus-ramp-3": "var(--focus-ramp-3)",
+        "focus-ramp-4": "var(--focus-ramp-4)",
+        "focus-ramp-5": "var(--focus-ramp-5)",
       },
       fontFamily: {
         // Figtree for UI and headings; Ioskeley for numerics (design §5.4).
