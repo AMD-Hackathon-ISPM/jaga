@@ -2,7 +2,7 @@
 
 **An investigational, phone-first tuberculosis triage prototype that combines five guided coughs with supported clinical inputs to help prioritize follow-up urgency — no X-ray machine, lab, or radiologist required.**
 
-[Product Brief](.agent/product-brief.md) · [Requirements](.agent/product-requirements.md) · [Architecture](.agent/project-architecture.md) · [Data & Evaluation](.agent/data-evaluation-plan.md) · [Evidence](.agent/evidence-register.md) · [Design](.agent/design-guidelines.md) · [Agent Guide](AGENT.md)
+[Product Brief](.agent/product-brief.md) · [Requirements](.agent/product-requirements.md) · [Architecture](.agent/project-architecture.md) · [Data &amp; Evaluation](.agent/data-evaluation-plan.md) · [Evidence](.agent/evidence-register.md) · [Design](.agent/design-guidelines.md) · [Agent Guide](AGENT.md)
 
 ## What Jaga is
 
@@ -20,28 +20,28 @@ Jaga explores whether cough acoustics plus routinely available clinical informat
 
 ## MVP behavior
 
-| Capability | MVP behavior |
-|---|---|
-| Guided capture | Record five coughs and reject unusable audio before inference |
-| Clinical inputs | Collect only variables supported by the approved model contract |
-| Research estimate (**Gema**) | The cough-plus-clinical core returns a calibrated probability and relative urgency band |
-| Mandatory next step | Direct every symptomatic participant to confirmatory evaluation |
-| Model inspection | Show a spectrogram, non-causal attention/saliency overlay, and supported contributing factors |
-| Privacy | Process inputs transiently without request-body logging or patient-data persistence |
-| Digital-CXR (**Prisma**) | Show a separate digital-CXR estimate with separate metrics; never fuse scores |
+| Capability                         | MVP behavior                                                                                  |
+| ---------------------------------- | --------------------------------------------------------------------------------------------- |
+| Guided capture                     | Record five coughs and reject unusable audio before inference                                 |
+| Clinical inputs                    | Collect only variables supported by the approved model contract                               |
+| Research estimate (**Gema**) | The cough-plus-clinical core returns a calibrated probability and relative urgency band       |
+| Mandatory next step                | Direct every symptomatic participant to confirmatory evaluation                               |
+| Model inspection                   | Show a spectrogram, non-causal attention/saliency overlay, and supported contributing factors |
+| Privacy                            | Process inputs transiently without request-body logging or patient-data persistence           |
+| Digital-CXR (**Prisma**)     | Show a separate digital-CXR estimate with separate metrics; never fuse scores                 |
 
 ## Planned stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js PWA and Tailwind CSS; final frontend contract owned by Billy |
-| Backend / serving | Go REST API + Python (Prisma) worker, Docker Swarm + NGINX; architecture owned by Daffa, implemented by Zeddin |
-| AI training | PyTorch on AMD ROCm / Instinct MI300X |
-| Core model (Gema) | Evidence-gated cough-plus-clinical model; final pipeline owned by Daffa |
+| Layer              | Technology                                                                                                                                                      |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend           | Next.js PWA and Tailwind CSS; final frontend contract owned by Billy                                                                                            |
+| Backend / serving  | Go REST API + Python (Prisma) worker, Docker Swarm + NGINX; architecture owned by Daffa, implemented by Zeddin                                                  |
+| AI training        | PyTorch on AMD ROCm / Instinct MI300X                                                                                                                           |
+| Core model (Gema)  | Evidence-gated cough-plus-clinical model; final pipeline owned by Daffa                                                                                         |
 | CXR model (Prisma) | Separate digital-CXR classifier (DenseNet121 / EfficientNet-B0 / BiomedCLIP / Rad-DINO) with retrieval-augmented inspection and Grad-CAM; never fused with Gema |
-| LLM / generation | Featherless via an OpenAI-compatible API surface, for richer copy only; deterministic bilingual referral remains the default |
-| Semantic memory | Cognee (optional; degrades gracefully) |
-| Storage / data | PostgreSQL, Redis, MinIO |
+| LLM / generation   | Featherless via an OpenAI-compatible API surface, for richer copy only; deterministic bilingual referral remains the default                                    |
+| Semantic memory    | Cognee (optional; degrades gracefully)                                                                                                                          |
+| Storage / data     | PostgreSQL, Redis, MinIO                                                                                                                                        |
 
 The detailed contracts are intentionally assigned in the [architecture](.agent/project-architecture.md), [data and evaluation plan](.agent/data-evaluation-plan.md), and [implementation plan](.agent/implementation-plan.md). Product and medical-safety rules are already fixed and are not placeholders.
 
@@ -55,7 +55,6 @@ The detailed contracts are intentionally assigned in the [architecture](.agent/p
 The backend and infrastructure scaffolds now exist — Go API + Prisma worker + Docker Swarm stack under `backend/` and `infra/` (see [Running locally](#running-locally)). The cough+clinical triage contract (`POST /api/v1/triage`) is still pending Daffa's `ARCH-1`. Submission stays blocked until a clean checkout runs the documented commands end to end.
 
 ## Repository structure
-
 
 ```text
 jaga/
@@ -120,7 +119,8 @@ Jaga runs as a Docker Swarm stack from the `infra/` directory. The default servi
 
 ```bash
 cd infra
-cp .env.example .env          # then edit .env with real credentials/values
+cp .env.example .env
+wsl							  # you will need wsl# then edit .env with real credentials/values
 ./scripts/build.sh            # build local images
 ./scripts/deploy.sh           # start the full stack
 docker stack services jaga    # confirm services are up

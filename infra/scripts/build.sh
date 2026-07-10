@@ -21,8 +21,8 @@ REDIS_IMAGE="${REDIS_IMAGE:-jaga/redis:local}"
 MINIO_IMAGE="${MINIO_IMAGE:-jaga/minio:local}"
 COGNEE_IMAGE="${COGNEE_IMAGE:-jaga/cognee:local}"
 
-docker build -t "$GO_API_IMAGE" "$REPO_ROOT/backend/go"
-docker build -t "$PRISMA_WORKER_IMAGE" "$REPO_ROOT/backend/python/PrismaServer"
+docker build -t "$GO_API_IMAGE" "$REPO_ROOT/backend/backendHandlers"
+docker build -t "$PRISMA_WORKER_IMAGE" "$REPO_ROOT/backend/modelServerandTraining/PrismaServer"
 docker build \
   --build-arg NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-}" \
   --build-arg NEXT_PUBLIC_APP_ENV="${NEXT_PUBLIC_APP_ENV:-production}" \
