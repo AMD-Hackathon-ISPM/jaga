@@ -88,13 +88,15 @@
   "review": {
     "title": "Tinjau dan kirim",
     "clinicalTitle": "Data klinis",
-    "coughsTitle": "Percobaan batuk",
+    "coughTitle": "Rekaman batuk",
     "return": "Kembali",
     "submit": "Kirim untuk Analisis Gema",
     "notMeasured": "Tidak diukur",
-    "coughLabel": "Batuk {n}",
+    "coughLength": "Durasi",
+    "coughDetected": "Batuk terdeteksi",
+    "coughSize": "Ukuran",
     "coughMeta": "{size} KiB • {format}",
-    "coughMissing": "Belum ada",
+    "coughMissing": "Belum direkam",
     "clinicalIncompleteTitle": "Data klinis belum lengkap",
     "clinicalIncompleteBody": "Kembali ke formulir sebelum mengirim.",
     "boolean": {

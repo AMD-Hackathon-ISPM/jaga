@@ -88,13 +88,15 @@
   "review": {
     "title": "Review and submit",
     "clinicalTitle": "Clinical inputs",
-    "coughsTitle": "Cough attempts",
+    "coughTitle": "Cough recording",
     "return": "Return",
     "submit": "Submit for Gema Analysis",
     "notMeasured": "Not measured",
-    "coughLabel": "Cough {n}",
+    "coughLength": "Length",
+    "coughDetected": "Coughs detected",
+    "coughSize": "Size",
     "coughMeta": "{size} KiB • {format}",
-    "coughMissing": "Missing",
+    "coughMissing": "Not recorded yet",
     "clinicalIncompleteTitle": "Clinical inputs incomplete",
     "clinicalIncompleteBody": "Return to the form before submitting.",
     "boolean": {

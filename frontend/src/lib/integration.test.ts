@@ -23,20 +23,26 @@ const clinical = {
 };
 
 describe("integration request builders", () => {
-  it("serializes the signed Gema multipart names and exactly five coughs", async () => {
-    const coughs = Array.from(
-      { length: 5 },
-      (_, index) => new File([`cough-${index + 1}`], `cough-${index + 1}.webm`, { type: "audio/webm" }),
-    );
+  it("serializes the signed Gema multipart names and a single cough file", async () => {
+    const cough = new File(["cough-audio"], "cough.webm", { type: "audio/webm" });
 
-    const form = createTriageFormData({ clinical, coughs });
+    const form = createTriageFormData({ clinical, cough });
 
     expect(form.get("contract_version")).toBe("triage-v1");
     expect(form.get("schema_version")).toBe("clinical-v1");
     const clinicalPart = form.get("clinical") as File;
     expect(clinicalPart.type).toBe("application/json");
     expect(JSON.parse(await clinicalPart.text())).toEqual(clinical);
-    expect(form.getAll("coughs")).toHaveLength(5);
+    const coughPart = form.get("cough");
+    expect(coughPart).toBeInstanceOf(File);
+    expect((coughPart as File).name).toBe("cough.webm");
+    expect((coughPart as File).type).toBe("audio/webm");
+  });
+
+  it("throws when the cough file is missing", () => {
+    expect(() =>
+      createTriageFormData({ clinical, cough: undefined as unknown as File }),
+    ).toThrow("cough recording file is required");
   });
 
   it("accepts a decodable PNG digital export", async () => {

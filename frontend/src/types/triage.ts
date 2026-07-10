@@ -38,11 +38,11 @@ export interface ModelMetadata {
   limitations: string[];
 }
 
-/** Provisional triage request payload (multipart in practice: clinical + 5 audio). */
+/** Provisional triage request payload (multipart in practice: clinical + cough audio). */
 export interface TriageRequest {
   clinical: PatientIntakeRequest;
-  /** Five decoded cough buffers in practice; placeholder reference only here. */
-  coughs: unknown[];
+  /** Single cough recording file in practice; placeholder reference only here. */
+  cough: unknown;
 }
 
 export interface TriageResult {

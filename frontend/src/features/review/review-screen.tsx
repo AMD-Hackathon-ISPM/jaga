@@ -29,6 +29,14 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   weight_loss_last_30_days: "review.fields.weight_loss_last_30_days",
 };
 
+/** Format a millisecond value as clock time (m:ss). */
+function formatClock(ms: number): string {
+  const total = Math.max(0, Math.round(ms / 1000));
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
 function formatClinicalValue(
   key: string,
   value: unknown,
@@ -90,10 +98,8 @@ export function ReviewScreen() {
         throw new Error("Complete the clinical form and cough recording first.");
       }
       setSubmitState("uploading");
-      // NOTE: Task 7 (D4) reworks the contract/service to a single cough field.
-      // For now we pass the single recording as a one-element File[].
       return triageService.submitTriage(
-        { clinical: parsedClinical.data, coughs: [coughRecording.file] },
+        { clinical: parsedClinical.data, cough: coughRecording.file },
         { onUploadProgress: (progress) => setSubmitState(progress < 1 ? "uploading" : "processing") },
       );
     },
@@ -145,21 +151,36 @@ export function ReviewScreen() {
         </section>
 
         <section className="rounded-control border border-brand bg-card py-4">
-          <h2 className="px-4 text-lg font-semibold text-ink">{t("review.coughsTitle")}</h2>
-          <ul className="mt-3 flex flex-col gap-2 px-4">
-            <li className="flex min-h-11 items-center justify-between gap-4">
-              <span className="text-base text-ink">
-                {t("review.coughLabel").replace("{n}", "1")}
-              </span>
-              <span className="font-mono text-base tabular-nums text-ink">
-                {coughRecording
-                  ? t("review.coughMeta")
-                      .replace("{size}", String(Math.max(1, Math.round(coughRecording.file.size / 1024))))
-                      .replace("{format}", "WebM")
-                  : t("review.coughMissing")}
-              </span>
-            </li>
-          </ul>
+          <h2 className="px-4 text-lg font-semibold text-ink">{t("review.coughTitle")}</h2>
+          {coughRecording ? (
+            <dl className="mt-3 flex flex-col gap-3 px-4">
+              <div className="min-w-0">
+                <dt className="text-sm text-ink-muted">{t("review.coughLength")}</dt>
+                <dd className="font-mono text-base tabular-nums text-ink">
+                  {formatClock(coughRecording.durationMs)}
+                </dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="text-sm text-ink-muted">{t("review.coughDetected")}</dt>
+                <dd className="font-mono text-base tabular-nums text-ink">
+                  {coughRecording.coughEvents.length}
+                </dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="text-sm text-ink-muted">{t("review.coughSize")}</dt>
+                <dd className="font-mono text-base tabular-nums text-ink">
+                  {t("review.coughMeta")
+                    .replace(
+                      "{size}",
+                      String(Math.max(1, Math.round(coughRecording.file.size / 1024))),
+                    )
+                    .replace("{format}", "WebM")}
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="mt-3 px-4 text-base text-ink-muted">{t("review.coughMissing")}</p>
+          )}
         </section>
       </div>
 

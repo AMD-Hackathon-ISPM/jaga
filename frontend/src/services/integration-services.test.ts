@@ -78,13 +78,10 @@ describe("backend integration services", () => {
     const cxrFixture = (await import("@/contracts/fixtures/cxr-result.json")).default;
     client.post.mockResolvedValueOnce({ data: gemaFixture }).mockResolvedValueOnce({ data: cxrFixture });
 
-    const coughs = Array.from(
-      { length: 5 },
-      (_, index) => new File([String(index)], `cough-${index + 1}.webm`, { type: "audio/webm" }),
-    );
+    const cough = new File(["audio"], "cough.webm", { type: "audio/webm" });
     const image = new File(["png"], "cxr.png", { type: "image/png" });
 
-    await createTriageService({ mode: "live", client }).submitTriage({ clinical, coughs });
+    await createTriageService({ mode: "live", client }).submitTriage({ clinical, cough });
     await createCxrService({ mode: "live", client }).submitCxr(image);
 
     expect(client.post.mock.calls[0][0]).toBe("/api/v1/triage");

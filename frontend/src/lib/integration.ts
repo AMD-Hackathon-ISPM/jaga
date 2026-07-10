@@ -9,13 +9,13 @@ const CXR_EXTENSIONS = new Set(["png", "jpg", "jpeg"]);
 
 export function createTriageFormData({
   clinical,
-  coughs,
+  cough,
 }: {
   clinical: PatientIntakeRequest;
-  coughs: File[];
+  cough: File;
 }) {
-  if (coughs.length !== 5) {
-    throw new Error("Exactly five cough files are required.");
+  if (!cough) {
+    throw new Error("A cough recording file is required.");
   }
 
   const form = new FormData();
@@ -26,7 +26,7 @@ export function createTriageFormData({
     new Blob([JSON.stringify(clinical)], { type: "application/json" }),
     "clinical.json",
   );
-  coughs.forEach((cough) => form.append("coughs", cough));
+  form.set("cough", cough);
   return form;
 }
 

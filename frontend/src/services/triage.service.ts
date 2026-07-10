@@ -44,7 +44,7 @@ function mapGemaResult(result: GemaWireResult): TriageResult {
 export function createTriageService({ mode, client }: ServiceFactoryOptions) {
   return {
     async submitTriage(
-      payload: { clinical: PatientIntakeRequest; coughs: File[] },
+      payload: { clinical: PatientIntakeRequest; cough: File },
       options: { signal?: AbortSignal; onUploadProgress?: (progress: number) => void } = {},
     ): Promise<TriageResult> {
       const form = createTriageFormData(payload);
