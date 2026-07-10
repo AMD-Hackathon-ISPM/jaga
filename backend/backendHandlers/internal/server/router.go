@@ -3,11 +3,16 @@ package server
 import (
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
+	"jaga/backend/go/internal/assistant"
 	"jaga/backend/go/internal/audioPreprocess"
+	"jaga/backend/go/internal/cxr"
 	"jaga/backend/go/internal/demographics"
+	"jaga/backend/go/internal/llm"
 	"jaga/backend/go/internal/response"
+	"jaga/backend/go/internal/triage"
 )
 
 func Address() string {
@@ -20,14 +25,41 @@ func Address() string {
 func NewRouter() http.Handler {
 	mux := http.NewServeMux()
 
+	llmClient := llm.NewClient(llm.ConfigFromEnv())
+
 	demographicsHandler := demographics.NewHandler()
 	audioHandler := audioPreprocess.NewHandler()
+	assistantHandler := assistant.NewHandler(llmClient)
+	cxrHandler := cxr.NewHandler(envOr("PRISMA_URL", "http://127.0.0.1:8000"))
+	triageHandler := triage.NewHandler(triage.NewService(
+		envOr("YAMNET_URL", "http://127.0.0.1:8081"),
+		envOr("XGB_URL", "http://127.0.0.1:8082"),
+		llmClient,
+		coughMinimum(),
+	))
 
 	mux.HandleFunc("GET /health", health)
 	mux.HandleFunc("POST /api/v1/demographics", demographicsHandler.Create)
 	mux.HandleFunc("POST /api/v1/audio/preprocess", audioHandler.Preprocess)
+	mux.HandleFunc("POST /api/v1/triage", triageHandler.Submit)
+	mux.HandleFunc("POST /api/v1/assistant/messages", assistantHandler.Messages)
+	mux.HandleFunc("POST /api/v1/cxr", cxrHandler.Analyze)
 
 	return withCORS(mux)
+}
+
+func envOr(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}
+
+func coughMinimum() float64 {
+	if value, err := strconv.ParseFloat(os.Getenv("COUGH_MINIMUM"), 64); err == nil {
+		return value
+	}
+	return 0.25
 }
 
 func health(w http.ResponseWriter, _ *http.Request) {

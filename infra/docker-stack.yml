@@ -100,6 +100,14 @@ services:
       JAGA_BACKEND_JWT_SECRET: ${JWT_SECRET}
       JAGA_BACKEND_UPLOAD_PATH: ${UPLOAD_PATH}
       JAGA_BACKEND_MODEL_PATH: ${MODEL_PATH}
+      # Gemma (Fireworks chat) drives the triage orchestrator and the chat assistant.
+      FIREWORKS_API_KEY: ${FIREWORKS_API_KEY}
+      FIREWORKS_CHAT_URL: ${FIREWORKS_CHAT_URL}
+      FIREWORKS_CHAT_MODEL: ${FIREWORKS_CHAT_MODEL}
+      # Downstream model services the orchestrator calls.
+      YAMNET_URL: http://yamnet:8081
+      XGB_URL: http://xgboost:8082
+      PRISMA_URL: http://prisma-worker:${PRISMA_WORKER_PORT}
     healthcheck:
       test: ['CMD-SHELL', 'wget --no-verbose --tries=1 -O /dev/null http://127.0.0.1:8080/health || exit 1']
       interval: 30s
@@ -204,6 +212,65 @@ services:
         limits:
           cpus: '4.00'
           memory: 12G
+
+  yamnet:
+    # Rust cough-detection service (YAMNet via ONNX Runtime).
+    image: ${YAMNET_IMAGE}
+    networks:
+      - jaga-network
+    environment:
+      YAMNET_ADDR: 0.0.0.0:8081
+      YAMNET_MODEL_PATH: /app/models/yamnet/yamnet.onnx
+      YAMNET_CLASS_MAP_PATH: /app/models/yamnet/yamnet_class_map.csv
+      COUGH_THRESHOLD: ${COUGH_THRESHOLD:-0.5}
+      ORT_DYLIB_PATH: ${ORT_DYLIB_PATH:-/usr/local/lib/libonnxruntime.so}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 -O /dev/null http://127.0.0.1:8081/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      <<: *common-deploy
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.50'
+          memory: 512M
+        limits:
+          cpus: '2.00'
+          memory: 2G
+
+  xgboost:
+    # Rust TB-probability service (XGBoost ONNX + WavLM embedding via Fireworks).
+    image: ${XGBOOST_IMAGE}
+    networks:
+      - jaga-network
+    environment:
+      XGB_ADDR: 0.0.0.0:8082
+      XGB_MODEL_PATH: /app/models/xgboostAndDemoPreprocessor/tb_xgb_demo.onnx
+      GO_BACKEND_URL: http://go-api:8080
+      DEFAULT_COUNTRY: ${DEFAULT_COUNTRY:-PH}
+      FIREWORKS_EMBEDDING_URL: ${FIREWORKS_EMBEDDING_URL}
+      FIREWORKS_API_KEY: ${FIREWORKS_API_KEY}
+      FIREWORKS_MODEL: ${FIREWORKS_EMBEDDING_MODEL}
+      ORT_DYLIB_PATH: ${ORT_DYLIB_PATH:-/usr/local/lib/libonnxruntime.so}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 -O /dev/null http://127.0.0.1:8082/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      <<: *common-deploy
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.50'
+          memory: 512M
+        limits:
+          cpus: '2.00'
+          memory: 2G
 
   redis:
     image: ${REDIS_IMAGE}

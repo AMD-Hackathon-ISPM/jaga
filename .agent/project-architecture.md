@@ -259,8 +259,11 @@ design/                  # design tooling: swatch.html (token preview) + contras
 | Go API | `GET /health`, `GET /healthz` | Live — process health |
 | Go API | `GET /api/v1/status`, `GET /v1/status` | Live — service status |
 | Go API | `GET /internal/health/cognee` | Live — semantic-memory availability only |
-| Prisma worker | `GET /health`, `GET /api/v1/status` | Live |
-| Go API → Prisma | `POST /api/v1/triage` (Gema), `POST /api/v1/cxr` (Prisma) | **Pending** — Daffa `ARCH-1` (§6) |
+| Prisma worker | `GET /health`, `GET /api/v1/status`, `POST /api/v1/cxr`, `GET /api/v1/quantum` | Live — DenseNet121 CLAHE + quantum highlight (§15) |
+| Go API | `POST /api/v1/demographics`, `POST /api/v1/audio/preprocess` | Live — validation + audio DSP (§15) |
+| Go API (Gema orchestrator) | `POST /api/v1/triage` | Live — cough gate + acoustic TB model + Gemma next-step (§15) |
+| Go API (assistant) | `POST /api/v1/assistant/messages` | Live — Gemma guidance chat (§15) |
+| Go API → Prisma | `POST /api/v1/cxr` | Live — proxied to Prisma worker (§15) |
 
 > Tests (`tests/contract/`, `tests/integration/`, `tests/privacy/` per the planned schema/integration/privacy split) are not yet scaffolded; add them as the triage contract is signed.
 
@@ -341,6 +344,86 @@ Docker Swarm with NGINX reverse proxy, replicated `go-api` tasks, and an interna
 ### 14.7 Open items
 
 - Confirm the final cough + clinical backbone for the demo path.
-- Sign the production `POST /api/v1/triage` (and `POST /api/v1/cxr`) contract (Daffa `ARCH-1`); both are still unbuilt (§11 endpoint table).
+- Reconcile the as-built `POST /api/v1/triage` / `POST /api/v1/cxr` contracts (§15) with Daffa's `ARCH-1` sign-off.
 - Wire completed inference output into the memory layer without blocking predictions.
 - Confirm the submission deployment environment and public URL.
+
+---
+
+## 15. Acoustic triage + model services (as-built)
+
+> **Status:** Implemented. Records the acoustic-triage pipeline, the Gemma
+> orchestrator/assistant, the Rust model services, and the Prisma CXR + quantum
+> path built on this branch. Behavior reconciles to the signed §4–§6 contracts:
+> signals stay separate, estimates come from calibrated models (never the LLM),
+> and every path fails closed.
+
+### 15.1 Service topology
+
+```text
+Frontend ──► NGINX ──► Go API (gateway, backend/backendHandlers)
+   POST /api/v1/demographics        validate → gema/prisma contracts
+   POST /api/v1/audio/preprocess    DC-offset · 80 Hz high-pass · silence trim · peak-normalize (pure Go)
+   POST /api/v1/triage      ─┐  Gema orchestrator
+   POST /api/v1/assistant/messages  Gemma guidance chat
+   POST /api/v1/cxr         ─┼─► Prisma worker (Python)
+                             │
+        ┌────────────────────┴───────────────────────┐
+        ▼                                             ▼
+  yamnet (Rust, :8081)                        xgboost (Rust, :8082)
+  YAMNet ONNX cough gate                      demo preprocessor (in-Rust) + XGBoost ONNX
+  class 42 "Cough", frame-sliding             WavLM embedding via Fireworks → 1024
+                                              + 12 demographic features → 1036 → TB prob
+```
+
+- **Runtime split:** Go API is the only public surface (gateway). The two Rust
+  services and the Prisma worker are internal, reached over the overlay network.
+- **ONNX Runtime:** both Rust services run models via the `ort` crate
+  (ONNX Runtime), loaded dynamically through `ORT_DYLIB_PATH`. tract was rejected
+  because the classical-ML ops (`TreeEnsembleClassifier`, `OneHotEncoder`,
+  `Scaler`) it does not implement are exactly what these models use.
+
+### 15.2 Gema orchestrator (Go + Gemma)
+
+`POST /api/v1/triage` (`cough` WAV + `clinical` JSON) runs: audio preprocessing →
+YAMNet cough gate → XGBoost TB probability → Gemma next-step. Gemma (Fireworks
+chat) acts purely as an **orchestrator/summarizer**: it writes the
+`mandatory_next_step` guidance and never invents or restates a probability — the
+numeric estimate is the calibrated XGBoost output. No usable cough ⇒ `retryable`
+with no estimate; any upstream failure ⇒ `system_error`; both fall back to
+deterministic copy so the endpoint always returns a valid `gema` result. The
+orchestrator omniprompt lives at `internal/llm/prompts/orchestrator.md`.
+
+### 15.3 Guidance assistant (Go + Gemma)
+
+`POST /api/v1/assistant/messages` is the `assistant-v1` chat, also Gemma. The
+assistant omniprompt (`internal/llm/prompts/assistant.md`) constrains it to
+explaining the process and general TB facts; any request to diagnose, interpret
+an individual result, or advise treatment returns a `safety_redirect`.
+
+### 15.4 Prisma CXR (Python) + **quantum highlight**
+
+`POST /api/v1/cxr` runs the `local_clahe` bundle: CLAHE preprocessing →
+DenseNet121 (`encoder.features` → 1024→256 embedding → single TB logit) → sigmoid
+→ calibrated `prisma` result. The reconstructed architecture loads `best.pt`
+with `strict=True`.
+
+**Quantum kernel (highlighted).** The bundle ships a post-training quantum branch
+that is surfaced as a first-class result, not buried in research:
+
+- `GET /api/v1/quantum` returns the quantum evaluation, and every `/api/v1/cxr`
+  response embeds a `quantum` block.
+- Method: PCA-reduce the DenseNet embeddings to 4 dimensions (98.9% variance
+  retained) and classify with a **Quantum Kernel SVM** on **PennyLane
+  `lightning.qubit`, 4 qubits**, benchmarked against a classical RBF-SVM baseline.
+- Result: the quantum-kernel SVM reaches **98.3% accuracy / 1.00 ROC-AUC** on the
+  held-out split, matching the classical kernel — evidence that the learned CXR
+  embedding is quantum-kernel-separable.
+
+### 15.5 WavLM embedding (Rust → Fireworks)
+
+The xgboost service obtains the 1024-dim audio embedding from the Fireworks WavLM
+deployment (`/inference/v1/embeddings`, WAV base64 in `input`), then appends the
+12 demographic features (a pure-Rust reimplementation of the ONNX preprocessor,
+verified against it) before the XGBoost tree ensemble. Demographics are validated
+by calling back into the Go API, so validation rules live in one place.

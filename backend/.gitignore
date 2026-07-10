@@ -3,7 +3,7 @@
 /modelServerandTraining/PrismaTraining/data/TB Chest Radiography Database/
 /modelServerandTraining/PrismaTraining/outputs/*
 !/modelServerandTraining/PrismaTraining/outputs/.gitkeep
-/modelServerandTraining/PrismaServer/artifacts/*
+/modelServerandTraining/PrismaServer/models/*
 !/modelServerandTraining/PrismaServer/artifacts/.gitkeep
 **/*.pt
 **/*.pth

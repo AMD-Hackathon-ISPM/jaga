@@ -1,0 +1,83 @@
+{
+  "quantum": {
+    "enabled": true,
+    "pca_dim": 4,
+    "max_samples": 300,
+    "test_size": 0.2,
+    "random_state": 42,
+    "shots": null,
+    "n_layers": 1,
+    "output_dir": "quantum"
+  },
+  "artifacts": {
+    "embeddings_path": "/workspace/jaga/backend/python/project/outputs/tb_cxr/local_clahe/embeddings/local_clahe/embeddings.npy",
+    "labels_path": "/workspace/jaga/backend/python/project/outputs/tb_cxr/local_clahe/embeddings/local_clahe/labels.npy",
+    "paths_path": "/workspace/jaga/backend/python/project/outputs/tb_cxr/local_clahe/embeddings/local_clahe/paths.npy",
+    "metadata_path": "/workspace/jaga/backend/python/project/outputs/tb_cxr/local_clahe/embeddings/local_clahe/metadata.csv",
+    "output_dir": "/workspace/jaga/backend/python/project/outputs/tb_cxr/local_clahe/quantum"
+  },
+  "dataset": {
+    "num_total_embeddings": 7000,
+    "num_sampled_embeddings": 300,
+    "num_train": 240,
+    "num_test": 60,
+    "class_names": [
+      "Normal",
+      "Tuberculosis"
+    ]
+  },
+  "pca": {
+    "dim": 4,
+    "explained_variance_ratio": [
+      0.9886725082926023,
+      0.004780947118919707,
+      0.0022255705566799296,
+      0.00037246814990916075
+    ]
+  },
+  "quantum_backend": {
+    "name": "lightning.qubit",
+    "wires": 4,
+    "shots": null
+  },
+  "classical_svm": {
+    "accuracy": 0.9833333333333333,
+    "precision": 1.0,
+    "recall": 0.9666666666666667,
+    "f1": 0.9830508474576272,
+    "sensitivity": 0.9666666666666667,
+    "specificity": 1.0,
+    "confusion_matrix": [
+      [
+        30,
+        0
+      ],
+      [
+        1,
+        29
+      ]
+    ],
+    "roc_auc": 1.0,
+    "pr_auc": 1.0
+  },
+  "quantum_kernel_svm": {
+    "accuracy": 0.9833333333333333,
+    "precision": 1.0,
+    "recall": 0.9666666666666667,
+    "f1": 0.9830508474576272,
+    "sensitivity": 0.9666666666666667,
+    "specificity": 1.0,
+    "confusion_matrix": [
+      [
+        30,
+        0
+      ],
+      [
+        1,
+        29
+      ]
+    ],
+    "roc_auc": 1.0,
+    "pr_auc": 1.0
+  }
+}
