@@ -37,3 +37,4 @@ export { RadioGroup, RadioGroupItem } from "./radio-group";
 export { ToggleGroup, ToggleGroupItem } from "./toggle-group";
 export { ErrorState } from "./error-state";
 export { TextShimmer } from "./text-shimmer";
+export { Dropzone } from "./dropzone";

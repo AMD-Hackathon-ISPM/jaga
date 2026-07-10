@@ -6,8 +6,8 @@ import { useMutation } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Dropzone } from "@/components/ui/dropzone";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { useT } from "@/hooks/use-t";
 import { CXR_ACCEPT, CXR_MAX_BYTES, validateCxrFile } from "@/lib/integration";
@@ -73,22 +73,17 @@ export function CxrScreen() {
 
       <Field data-invalid={!!fileError}>
         <FieldLabel htmlFor="cxr-image">{t("cxr.imageLabel")}</FieldLabel>
-        <Input
+        <Dropzone
           id="cxr-image"
-          type="file"
           accept={CXR_ACCEPT}
-          aria-invalid={!!fileError}
-          aria-describedby={fileError ? "cxr-image-error" : "cxr-image-description"}
-          onChange={(event) => void selectFile(event.target.files?.[0])}
+          file={image}
+          onSelect={(file) => void selectFile(file)}
+          onClear={() => void selectFile(undefined)}
+          invalid={!!fileError}
+          describedBy={fileError ? "cxr-image-error" : undefined}
         />
-        {fileError ? (
-          <FieldError id="cxr-image-error">{fileError}</FieldError>
-        ) : (
-          <FieldDescription id="cxr-image-description">{t("cxr.imageHint")}</FieldDescription>
-        )}
+        {fileError && <FieldError id="cxr-image-error">{fileError}</FieldError>}
       </Field>
-
-      {image && <p className="font-mono text-sm text-ink-muted">{image.name}</p>}
 
       <Field orientation="horizontal">
         <Checkbox

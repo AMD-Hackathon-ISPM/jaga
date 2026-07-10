@@ -192,6 +192,11 @@
     "lead": "Prisma menerima satu ekspor rontgen dada digital. Ini menghasilkan estimasi penelitian terpisah dan tidak digabungkan dengan hasil batuk.",
     "imageLabel": "Gambar CXR digital",
     "imageHint": "PNG atau JPEG, hingga 10 MiB.",
+    "dropzone": {
+      "cta": "Ketuk untuk memilih file",
+      "dropping": "Lepaskan untuk mengunggah",
+      "remove": "Hapus file"
+    },
     "confirmLabel": "Saya mengonfirmasi ini adalah ekspor CXR digital, bukan foto layar atau film.",
     "submit": "Kirim untuk analisis Prisma",
     "errors": {

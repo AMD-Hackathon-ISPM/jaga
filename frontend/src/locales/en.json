@@ -192,6 +192,11 @@
     "lead": "Prisma accepts one digital chest X-ray export. It produces a separate research estimate and is not combined with the cough result.",
     "imageLabel": "Digital CXR image",
     "imageHint": "PNG or JPEG, up to 10 MiB.",
+    "dropzone": {
+      "cta": "Tap to choose a file",
+      "dropping": "Release to upload",
+      "remove": "Remove file"
+    },
     "confirmLabel": "I confirm this is a digital CXR export, not a photo of a screen or film.",
     "submit": "Submit for Prisma analysis",
     "errors": {
