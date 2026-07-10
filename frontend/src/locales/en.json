@@ -42,12 +42,41 @@
       "intermediate": "Intermediate model-estimated risk",
       "higher": "Higher model-estimated risk"
     },
+    "bandShort": {
+      "lower": "Lower",
+      "intermediate": "Intermediate",
+      "higher": "Higher"
+    },
+    "estimateMeaning": {
+      "cough": "A calibrated model estimate of how compatible this recording is with TB. Not a diagnosis, and not a personal probability of having TB."
+    },
+    "howToRead": "Relative model-estimated risk, not a personal chance of having TB.",
     "nextStep": "This person should receive confirmatory TB evaluation regardless of this estimate.",
     "nextStepTitle": "Next step",
     "limitationsTitle": "Limitations and model details",
     "limitations": {
       "contract": "Contract",
-      "cohort": "Cohort"
+      "model": "Model version",
+      "cohort": "Cohort",
+      "calibration": "Calibration status"
+    },
+    "analysis": {
+      "title": "What the model looked at",
+      "signalLabel": "Signal",
+      "cohortLabel": "Cohort",
+      "calibrationLabel": "Calibration",
+      "signal": {
+        "cough": "Cough audio",
+        "cxr": "Digital chest X-ray"
+      },
+      "body": {
+        "cough": "This estimate comes from a cough-audio model. It compares acoustic patterns in the recording against the reference cohort shown here. It cannot diagnose TB or replace confirmatory testing.",
+        "cxr": "This estimate comes from a chest X-ray model. It compares imaging patterns in the uploaded X-ray against the reference cohort shown here. It cannot diagnose TB or replace confirmatory testing."
+      }
+    },
+    "actions": {
+      "newScreening": "Start new screening",
+      "home": "Back to home"
     },
     "empty": {
       "title": "No Gema result in this session",
@@ -219,9 +248,14 @@
     "result": {
       "bandTitle": "{band} Prisma band",
       "unavailable": "Prisma estimate unavailable",
+      "estimateMeaning": "A calibrated model estimate of how compatible this image is with TB. Not a diagnosis, and not a personal probability of having TB.",
       "limitationsTitle": "Limitations and model details",
       "figureAlt": "Uploaded chest X-ray",
-      "figureCaption": "Uploaded chest X-ray. Shown for reference; not a clinical explanation."
+      "figureCaption": "Uploaded chest X-ray. Shown for reference; not a clinical explanation.",
+      "uploadedTileLabel": "Uploaded CXR",
+      "heatmapTileLabel": "Model heatmap",
+      "heatmapAlt": "Model inspection heatmap",
+      "gradcamUnavailable": "Model heatmap unavailable in this prototype"
     }
   },
   "notFound": {

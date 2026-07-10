@@ -42,12 +42,41 @@
       "intermediate": "Risiko estimasi model menengah",
       "higher": "Risiko estimasi model lebih tinggi"
     },
+    "bandShort": {
+      "lower": "Lebih rendah",
+      "intermediate": "Menengah",
+      "higher": "Lebih tinggi"
+    },
+    "estimateMeaning": {
+      "cough": "Estimasi model terkalibrasi tentang seberapa sesuai rekaman ini dengan TB. Bukan diagnosis, dan bukan probabilitas pribadi mengidap TB."
+    },
+    "howToRead": "Risiko relatif estimasi model, bukan peluang pribadi mengidap TB.",
     "nextStep": "Orang ini harus menjalani evaluasi TB konfirmatori terlepas dari estimasi ini.",
     "nextStepTitle": "Langkah berikutnya",
     "limitationsTitle": "Batasan dan detail model",
     "limitations": {
       "contract": "Kontrak",
-      "cohort": "Kohort"
+      "model": "Versi model",
+      "cohort": "Kohort",
+      "calibration": "Status kalibrasi"
+    },
+    "analysis": {
+      "title": "Apa yang ditinjau model",
+      "signalLabel": "Sinyal",
+      "cohortLabel": "Kohort",
+      "calibrationLabel": "Kalibrasi",
+      "signal": {
+        "cough": "Audio batuk",
+        "cxr": "Rontgen dada digital"
+      },
+      "body": {
+        "cough": "Estimasi ini berasal dari model audio batuk. Model membandingkan pola akustik dalam rekaman dengan kohort rujukan yang ditampilkan di sini. Model tidak dapat mendiagnosis TB atau menggantikan pemeriksaan konfirmatori.",
+        "cxr": "Estimasi ini berasal dari model rontgen dada. Model membandingkan pola pencitraan dalam rontgen yang diunggah dengan kohort rujukan yang ditampilkan di sini. Model tidak dapat mendiagnosis TB atau menggantikan pemeriksaan konfirmatori."
+      }
+    },
+    "actions": {
+      "newScreening": "Mulai skrining baru",
+      "home": "Kembali ke beranda"
     },
     "empty": {
       "title": "Tidak ada hasil Gema dalam sesi ini",
@@ -219,9 +248,14 @@
     "result": {
       "bandTitle": "Peringkat Prisma {band}",
       "unavailable": "Estimasi Prisma tidak tersedia",
+      "estimateMeaning": "Estimasi model terkalibrasi tentang seberapa sesuai gambar ini dengan TB. Bukan diagnosis, dan bukan probabilitas pribadi mengidap TB.",
       "limitationsTitle": "Batasan dan detail model",
       "figureAlt": "Rontgen dada yang diunggah",
-      "figureCaption": "Rontgen dada yang diunggah. Ditampilkan sebagai referensi; bukan penjelasan klinis."
+      "figureCaption": "Rontgen dada yang diunggah. Ditampilkan sebagai referensi; bukan penjelasan klinis.",
+      "uploadedTileLabel": "CXR yang diunggah",
+      "heatmapTileLabel": "Peta panas model",
+      "heatmapAlt": "Peta panas inspeksi model",
+      "gradcamUnavailable": "Peta panas model tidak tersedia di prototipe ini"
     }
   },
   "notFound": {
