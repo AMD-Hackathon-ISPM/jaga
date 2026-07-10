@@ -1,6 +1,7 @@
-# Go Service Scaffold
+# Demographics API
 
-This module is a thin orchestration layer around the Prisma worker in `../python/PrismaServer`.
+This small Go service validates the demographics step only. It does not persist,
+log, or forward submitted values.
 
 ## Run
 
@@ -8,12 +9,22 @@ This module is a thin orchestration layer around the Prisma worker in `../python
 go run ./cmd/server
 ```
 
+## Endpoint
+
+`POST /api/v1/demographics`
+
+```json
+{
+  "ageYears": 35,
+  "sexAtBirth": "female",
+  "heightCm": 165.5,
+  "weightKg": 60
+}
+```
+
+Responses use the same camelCase field names. The service accepts adults aged
+18 to 120, height 40 to 260 cm, and weight 1 to 350 kg.
+
 ## Environment
 
 - `JAGA_BACKEND_ADDR`
-- `JAGA_PYTHON_PROJECT_ROOT`
-- `COGNEE_ENABLED`
-- `COGNEE_COLLECTION`
-- `COGNEE_TIMEOUT`
-
-The default Cognee path is local-internal (`http://cognee:8000`) and does not require a Cognee API key for the normal Swarm deployment. In the current stack, Cognee stays local while Featherless handles generation.

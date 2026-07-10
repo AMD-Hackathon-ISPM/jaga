@@ -24,13 +24,13 @@ vi.mock("next/link", () => ({
   }) => React.createElement("a", { href, ...props }, children),
 }));
 
-const mockSubmitIntake = vi.fn();
+const mockSubmitDemographics = vi.fn();
 
-vi.mock("@/services/patient.service", () => ({
-  patientService: {
-    submitIntake: (...args: unknown[]) => mockSubmitIntake(...args),
+vi.mock("@/services/demographics.service", () => ({
+  demographicsService: {
+    submit: (...args: unknown[]) => mockSubmitDemographics(...args),
   },
-  PatientValidationError: class PatientValidationError extends Error {
+  DemographicsValidationError: class DemographicsValidationError extends Error {
     errors: unknown[] = [];
   },
 }));
@@ -60,7 +60,7 @@ describe("ClinicalForm", () => {
     cleanup();
     useSessionStore.getState().reset();
     mockPush.mockClear();
-    mockSubmitIntake.mockClear();
+    mockSubmitDemographics.mockClear();
     Element.prototype.scrollIntoView = vi.fn();
   });
 
@@ -85,7 +85,7 @@ describe("ClinicalForm", () => {
       screen.queryByText(/expected number, received nan/i),
     ).not.toBeInTheDocument();
 
-    expect(mockSubmitIntake).not.toHaveBeenCalled();
+    expect(mockSubmitDemographics).not.toHaveBeenCalled();
     expect(mockPush).not.toHaveBeenCalled();
   });
 

@@ -54,7 +54,7 @@ export interface PatientIntakeErrorResponse {
  * sync with these so the frontend rejects the same values the backend would.
  */
 export const PATIENT_BOUNDS = {
-  age_years: { min: 0, max: 120 },
+  age_years: { min: 18, max: 120 },
   height_cm: { min: 40, max: 260 },
   weight_kg: { min: 1, max: 350 },
   cough_duration_days: { min: 0, max: 365 },

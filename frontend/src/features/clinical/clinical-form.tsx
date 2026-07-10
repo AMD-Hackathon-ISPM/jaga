@@ -15,7 +15,11 @@ import { useMutation } from "@tanstack/react-query";
 import { IconChevronRight } from "@tabler/icons-react";
 import { clinicalSchema, type ClinicalFormValues } from "./clinical-schema";
 import { useSessionStore } from "@/store/session.store";
-import { patientService, PatientValidationError } from "@/services/patient.service";
+import {
+  demographicsService,
+  DemographicsValidationError,
+  type Demographics,
+} from "@/services/demographics.service";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -73,14 +77,16 @@ export function ClinicalForm() {
   });
 
   const mutation = useMutation({
-    mutationFn: (values: ClinicalFormValues) => patientService.submitIntake(values),
-    onSuccess: (patient) => {
-      setClinical(patient);
+    mutationFn: (values: ClinicalFormValues) => demographicsService.submit(toDemographics(values)),
+    onSuccess: (_, values) => {
+      setClinical(values);
       router.push("/coughs");
     },
     onError: (error, values) => {
-      if (!(error instanceof PatientValidationError)) return;
-      const fields = error.errors.filter((item) => item.field in clinicalSchema.shape);
+      if (!(error instanceof DemographicsValidationError)) return;
+      const fields = error.errors
+        .map((item) => ({ ...item, field: demographicFieldToFormField(item.field) }))
+        .filter((item): item is { field: keyof ClinicalFormValues; message: string } => item.field !== null);
       fields.forEach((item) =>
         setError(item.field as keyof ClinicalFormValues, {
           type: "server",
@@ -104,7 +110,7 @@ export function ClinicalForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate>
       <FieldGroup className="gap-4">
-        {mutation.isError && !(mutation.error instanceof PatientValidationError) && (
+        {mutation.isError && !(mutation.error instanceof DemographicsValidationError) && (
           <Alert variant="destructive">
             <AlertTitle>{t("clinical.validateFailedTitle")}</AlertTitle>
             <AlertDescription>{t("clinical.validateFailedBody")}</AlertDescription>
@@ -221,6 +227,25 @@ export function ClinicalForm() {
       </FieldGroup>
     </form>
   );
+}
+
+function toDemographics(values: ClinicalFormValues): Demographics {
+  return {
+    ageYears: values.age_years,
+    sexAtBirth: values.sex_at_birth,
+    heightCm: values.height_cm,
+    weightKg: values.weight_kg,
+  };
+}
+
+function demographicFieldToFormField(field: string): keyof ClinicalFormValues | null {
+  const fields: Record<string, keyof ClinicalFormValues> = {
+    ageYears: "age_years",
+    sexAtBirth: "sex_at_birth",
+    heightCm: "height_cm",
+    weightKg: "weight_kg",
+  };
+  return fields[field] ?? null;
 }
 
 type FieldName = keyof ClinicalFormValues;

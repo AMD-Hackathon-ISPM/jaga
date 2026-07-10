@@ -67,6 +67,23 @@ export const patientIntakeErrorSchema = z.object({
   errors: z.array(z.object({ field: z.string(), message: z.string() })),
 });
 
+export const demographicsSchema = z.object({
+  ageYears: z.number().int().min(18).max(120),
+  sexAtBirth: z.enum(["male", "female"]),
+  heightCm: z.number().min(40).max(260),
+  weightKg: z.number().min(1).max(350),
+});
+
+export const demographicsSuccessSchema = z.object({
+  status: z.literal("validated"),
+  demographics: demographicsSchema,
+});
+
+export const demographicsErrorSchema = z.object({
+  status: z.literal("invalid"),
+  errors: z.array(z.object({ field: z.string(), message: z.string() })),
+});
+
 const riskBandSchema = z.enum(["lower", "intermediate", "higher"]);
 
 const estimateSchema = z.object({

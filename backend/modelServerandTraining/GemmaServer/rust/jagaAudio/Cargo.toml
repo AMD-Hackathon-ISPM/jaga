@@ -1,0 +1,12 @@
+[package]
+name = "jagaAudio"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+anyhow.workspace = true
+hound.workspace = true
