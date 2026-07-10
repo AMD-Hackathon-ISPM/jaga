@@ -15,7 +15,7 @@ Sections labelled **Locked** are product and safety constraints and may not be r
 
 Jaga should feel **warm, calm, considered, and trustworthy** — closer to a well-made reading or note-taking tool ([mymind](https://mymind.com), [Wisprflow](https://wisprflow.ai)) than to a clinical dashboard or a "medical AI" product. Clean white surfaces with a teal brand accent, Figtree for UI and headings, generous space, and quiet, purposeful motion. The community health worker should feel guided and unhurried, and the participant should never feel alarmed or falsely reassured.
 
-**Guiding principle — constraints are a budget, not a ceiling.** Low-end Android, intermittent network, and the accessibility floors (§9) define a *performance budget* and a *legibility floor*. They do **not** cap ambition or require a plain UI. The interface is fully expressive — white + teal, Figtree + Ioskeley numerics, the live cough waveform, a real result reveal — *within* that budget (§5 performance budget). Reduced-motion and the 320 px layout are **graceful degradations of an already-beautiful default**, never a downgrade path.
+**Guiding principle — constraints are a budget, not a ceiling.** Low-end Android, intermittent network, and the accessibility floors (§9) define a _performance budget_ and a _legibility floor_. They do **not** cap ambition or require a plain UI. The interface is fully expressive — white + teal, Figtree + Ioskeley numerics, the live cough waveform, a real result reveal — _within_ that budget (§5 performance budget). Reduced-motion and the 320 px layout are **graceful degradations of an already-beautiful default**, never a downgrade path.
 
 **Avoid:** medical-theatre effects; glass/blur as decoration; alarmist or "scanning" risk visuals; decorative motion that conveys no state; the generic industrial-dashboard look; gradient text; over-rounded cards. The white + teal palette (rebrand 2026-07-09, replacing the original cream + deep-green) is a deliberate, committed choice carried by Figtree + Ioskeley.
 
@@ -32,14 +32,14 @@ Jaga should feel **warm, calm, considered, and trustworthy** — closer to a wel
 
 ### 2.1 Locked result copy concepts
 
-| Context | Required meaning |
-|---|---|
-| Prototype banner | Jaga is a research prototype and does not diagnose or rule out TB |
-| Next step | This person should receive confirmatory TB evaluation regardless of the estimate |
-| Lower band | Lower relative model estimate does not exclude TB |
-| Higher band | Prioritize follow-up; this remains a research estimate, not a diagnosis |
-| Inspection | Shows patterns used by the model; does not explain disease or clinical cause |
-| Failure | No result was produced; retry or use the standard clinical pathway |
+| Context          | Required meaning                                                                 |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Prototype banner | Jaga is a research prototype and does not diagnose or rule out TB                |
+| Next step        | This person should receive confirmatory TB evaluation regardless of the estimate |
+| Lower band       | Lower relative model estimate does not exclude TB                                |
+| Higher band      | Prioritize follow-up; this remains a research estimate, not a diagnosis          |
+| Inspection       | Shows patterns used by the model; does not explain disease or clinical cause     |
+| Failure          | No result was produced; retry or use the standard clinical pathway               |
 
 Billy owns the final paired Bahasa Indonesia/English strings in `UX-1`; meaning may not change.
 
@@ -49,17 +49,17 @@ The MVP covers eligibility/consent, supported clinical capture, five guided coug
 
 ### 3.1 Screen map (ordered)
 
-| # | Step (route) | Purpose | PRD |
-|---|---|---|---|
-| 0 | **Gate** (`/`) | Language, research-prototype framing, eligibility + consent acknowledgements | PRD-01 |
-| 1 | **Clinical** (`/clinical`) | Supported clinical/demographic fields from the signed contract | PRD-02 |
-| 2 | **Coughs** (`/coughs`) | Five guided attempts, sub-step `1/5…5/5`, in-context mic permission, per-attempt quality + retry | PRD-03/04 |
-| 3 | **Review** (`/review`) | Summary of clinical inputs + five accepted coughs; single submit action | PRD-05 |
-| 4 | **Processing** (overlay on Review) | `preparing → uploading → processing`; duplicate-submit guard | PRD-05 |
-| 5 | **Result** (`/result`) | Locked result hierarchy (§8) + spectrogram/inspection | PRD-06 |
-| 6 | **Limitations** (section within Result) | Model version, cohort, calibration status, limitations | PRD-06 |
-| — | **Error / Reset** (overlay, any step) | Retryable + terminal errors; reset confirmation | PRD-05/08 |
-| — | **Demo mode** (operator drawer) | Synthetic fixtures, success/failure paths, reset | PRD-11 |
+| #   | Step (route)                            | Purpose                                                                                          | PRD       |
+| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------ | --------- |
+| 0   | **Gate** (`/`)                          | Language, research-prototype framing, eligibility + consent acknowledgements                     | PRD-01    |
+| 1   | **Clinical** (`/clinical`)              | Supported clinical/demographic fields from the signed contract                                   | PRD-02    |
+| 2   | **Coughs** (`/coughs`)                  | Five guided attempts, sub-step `1/5…5/5`, in-context mic permission, per-attempt quality + retry | PRD-03/04 |
+| 3   | **Review** (`/review`)                  | Summary of clinical inputs + five accepted coughs; single submit action                          | PRD-05    |
+| 4   | **Processing** (overlay on Review)      | `preparing → uploading → processing`; duplicate-submit guard                                     | PRD-05    |
+| 5   | **Result** (`/result`)                  | Locked result hierarchy (§8) + spectrogram/inspection                                            | PRD-06    |
+| 6   | **Limitations** (section within Result) | Model version, cohort, calibration status, limitations                                           | PRD-06    |
+| —   | **Error / Reset** (overlay, any step)   | Retryable + terminal errors; reset confirmation                                                  | PRD-05/08 |
+| —   | **Demo mode** (operator drawer)         | Synthetic fixtures, success/failure paths, reset                                                 | PRD-11    |
 
 Routes are a convenience; the **logical steps are fixed**. A back/refresh that would drop in-memory state is guarded by the reset confirmation.
 
@@ -90,16 +90,16 @@ Routes are a convenience; the **logical steps are fixed**. A back/refresh that w
 
 The frontend proposal in `contracts/openapi/jaga-v1.yaml` pins the current field names, versions, limits, and structured codes for backend review. Daffa's `ARCH-1` sign-off remains required; map accepted codes to UI behavior as below.
 
-| API state / code class | UI behavior |
-|---|---|
-| `preparing` / `uploading` / `processing` | Processing overlay with stage label; submit disabled; cancel returns to Review without losing state |
-| `accepted` quality | Mark attempt accepted (success token, check + text); advance counter |
-| `retryable` quality (+ reason code) | Inline error on the affected attempt only; show the matched reason-code guidance (PRD-04); other accepted coughs preserved |
-| `system_error` quality | Page-level error; no estimate; retry |
-| `success` result | Render Result (§8) |
-| `retryable_error` (timeout/unavailable) | Return to Review; offer retry; never show a stale estimate |
-| `terminal_error` (contract/version mismatch) | Terminal technical error screen; no estimate; do not coerce payload |
-| missing model/calibration metadata | Unavailable-result error; withhold probability (PRD-06) |
+| API state / code class                       | UI behavior                                                                                                                |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `preparing` / `uploading` / `processing`     | Processing overlay with stage label; submit disabled; cancel returns to Review without losing state                        |
+| `accepted` quality                           | Mark attempt accepted (success token, check + text); advance counter                                                       |
+| `retryable` quality (+ reason code)          | Inline error on the affected attempt only; show the matched reason-code guidance (PRD-04); other accepted coughs preserved |
+| `system_error` quality                       | Page-level error; no estimate; retry                                                                                       |
+| `success` result                             | Render Result (§8)                                                                                                         |
+| `retryable_error` (timeout/unavailable)      | Return to Review; offer retry; never show a stale estimate                                                                 |
+| `terminal_error` (contract/version mismatch) | Terminal technical error screen; no estimate; do not coerce payload                                                        |
+| missing model/calibration metadata           | Unavailable-result error; withhold probability (PRD-06)                                                                    |
 
 ### 3.4 Per-screen acceptance notes
 
@@ -127,22 +127,22 @@ The frontend proposal in `contracts/openapi/jaga-v1.yaml` pins the current field
 
 White + teal palette (rebrand 2026-07-09; hex where the value is fixed, OKLCH where designed). Original cream + deep-green ratios in §4.6 / [`../design/contrast.mjs`](../design/contrast.mjs) predate the rebrand — spot-checked against white (status text ~7.3:1, band-intermediate 3.34:1, band-higher 6.69:1 all pass); full re-verification of §4.6 is open.
 
-| Token | Value | Role |
-|---|---|---|
-| `--canvas` | `#FFFFFF` | Page background (pure white) |
-| `--surface` | `#FFFFFF` | Cards, raised panels |
-| `--surface-sunken` | `#F7FAFC` | Input wells, inset areas |
-| `--border-subtle` | `#E2E8F0` | Decorative dividers (redundant, sub-3:1 allowed) |
-| `--border-strong` | `oklch(0.62 0.030 255)` | **Essential** control/input/track outlines (≥3:1) |
-| `--ink` | `#2D3748` | Primary body text (dark slate) |
-| `--ink-muted` | `oklch(0.447 0.034 261)` | Secondary text, labels, **placeholders** (≈ `#4A5568`) |
-| `--brand` | `#007A87` | Teal: links, accents, button fill (white text), focus base, success. Matches the logo mark (`src/assets/icon.svg`). |
-| `--focus` | `oklch(0.53 0.090 205)` | Focus ring (2 px + 1 px offset) |
-| `--info` / `--info-surface` | `oklch(0.45 0.095 245)` / `oklch(0.95 0.030 240)` | Info text / tint |
-| `--warning` / `--warning-surface` | `oklch(0.45 0.085 70)` / `oklch(0.95 0.040 85)` | Warning text / tint |
-| `--error` / `--error-surface` | `oklch(0.47 0.155 28)` / `oklch(0.95 0.045 25)` | Error text / tint |
-| `--error-strong` | `#B3261E` | Destructive button fill (white text) |
-| `--success` | `#007A87` | Process completion (= the brand teal), **not** clinical clearance |
+| Token                             | Value                                             | Role                                                                                                                |
+| --------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `--canvas`                        | `#FFFFFF`                                         | Page background (pure white)                                                                                        |
+| `--surface`                       | `#FFFFFF`                                         | Cards, raised panels                                                                                                |
+| `--surface-sunken`                | `#F7FAFC`                                         | Input wells, inset areas                                                                                            |
+| `--border-subtle`                 | `#E2E8F0`                                         | Decorative dividers (redundant, sub-3:1 allowed)                                                                    |
+| `--border-strong`                 | `oklch(0.62 0.030 255)`                           | **Essential** control/input/track outlines (≥3:1)                                                                   |
+| `--ink`                           | `#2D3748`                                         | Primary body text (dark slate)                                                                                      |
+| `--ink-muted`                     | `oklch(0.447 0.034 261)`                          | Secondary text, labels, **placeholders** (≈ `#4A5568`)                                                              |
+| `--brand`                         | `#007A87`                                         | Teal: links, accents, button fill (white text), focus base, success. Matches the logo mark (`src/assets/icon.svg`). |
+| `--focus`                         | `oklch(0.53 0.090 205)`                           | Focus ring (2 px + 1 px offset)                                                                                     |
+| `--info` / `--info-surface`       | `oklch(0.45 0.095 245)` / `oklch(0.95 0.030 240)` | Info text / tint                                                                                                    |
+| `--warning` / `--warning-surface` | `oklch(0.45 0.085 70)` / `oklch(0.95 0.040 85)`   | Warning text / tint                                                                                                 |
+| `--error` / `--error-surface`     | `oklch(0.47 0.155 28)` / `oklch(0.95 0.045 25)`   | Error text / tint                                                                                                   |
+| `--error-strong`                  | `#B3261E`                                         | Destructive button fill (white text)                                                                                |
+| `--success`                       | `#007A87`                                         | Process completion (= the brand teal), **not** clinical clearance                                                   |
 
 `--success` reuses `--brand` and is reserved for **process** completion (a captured/accepted attempt), never for a risk band or "all clear" meaning. The brand teal carries **actions only** and never appears on a risk band, so a lower estimate cannot read as clearance.
 
@@ -150,11 +150,11 @@ White + teal palette (rebrand 2026-07-09; hex where the value is fixed, OKLCH wh
 
 Bands use a dedicated **non-green, non-traffic-light** ramp, monotonic in lightness (so they remain distinguishable in grayscale / under color-vision deficiency), always reinforced by the **text label** and **position in a 3-segment outlined track** — color is never the sole signal.
 
-| Band | OKLCH | Notes |
-|---|---|---|
-| Lower | `oklch(0.78 0.035 78)` | Light taupe. Identified by label + position + `--border-strong` track outline; fill is reinforcement only (exempt from the 3:1 fill rule). |
-| Intermediate | `oklch(0.65 0.110 58)` | Ochre (3.30:1 graphical on canvas). |
-| Higher | `oklch(0.49 0.140 36)` | Deep brick (6.61:1 graphical). Not red, not an alarm. |
+| Band         | OKLCH                  | Notes                                                                                                                                      |
+| ------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Lower        | `oklch(0.78 0.035 78)` | Light taupe. Identified by label + position + `--border-strong` track outline; fill is reinforcement only (exempt from the 3:1 fill rule). |
+| Intermediate | `oklch(0.65 0.110 58)` | Ochre (3.30:1 graphical on canvas).                                                                                                        |
+| Higher       | `oklch(0.49 0.140 36)` | Deep brick (6.61:1 graphical). Not red, not an alarm.                                                                                      |
 
 The band is rendered as a quiet 3-segment track inside a card with the band **named in words** ("Lower / Intermediate / Higher model-estimated risk"), never as a large saturated fill or a warning siren. Lower carries **no** green, checkmark, or reassurance.
 
@@ -174,22 +174,22 @@ high energy oklch(0.32 0.090 32)
 
 Computed from the values above (reproducible via [`../design/contrast.mjs`](../design/contrast.mjs)). Body text ≥4.5:1, large/UI ≥3:1, placeholders ≥4.5:1.
 
-| Pair | Ratio | Requirement |
-|---|---|---|
-| `ink` / `canvas` | 17.2 | body ✓ |
-| `ink` / `surface` | 17.3 | body ✓ |
-| `ink-muted` / `canvas` (incl. placeholder) | 6.18 | body/placeholder ✓ |
-| `brand` / `canvas` (link/button text) | 9.39 | body ✓ |
-| `white` / `brand` (button) | 9.50 | body ✓ |
-| `ink-muted` / `surface-sunken` (disabled button) | 5.74 | body ✓ |
-| `white` / `error-strong` | 6.54 | body ✓ |
-| `warning` / `warning-surface` | 6.55 | body ✓ |
-| `error` / `error-surface` | 6.11 | body ✓ |
-| `info` / `info-surface` | 6.40 | body ✓ |
-| `border-strong` / `canvas` | 3.59 | non-text ✓ |
-| `focus` / `canvas` | 5.66 | non-text ✓ |
-| risk Intermediate / canvas | 3.30 | graphical ✓ |
-| risk Higher / canvas | 6.61 | graphical ✓ |
+| Pair                                             | Ratio | Requirement        |
+| ------------------------------------------------ | ----- | ------------------ |
+| `ink` / `canvas`                                 | 17.2  | body ✓             |
+| `ink` / `surface`                                | 17.3  | body ✓             |
+| `ink-muted` / `canvas` (incl. placeholder)       | 6.18  | body/placeholder ✓ |
+| `brand` / `canvas` (link/button text)            | 9.39  | body ✓             |
+| `white` / `brand` (button)                       | 9.50  | body ✓             |
+| `ink-muted` / `surface-sunken` (disabled button) | 5.74  | body ✓             |
+| `white` / `error-strong`                         | 6.54  | body ✓             |
+| `warning` / `warning-surface`                    | 6.55  | body ✓             |
+| `error` / `error-surface`                        | 6.11  | body ✓             |
+| `info` / `info-surface`                          | 6.40  | body ✓             |
+| `border-strong` / `canvas`                       | 3.59  | non-text ✓         |
+| `focus` / `canvas`                               | 5.66  | non-text ✓         |
+| risk Intermediate / canvas                       | 3.30  | graphical ✓        |
+| risk Higher / canvas                             | 6.61  | graphical ✓        |
 
 **Prohibited combinations:** `ink-muted` on `--surface-sunken` for long body copy at <16 px; any text on a risk-band fill (labels sit on `--surface`); green on a risk/“result” surface; `--border-subtle` as the sole boundary of an essential control; placeholder text lighter than `--ink-muted`.
 
@@ -206,10 +206,10 @@ Computed from the values above (reproducible via [`../design/contrast.mjs`](../d
 
 ### 5.2 Font families (2 roles + numerics)
 
-| Role | Family | Used for |
-|---|---|---|
-| **UI / headings sans** | **Figtree** (OFL); fallback `ui-sans-serif, system-ui, sans-serif` | Screen titles, section headings, forms, labels, buttons, instructions, errors, prose. |
-| **Numerics mono** | **Ioskeley Mono** ([ahatem/IoskeleyMono](https://github.com/ahatem/IoskeleyMono), OFL 1.1), ligatures-off "NL" build; fallback `ui-monospace, "SF Mono", monospace` | Every number, unit, vital, percentage, the calibrated estimate, spectrogram axes, model/contract version, request id. Monospace = inherently tabular. |
+| Role                   | Family                                                                                                                                                              | Used for                                                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **UI / headings sans** | **Figtree** (OFL); fallback `ui-sans-serif, system-ui, sans-serif`                                                                                                  | Screen titles, section headings, forms, labels, buttons, instructions, errors, prose.                                                                 |
+| **Numerics mono**      | **Ioskeley Mono** ([ahatem/IoskeleyMono](https://github.com/ahatem/IoskeleyMono), OFL 1.1), ligatures-off "NL" build; fallback `ui-monospace, "SF Mono", monospace` | Every number, unit, vital, percentage, the calibrated estimate, spectrogram axes, model/contract version, request id. Monospace = inherently tabular. |
 
 Figtree carries both body and headings so long Bahasa strings stay legible at 16 px on low-end Android. The custom Jaga mark (`src/assets/icon.svg`) is the only brand SVG; all other UI icons use Tabler via shadcn (`@tabler/icons-react`, `components.json` `iconLibrary: tabler`).
 
@@ -224,17 +224,17 @@ Figtree carries both body and headings so long Bahasa strings stay legible at 16
 
 App screens use a **fixed rem** scale (not fluid) — consistent DPI, no shrink-in-sidebar surprises. The result headline is the one brand moment and may use a modest `clamp()`.
 
-| Step | Size / line-height | Weight · family |
-|---|---|---|
-| Display (result band name) | `clamp(1.5rem, 1.3rem + 1vw, 2rem)` / 1.1 | 600 · sans, letter-spacing -0.01em |
-| H1 (screen title) | `1.5rem` / 1.2 | 600 · sans |
-| H2 (section) | `1.25rem` / 1.3 | 600 · sans |
-| H3 / lead | `1.125rem` / 1.4 | 600 · sans |
-| Body | `1rem` (16 px floor) / 1.55 | 400 · sans |
-| Body-strong / label | `1rem` / 1.5 | 600 · sans |
-| Small / hint | `0.875rem` / 1.45 | 400 · sans (only for non-critical hints; never below 16 px for safety/required copy) |
-| Numeric (vitals, units) | `1rem`–`1.125rem` | 500 · Ioskeley, `font-variant-numeric: tabular-nums` |
-| Estimate (result) | `1.05rem` inline, secondary to the band name and next step (**never hero-scale**) | 500 · Ioskeley, tabular |
+| Step                       | Size / line-height                                                                | Weight · family                                                                      |
+| -------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Display (result band name) | `clamp(1.5rem, 1.3rem + 1vw, 2rem)` / 1.1                                         | 600 · sans, letter-spacing -0.01em                                                   |
+| H1 (screen title)          | `1.5rem` / 1.2                                                                    | 600 · sans                                                                           |
+| H2 (section)               | `1.25rem` / 1.3                                                                   | 600 · sans                                                                           |
+| H3 / lead                  | `1.125rem` / 1.4                                                                  | 600 · sans                                                                           |
+| Body                       | `1rem` (16 px floor) / 1.55                                                       | 400 · sans                                                                           |
+| Body-strong / label        | `1rem` / 1.5                                                                      | 600 · sans                                                                           |
+| Small / hint               | `0.875rem` / 1.45                                                                 | 400 · sans (only for non-critical hints; never below 16 px for safety/required copy) |
+| Numeric (vitals, units)    | `1rem`–`1.125rem`                                                                 | 500 · Ioskeley, `font-variant-numeric: tabular-nums`                                 |
+| Estimate (result)          | `1.05rem` inline, secondary to the band name and next step (**never hero-scale**) | 500 · Ioskeley, tabular                                                              |
 
 Cap prose at 65–75 ch. `text-wrap: balance` on h1–h3; `text-wrap: pretty` on prose.
 
@@ -242,8 +242,8 @@ Cap prose at 65–75 ch. `text-wrap: balance` on h1–h3; `text-wrap: pretty` on
 
 - **Spacing scale (4 px base):** 4, 8, 12, 16, 20, 24, 32, 40, 48, 64. Vary it for rhythm; don't space everything equally.
 - **Radius (one scale, no exceptions):** 6 px for controls, inputs, cards, panels, banners; 4 px for thin bars (the risk-track segments); 16 px for a device/phone frame only; pill (`9999px`) only for the language toggle and tags. No other radii. Match-and-refuse over-rounding.
-- **Content widths:** single-column form/flow max `32rem` (512 px), centered, comfortable side padding (16 px mobile / 24 px+ desktop). Prose 65–75 ch. Result-class pages (/result, /cxr/result, /review) widen to a 56rem stage at ≥1024px ("flow-wide") for the two-column evidence layout; capture pages keep the 32rem column.
-- **Breakpoints:** 320 px floor (everything works), `sm` 480, `md` 768, `lg` 1024. Mobile-first; responsive behavior is structural, not fluid type.
+- **Content widths:** single-column form/flow max `32rem` (512 px), centered, comfortable side padding (16 px mobile / 24 px+ desktop). Prose 65–75 ch. Result-class pages (/result, /cxr/result, /review) widen to a 56rem stage at ≥840px ("flow-wide") for the result layout; capture pages keep the 32rem column.
+- **Breakpoints:** 320 px floor (everything works), `sm` 480, `md` 768, result-content breakpoint 840, `lg` 1024. Mobile-first; responsive behavior is structural, not fluid type.
 - **Safe area:** respect `env(safe-area-inset-*)` for the sticky progress/footer on phones.
 - **Density:** one primary action per step; generous touch spacing (≥44 px targets, ≥8 px between adjacent targets).
 - **Shadows:** at most one soft, low shadow on raised cards (`0 1px 2px` + `0 4px 12px` at very low alpha). Never pair a 1 px border with a ≥16 px-blur shadow on the same element.
@@ -251,7 +251,7 @@ Cap prose at 65–75 ch. `text-wrap: balance` on h1–h3; `text-wrap: pretty` on
 ### 5.6 Layout examples
 
 - **320 px (low-end Android):** single column; sticky top step indicator; one field/control group per row; the cough waveform fills width with side gutters; result headline wraps to ≤3 lines; the 3-segment risk track stacks above the named band.
-- **Desktop (≥1024px):** capture pages (gate, clinical, coughs, cxr upload) keep the single 512px column centered on `--canvas`, with 24px side padding and a looser vertical rhythm. Result-class pages (`/result`, `/cxr/result`, `/review`) widen to a 56rem stage: decision column left (band, track, mandatory next step — §8.1 dominance preserved), evidence column right (limitations, spectrogram/CXR at larger size; summaries side-by-side on review). The flow never becomes a dashboard. Optional right-aligned demo-mode drawer for the operator remains a future option (unbuilt).
+- **Wide result context (≥840px):** capture pages (gate, clinical, coughs, cxr upload) keep the single 512px column centered on `--canvas`. Result-class pages (`/result`, `/cxr/result`, `/review`) widen to a 56rem stage. Gema keeps its decision column left and recording evidence right. Prisma pairs the result summary with the mandatory next step first, then gives the uploaded CXR and optional heatmap the full stage width in a large side-by-side comparison. Technical metadata sits in one disclosure below participant-facing evidence. The flow never becomes a dashboard. Optional right-aligned demo-mode drawer for the operator remains a future option (unbuilt).
 
 ## 6. Component patterns
 
@@ -259,21 +259,21 @@ Required component families and their specs. Reuse the patterns already proven i
 
 The routed flow uses official shadcn APIs from preset `b85jYWWKi8`: Button for actions and the recorder; Card/CardContent for surfaces; Field/FieldSet/Input/RadioGroup/Checkbox for clinical and CXR inputs; ToggleGroup for language; Alert/Empty/Badge/Skeleton/Spinner for feedback; Item for cough attempts; Accordion for limitations; and Sheet for shared guidance. Shadcn semantic variables map to §4 tokens, Tabler icons (`@tabler/icons-react`) supply non-brand glyphs, and the application remains light-only without a theme provider.
 
-| Family | Anatomy / variants | Key states & rules |
-|---|---|---|
-| **Buttons** | primary (brand fill, white), secondary (surface + border-strong), tertiary (text + brand), destructive (error-strong fill), recorder (record orb) | ≥44 px; focus ring `--focus`; disabled = reduced contrast + `aria-disabled`; loading composes `Spinner` + label with the action locked; one primary per step |
-| **Form controls** | label + optional unit + required/optional marker + hint + input/radio/boolean + error | `--surface-sunken` well, `--border-strong` outline; error = `--error` text + `--error-surface` + `aria-invalid` + `aria-describedby`; preserve value on error; numeric inputs use Ioskeley + `inputMode` |
-| **Language switcher** | pill toggle EN ⇄ ID | default EN; one tap; preserves step + values; `aria-label` states target language |
-| **Step / progress indicator** | top stepper (Eligibility · Clinical · Coughs · Result) + cough sub-counter `n/5` | current step `aria-current`; numeric counter in Ioskeley; never blocks reading the step content |
-| **Mic permission + recorder** | in-context permission card → recorder with live waveform (§7) | permission requested only at capture; denied → how-to-enable + retry; unsupported device → compatibility block |
-| **Cough-attempt list** | 5 rows: index, status (recording/accepted/retryable), replay, replace | retryable error targets one row; accepted rows preserved; status has icon **and** text |
-| **Connectivity / inference progress** | stage label (`preparing/uploading/processing`) + determinate-where-known bar | never claims secure completion before ack; cancel returns to Review |
-| **Research-estimate card** | prototype banner → estimate (Ioskeley) + named band (§4.4) → mandatory next step → metadata | follows the locked order (§8); estimate shown only if calibrated; calibration status labelled |
-| **Mandatory-next-step panel** | always-visible confirmatory-evaluation instruction | identical across all bands; never visually de-emphasized for Lower |
-| **Model / version / limitations disclosure** | expandable section, open by default on Result | model + contract version + cohort + calibration + limitations in plain language; versions in Ioskeley |
-| **Spectrogram / inspection figure** | figure + caption + accessible summary + "model inspection" label | perceptual palette (§4.5); text/data alternative; can be hidden without changing the next step |
-| **Inline / page error + retry** | inline (field) and page (screen) variants + retry action | error summary is focusable (`tabIndex -1`, `role="alert"`); errors persist until resolved; summarized at submit |
-| **Reset confirmation** | dialog: explains state will clear, confirm/cancel | uses native `<dialog>`/popover (escape stacking context); clears all local state on confirm |
+| Family                                | Anatomy / variants                                                                                                                                | Key states & rules                                                                                                                                                                                       |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Buttons**                           | primary (brand fill, white), secondary (surface + border-strong), tertiary (text + brand), destructive (error-strong fill), recorder (record orb) | ≥44 px; focus ring `--focus`; disabled = reduced contrast + `aria-disabled`; loading composes `Spinner` + label with the action locked; one primary per step                                             |
+| **Form controls**                     | label + optional unit + required/optional marker + hint + input/radio/boolean + error                                                             | `--surface-sunken` well, `--border-strong` outline; error = `--error` text + `--error-surface` + `aria-invalid` + `aria-describedby`; preserve value on error; numeric inputs use Ioskeley + `inputMode` |
+| **Language switcher**                 | pill toggle EN ⇄ ID                                                                                                                               | default EN; one tap; preserves step + values; `aria-label` states target language                                                                                                                        |
+| **Step / progress indicator**         | top stepper (Eligibility · Clinical · Coughs · Result) + cough sub-counter `n/5`                                                                  | current step `aria-current`; numeric counter in Ioskeley; never blocks reading the step content                                                                                                          |
+| **Mic permission + recorder**         | in-context permission card → recorder with live waveform (§7)                                                                                     | permission requested only at capture; denied → how-to-enable + retry; unsupported device → compatibility block                                                                                           |
+| **Cough-attempt list**                | 5 rows: index, status (recording/accepted/retryable), replay, replace                                                                             | retryable error targets one row; accepted rows preserved; status has icon **and** text                                                                                                                   |
+| **Connectivity / inference progress** | stage label (`preparing/uploading/processing`) + determinate-where-known bar                                                                      | never claims secure completion before ack; cancel returns to Review                                                                                                                                      |
+| **Research-estimate card**            | prototype banner → estimate (Ioskeley) + named band (§4.4) → mandatory next step → signal evidence → collapsed metadata                           | follows the locked order (§8); estimate shown only if calibrated; calibration status remains available                                                                                                   |
+| **Mandatory-next-step panel**         | always-visible confirmatory-evaluation instruction                                                                                                | identical across all bands; never visually de-emphasized for Lower                                                                                                                                       |
+| **About this estimate disclosure**    | one collapsed expandable section after participant-facing evidence                                                                                | signal + model and contract version + cohort + calibration + limitations in plain language; versions in Ioskeley                                                                                         |
+| **Spectrogram / inspection figure**   | figure + caption + accessible summary + "model inspection" label                                                                                  | perceptual palette (§4.5); text/data alternative; can be hidden without changing the next step                                                                                                           |
+| **Inline / page error + retry**       | inline (field) and page (screen) variants + retry action                                                                                          | error summary is focusable (`tabIndex -1`, `role="alert"`); errors persist until resolved; summarized at submit                                                                                          |
+| **Reset confirmation**                | dialog: explains state will clear, confirm/cancel                                                                                                 | uses native `<dialog>`/popover (escape stacking context); clears all local state on confirm                                                                                                              |
 
 - **Loading** uses **skeletons**, not centered spinners in content.
 - **Empty/first-run** states teach the step (what to do, why), not "nothing here."
@@ -308,14 +308,15 @@ The routed flow uses official shadcn APIs from preset `b85jYWWKi8`: Button for a
 1. Research-prototype warning.
 2. Model-estimated probability/band only when valid.
 3. Mandatory confirmatory-evaluation next step.
-4. Limitations and model/evaluation metadata.
-5. Optional model-inspection visual.
+4. Optional illustrative local-recording summary, explicitly not model output.
+5. Collapsed model/evaluation metadata and limitations.
+6. Optional genuine model-inspection visual.
 
 The result reveal may be the signature motion moment, but motion cannot delay or obscure the next step. Lower bands must not celebrate. The inspection overlay must be labelled non-causal.
 
 ### 8.2 Result layout + motion (signed)
 
-- **Layout (single column, 512 px):** prototype banner (always first, `--warning-surface`, calm) → the **band name as the Figtree headline** ("Higher model-estimated risk") with the calibrated estimate as a **small inline Ioskeley line beneath** (value + calibration status + model version; **never hero-scale**, so the number cannot out-rank the next step) → the named 3-segment risk track (§4.4) → the **mandatory next-step panel as the visually dominant block** (full-width, heaviest weight, Figtree sub-heading, ink body, equal prominence for every band) → the open-by-default limitations/metadata disclosure → the optional spectrogram/inspection figure last. The eye must land on the next-step panel, not the estimate.
+- **Layout:** below 840 px, use one 512 px column; at ≥840 px, use a 56rem stage. In both contexts: prototype banner (always first, `--warning-surface`, calm) → the **band name as the Figtree headline** ("Higher model-estimated risk") with the calibrated estimate as a **small inline Ioskeley line beneath** (value only; **never hero-scale**, so the number cannot out-rank the next step) → the named 3-segment risk track (§4.4) → the **mandatory next-step panel as the visually dominant block** (full-width, heaviest weight, Figtree sub-heading, ink body, equal prominence for every band) → signal evidence → one collapsed “About this estimate” disclosure containing signal, model/contract version, cohort, calibration, and limitations. Gema's local recording evidence is labelled illustrative and not model output. Prisma's uploaded CXR and optional model heatmap use the full result width and sit side-by-side from 640 px so neither image becomes a thumbnail. The eye must land on the next-step panel, not the estimate.
 - **Motion:** **one** reveal — the headline + estimate fade/translate up (`ease-out-quart`, ~360 ms). The **banner and next-step panel render immediately and unconditionally** (not gated behind the animation), so the safety content is never hidden if the transition is skipped, paused on a background tab, or rendered headless. Everything else uses 150–250 ms state transitions. Lower band uses the **same** calm reveal — no green, no checkmark, no celebratory motion.
 - **Reduced motion:** crossfade or instant; no translate.
 - **Screenshot-safe static state:** the fully-revealed layout is the default DOM; with motion disabled the result is complete and legible in a single still frame (for the demo recording).
@@ -335,7 +336,7 @@ The result reveal may be the signature motion moment, but motion cannot delay or
 
 ## 10. Localization
 
-- **English is the default field language; Bahasa Indonesia is always available via a one-tap toggle.** Both are complete, reviewed, and equivalent. Bahasa is featured in the result/limitations moment to keep the Indonesia-context story. *(This reflects the 2026-06-28 change to PRD-07; the earlier "Bahasa default" is superseded.)*
+- **English is the default field language; Bahasa Indonesia is always available via a one-tap toggle.** Both are complete, reviewed, and equivalent. Bahasa is featured in the result/limitations moment to keep the Indonesia-context story. _(This reflects the 2026-06-28 change to PRD-07; the earlier "Bahasa default" is superseded.)_
 - Strings are keyed and versioned; no text is hard-coded inside visual assets.
 - **Size every layout for the longer of the two languages** (Indonesian generally runs longer) so safety meaning is never truncated.
 - Dates, times, decimals, percentages, and units are locale-aware.

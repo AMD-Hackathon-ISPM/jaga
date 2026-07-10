@@ -48,7 +48,11 @@ export function CoughsScreen() {
         <li>{emphasize(t("coughs.bullets.retry"))}</li>
       </ul>
 
-      <CoughRecorder coughRecording={coughRecording} onCaptured={onCaptured} />
+      <CoughRecorder
+        coughRecording={coughRecording}
+        onCaptured={onCaptured}
+        onDiscard={() => setCoughRecording(null)}
+      />
 
       <div className="mt-2 flex gap-3">
         <Button

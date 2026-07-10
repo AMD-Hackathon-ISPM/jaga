@@ -53,7 +53,7 @@
     "howToRead": "Risiko relatif estimasi model, bukan peluang pribadi mengidap TB.",
     "nextStep": "Orang ini harus menjalani evaluasi TB konfirmatori terlepas dari estimasi ini.",
     "nextStepTitle": "Langkah berikutnya",
-    "limitationsTitle": "Batasan dan detail model",
+    "limitationsTitle": "Tentang estimasi ini",
     "limitations": {
       "contract": "Kontrak",
       "model": "Versi model",
@@ -80,10 +80,19 @@
     },
     "empty": {
       "title": "Tidak ada hasil Gema dalam sesi ini",
-      "description": "Kirim data klinis dan lima rekaman batuk terlebih dahulu.",
+      "description": "Kirim data klinis dan satu rekaman batuk terlebih dahulu.",
       "returnToReview": "Kembali ke tinjauan"
     },
-    "riskBandAria": "Peringkat risiko estimasi model: {band}"
+    "riskBandAria": "Peringkat risiko estimasi model: {band}",
+    "coughFocus": {
+      "focusLabel": "Momen batuk terdeteksi",
+      "coughLabel": "batuk {n}",
+      "legendLow": "energi lebih rendah",
+      "legendHigh": "energi lebih tinggi",
+      "aria": "Bentuk gelombang rekaman dengan {n} batuk terdeteksi",
+      "unavailable": "Pratinjau bentuk gelombang tidak tersedia untuk rekaman ini.",
+      "caption": "Ringkasan rekaman ilustratif, bukan keluaran model."
+    }
   },
   "review": {
     "title": "Tinjau dan kirim",
@@ -256,9 +265,9 @@
       "bandTitle": "Peringkat Prisma {band}",
       "unavailable": "Estimasi Prisma tidak tersedia",
       "estimateMeaning": "Estimasi model terkalibrasi tentang seberapa sesuai gambar ini dengan TB. Bukan diagnosis, dan bukan probabilitas pribadi mengidap TB.",
-      "limitationsTitle": "Batasan dan detail model",
+      "limitationsTitle": "Tentang estimasi ini",
       "figureAlt": "Rontgen dada yang diunggah",
-      "figureCaption": "Rontgen dada yang diunggah. Ditampilkan sebagai referensi; bukan penjelasan klinis.",
+      "figureCaption": "Rontgen dada yang diunggah dan peta panas model opsional. Ditampilkan untuk inspeksi; bukan penjelasan klinis.",
       "uploadedTileLabel": "CXR yang diunggah",
       "heatmapTileLabel": "Peta panas model",
       "heatmapAlt": "Peta panas inspeksi model",

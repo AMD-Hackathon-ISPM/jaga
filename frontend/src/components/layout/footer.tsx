@@ -11,10 +11,12 @@ export function Footer({ wide = false }: { wide?: boolean }) {
     <footer
       className={cn(
         "mx-auto w-full px-4 py-6 lg:px-6",
-        wide ? "max-w-flow lg:max-w-flow-wide" : "max-w-flow",
+        wide ? "max-w-flow min-[840px]:max-w-flow-wide" : "max-w-flow",
       )}
     >
-      <p className="mx-auto max-w-[65ch] text-center text-xs text-ink-muted">{t("footer.disclaimer")}</p>
+      <p className="mx-auto max-w-[65ch] text-center text-xs text-ink-muted">
+        {t("footer.disclaimer")}
+      </p>
     </footer>
   );
 }

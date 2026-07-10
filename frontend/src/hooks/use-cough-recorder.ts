@@ -140,6 +140,19 @@ export function useCoughRecorder(onCaptured: (rec: CoughRecording) => void) {
         return;
       }
       streamRef.current = stream;
+      stream.getTracks().forEach((track) => {
+        track.addEventListener(
+          "ended",
+          () => {
+            if (genRef.current !== gen) return;
+            teardown(true);
+            setCoughEvents([]);
+            setElapsedMs(0);
+            setState("error");
+          },
+          { once: true },
+        );
+      });
 
       const mimeType = selectRecorderMimeType(MediaRecorder.isTypeSupported);
       const recorder = new MediaRecorder(stream, { mimeType });

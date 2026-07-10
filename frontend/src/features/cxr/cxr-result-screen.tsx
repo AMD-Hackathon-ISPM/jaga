@@ -5,10 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconRefresh, IconScan } from "@tabler/icons-react";
 import { PrototypeBanner } from "@/components/common/prototype-banner";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { AnalysisPanel } from "@/features/result/analysis-panel";
 import { FigureImage } from "@/features/result/figure-image";
 import { NextStepPanel } from "@/features/result/next-step-panel";
 import { Reveal } from "@/features/result/reveal";
@@ -66,148 +70,119 @@ export function CxrResultScreen() {
     <div className="flex flex-col gap-5">
       <PrototypeBanner />
 
-      {/* Desktop (lg+): decision column left, evidence column right (§5.6).
-          Below lg this grid collapses to the original single-column stack. */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:items-start lg:gap-x-10">
+      {/* Result summary and mandatory action form the first beat. */}
+      <div className="grid grid-cols-1 gap-5 min-[840px]:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] min-[840px]:items-start min-[840px]:gap-x-10">
         <div className="flex min-w-0 flex-col gap-5">
-          {/* Band name + explained estimate (§C2.2). The raw mono
-              percent/calibration/model line is gone; calibration status and model
-              version now live in the limitations accordion. */}
           <Reveal index={0}>
-            {estimate ? (
-              <div>
-                <h1 className="font-heading text-2xl font-semibold capitalize">
-                  {t("cxr.result.bandTitle").replace("{band}", estimate.band)}
-                </h1>
-                <div className="mt-2.5 flex items-start gap-3">
-                  <span className="inline-flex items-center rounded-full bg-brand px-2.5 py-1 font-mono text-xs font-medium leading-none tabular-nums text-white">
-                    {(estimate.probability * 100).toFixed(0)}%
-                  </span>
-                  <p className="min-w-0 text-sm leading-relaxed text-ink-muted text-pretty">
-                    {t("cxr.result.estimateMeaning")}
-                  </p>
+            <div className="flex flex-col gap-5">
+              {estimate ? (
+                <div>
+                  <h1 className="font-heading text-2xl font-semibold capitalize">
+                    {t("cxr.result.bandTitle").replace("{band}", estimate.band)}
+                  </h1>
+                  <div className="mt-2.5 flex items-start gap-3">
+                    <span className="inline-flex items-center rounded-full bg-brand px-2.5 py-1 font-mono text-xs font-medium leading-none tabular-nums text-white">
+                      {(estimate.probability * 100).toFixed(0)}%
+                    </span>
+                    <p className="min-w-0 text-sm leading-relaxed text-ink-muted text-pretty">
+                      {t("cxr.result.estimateMeaning")}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <h1 className="font-heading text-2xl font-semibold">{t("cxr.result.unavailable")}</h1>
-            )}
-          </Reveal>
-
-          {estimate && (
-            <Reveal index={1}>
-              <RiskBandTrack band={estimate.band} probability={estimate.probability} caption={t("result.howToRead")} />
-            </Reveal>
-          )}
-
-          <NextStepPanel title={t("result.nextStepTitle")} instruction={result.mandatoryNextStep} />
-
-          {/* Analysis panel — quiet, below the dominant next step (§C2.4). */}
-          <Reveal index={2}>
-            <AnalysisPanel
-              title={t("result.analysis.title")}
-              signal={{
-                label: t("result.analysis.signalLabel"),
-                value: t("result.analysis.signal.cxr"),
-              }}
-              metadata={{
-                cohort: { label: t("result.analysis.cohortLabel"), value: result.metadata.cohort },
-                calibration: {
-                  label: t("result.analysis.calibrationLabel"),
-                  value: estimate ? estimate.calibrationStatus : "—",
-                },
-                description: t("result.analysis.body.cxr"),
-              }}
-            />
+              ) : (
+                <h1 className="font-heading text-2xl font-semibold">
+                  {t("cxr.result.unavailable")}
+                </h1>
+              )}
+              {estimate && <RiskBandTrack band={estimate.band} caption={t("result.howToRead")} />}
+            </div>
           </Reveal>
         </div>
 
-        <div className="flex min-w-0 flex-col gap-5">
-          <Reveal index={3}>
-            <Accordion
-              type="single"
-              collapsible
-              defaultValue="limitations"
-              className="rounded-control border border-border-subtle bg-card px-4"
-            >
-              <AccordionItem value="limitations">
-                <AccordionTrigger className="font-heading text-base font-semibold text-ink">
-                  {t("cxr.result.limitationsTitle")}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <ul className="flex list-disc flex-col gap-1.5 pl-5 text-base text-ink-muted">
-                    <li>
-                      {t("result.limitations.contract")}{" "}
-                      <span className="font-mono">{result.metadata.contractVersion}</span>
-                    </li>
-                    <li>
-                      {t("result.limitations.model")}{" "}
-                      <span className="font-mono">{result.metadata.modelVersion}</span>
-                    </li>
-                    <li>
-                      {t("result.limitations.cohort")} {result.metadata.cohort}
-                    </li>
-                    {estimate && (
-                      <li>
-                        {t("result.limitations.calibration")} {estimate.calibrationStatus}
-                      </li>
-                    )}
-                    {result.metadata.limitations.map((limitation) => (
-                      <li key={limitation}>{limitation}</li>
-                    ))}
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </Reveal>
-
-          {/* Evidence pair (§C2): uploaded CXR + Grad-CAM slot. When no heatmap is
-              available (always true in the prototype fixtures) the right tile is a
-              labelled dashed placeholder. */}
-          {imageUrl && (
-            <Reveal index={4}>
-              <figure className="flex flex-col gap-2">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-1.5">
-                    <FigureImage
-                      src={imageUrl}
-                      alt={t("cxr.result.figureAlt")}
-                      className="h-56 lg:h-80"
-                    />
-                    <span className="text-xs text-ink-muted">{t("cxr.result.uploadedTileLabel")}</span>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    {heatmapAvailable ? (
-                      <FigureImage
-                        src={result.inspection!.gradcamUrl!}
-                        alt={t("cxr.result.heatmapAlt")}
-                        className="h-56 lg:h-80"
-                      />
-                    ) : (
-                      <div
-                        role="img"
-                        aria-label={t("cxr.result.gradcamUnavailable")}
-                        className="flex h-56 flex-col items-center justify-center gap-2 rounded-control border border-dashed border-border-subtle bg-surface-sunken px-3 text-center lg:h-80"
-                      >
-                        <IconScan className="size-6 text-ink-muted" aria-hidden="true" />
-                        <span className="text-xs text-ink-muted text-pretty">
-                          {t("cxr.result.gradcamUnavailable")}
-                        </span>
-                      </div>
-                    )}
-                    <span className="text-xs text-ink-muted">{t("cxr.result.heatmapTileLabel")}</span>
-                  </div>
-                </div>
-                <figcaption className="text-sm text-ink-muted">{t("cxr.result.figureCaption")}</figcaption>
-              </figure>
-            </Reveal>
-          )}
+        <div className="min-w-0">
+          <NextStepPanel title={t("result.nextStepTitle")} instruction={result.mandatoryNextStep} />
         </div>
       </div>
 
-      {/* End-of-flow CTAs — the page never dead-ends (§C2). */}
-      <Reveal index={5} className="border-t border-border-subtle pt-5">
+      {/* The imaging evidence pair gets the full result width. */}
+      {imageUrl && (
+        <figure className="flex w-full flex-col gap-3">
+          <div className="grid grid-cols-1 gap-4 min-[640px]:grid-cols-2">
+            <div className="flex min-w-0 flex-col gap-2">
+              <FigureImage
+                src={imageUrl}
+                alt={t("cxr.result.figureAlt")}
+                className="aspect-[4/3] w-full"
+              />
+              <span className="text-sm text-ink-muted">{t("cxr.result.uploadedTileLabel")}</span>
+            </div>
+            <div className="flex min-w-0 flex-col gap-2">
+              {heatmapAvailable ? (
+                <FigureImage
+                  src={result.inspection!.gradcamUrl!}
+                  alt={t("cxr.result.heatmapAlt")}
+                  className="aspect-[4/3] w-full"
+                />
+              ) : (
+                <div
+                  role="img"
+                  aria-label={t("cxr.result.gradcamUnavailable")}
+                  className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-control border border-dashed border-border-subtle bg-surface-sunken px-4 text-center"
+                >
+                  <IconScan className="size-7 text-ink-muted" aria-hidden="true" />
+                  <span className="max-w-48 text-sm text-ink-muted text-pretty">
+                    {t("cxr.result.gradcamUnavailable")}
+                  </span>
+                </div>
+              )}
+              <span className="text-sm text-ink-muted">{t("cxr.result.heatmapTileLabel")}</span>
+            </div>
+          </div>
+          <figcaption className="text-sm text-ink-muted">
+            {t("cxr.result.figureCaption")}
+          </figcaption>
+        </figure>
+      )}
+
+      <Accordion
+        type="single"
+        collapsible
+        className="rounded-control border border-border-subtle bg-card px-4"
+      >
+        <AccordionItem value="details">
+          <AccordionTrigger className="font-heading text-base font-semibold text-ink">
+            {t("cxr.result.limitationsTitle")}
+          </AccordionTrigger>
+          <AccordionContent>
+            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
+              <dt className="text-ink-muted">{t("result.analysis.signalLabel")}</dt>
+              <dd className="text-ink">{t("result.analysis.signal.cxr")}</dd>
+              <dt className="text-ink-muted">{t("result.analysis.cohortLabel")}</dt>
+              <dd className="text-ink">{result.metadata.cohort}</dd>
+              <dt className="text-ink-muted">{t("result.analysis.calibrationLabel")}</dt>
+              <dd className="text-ink">{estimate ? estimate.calibrationStatus : "—"}</dd>
+              <dt className="text-ink-muted">{t("result.limitations.model")}</dt>
+              <dd className="font-mono text-ink">{result.metadata.modelVersion}</dd>
+              <dt className="text-ink-muted">{t("result.limitations.contract")}</dt>
+              <dd className="font-mono text-ink">{result.metadata.contractVersion}</dd>
+            </dl>
+            <ul className="mt-4 flex list-disc flex-col gap-1.5 border-t border-border-subtle pl-5 pt-4 text-sm text-ink-muted">
+              {result.metadata.limitations.map((limitation) => (
+                <li key={limitation}>{limitation}</li>
+              ))}
+            </ul>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      {/* End-of-flow CTAs — the page never dead-ends. */}
+      <div className="border-t border-border-subtle pt-5">
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <Button variant="outline" className="min-h-11 sm:min-w-44" onClick={() => router.push("/")}>
+          <Button
+            variant="outline"
+            className="min-h-11 sm:min-w-44"
+            onClick={() => router.push("/")}
+          >
             {t("result.actions.home")}
           </Button>
           <Button className="min-h-11 sm:min-w-52" onClick={startNewScreening}>
@@ -215,7 +190,7 @@ export function CxrResultScreen() {
             {t("result.actions.newScreening")}
           </Button>
         </div>
-      </Reveal>
+      </div>
     </div>
   );
 }

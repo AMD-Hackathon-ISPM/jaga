@@ -3,6 +3,7 @@
 **Document type:** Product requirements document
 **Audience:** Product, design, frontend, backend, ML, QA, and demo team
 **Status:** Active · pre-development
+**Updated:** 2026-07-10
 **Canonical for:** User-visible behavior, safety, feature scope, failure states, localization, and acceptance criteria
 **Companion documents:** [`product-brief.md`](product-brief.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
@@ -81,32 +82,35 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 - Frontend and backend validation use the same schema version.
 - Unsupported fields never reach the model.
 
-### 3.3 Five-cough guided capture [MVP] · PRD-03
+### 3.3 Single-recording guided capture [MVP] · PRD-03
 
 **Behavior**
 
-- Ask for exactly five guided cough attempts, one at a time.
-- Show positioning guidance and a progress count from 1/5 through 5/5.
+- Ask for one guided recording of up to 90 seconds in which the participant coughs naturally several times.
+- Show positioning guidance, remaining recording time, and a live detected-cough count.
 - Request microphone permission only when capture begins.
-- Allow the user to replay or replace each captured attempt before submission.
+- Allow the user to stop early or let the recording stop automatically at 90 seconds. “Record again” discards the whole capture and restarts from zero; there is no pause flow.
+- Briefly pulse the live waveform orange when the detector registers a cough; when reduced motion is requested, update the count without the pulse.
+- Label client-side cough detection as an illustrative prototype energy heuristic, not model output, model evidence, or server-side quality acceptance.
 - Do not claim the phone capture reproduces CODA's controlled clinic setup.
 
 **Failure states**
 
 - Permission denied: explain how to enable access and provide retry.
-- Interrupted recording: discard only the incomplete attempt and preserve accepted attempts.
+- Interrupted recording: discard the incomplete recording and allow a fresh capture.
 - Unsupported browser/device: block inference and show a clear compatibility message.
 
 **Acceptance**
 
-- Submission is unavailable until five attempts are captured and the quality gate accepts the contract-required minimum.
+- Continue is unavailable until a recording longer than two seconds is captured.
+- The frontend proposal sends one WebM file in the `cough` multipart field. The backend contract and quality gate are unchanged and remain pending explicit alignment.
 - No fixed “10-second” performance claim appears in the UI.
 
 ### 3.4 Audio-quality gate [MVP] · PRD-04
 
 **Behavior**
 
-- Evaluate each attempt using Daffa's signed quality contract.
+- Evaluate the recording using Daffa's signed quality contract once the backend aligns with the one-file proposal.
 - Return `accepted`, `retryable`, or `system_error` with reason codes mapped to user guidance.
 - Quality failure never produces a TB-risk estimate.
 
@@ -121,7 +125,7 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 **Acceptance**
 
 - Every reason code has deterministic Bahasa Indonesia and English copy.
-- Retrying an attempt does not erase valid clinical inputs or other accepted coughs.
+- Retrying the recording does not erase valid clinical inputs.
 
 ### 3.5 Inference submission [MVP] · PRD-05
 
@@ -152,9 +156,10 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 3. Relative band labelled **Lower**, **Intermediate**, or **Higher model-estimated risk**, not Low/Elevated/High clinical risk.
 4. Follow-up urgency derived from the signed model contract.
 5. Mandatory confirmatory-evaluation instruction for every band.
-6. Model version, evaluation cohort, calibration status, and limitations.
-7. Spectrogram and optional attention/saliency labelled “model inspection; not a clinical explanation.”
-8. Supported contributing inputs without causal wording.
+6. Optional local-recording summary labelled as illustrative and explicitly not model output.
+7. One collapsed “About this estimate” disclosure containing signal type, model version, evaluation cohort, calibration status, contract version, and limitations.
+8. Optional genuine attention/saliency labelled “model inspection; not a clinical explanation.”
+9. Supported contributing inputs without causal wording.
 
 **Safety behavior**
 
@@ -166,6 +171,7 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 
 - Every result band displays the same confirmatory-evaluation requirement.
 - Model inspection can be hidden without changing the clinical next step.
+- Technical metadata and limitations remain keyboard-accessible without interrupting the participant-facing result flow.
 
 ### 3.7 Localization [MVP] · PRD-07
 

@@ -16,7 +16,7 @@ export type RiskBand = "lower" | "intermediate" | "higher";
 export type CoughQuality = "accepted" | "retryable" | "system_error";
 
 export interface CoughAttemptResult {
-  index: number; // 1..5
+  index: number; // 1
   quality: CoughQuality;
   /** Reason-code key for retryable failures; resolved to copy via the string bundle. */
   reasonCode?: string;

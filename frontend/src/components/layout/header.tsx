@@ -9,7 +9,7 @@ export function Header({ wide = false }: { wide?: boolean }) {
     <header
       className={cn(
         "mx-auto flex w-full items-center justify-between px-4 pt-4 lg:px-6",
-        wide ? "max-w-flow lg:max-w-flow-wide" : "max-w-flow",
+        wide ? "max-w-flow min-[840px]:max-w-flow-wide" : "max-w-flow",
       )}
     >
       <Image

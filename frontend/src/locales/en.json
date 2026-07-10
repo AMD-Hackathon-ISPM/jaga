@@ -53,7 +53,7 @@
     "howToRead": "Relative model-estimated risk, not a personal chance of having TB.",
     "nextStep": "This person should receive confirmatory TB evaluation regardless of this estimate.",
     "nextStepTitle": "Next step",
-    "limitationsTitle": "Limitations and model details",
+    "limitationsTitle": "About this estimate",
     "limitations": {
       "contract": "Contract",
       "model": "Model version",
@@ -80,10 +80,19 @@
     },
     "empty": {
       "title": "No Gema result in this session",
-      "description": "Submit the clinical inputs and five coughs first.",
+      "description": "Submit the clinical inputs and a cough recording first.",
       "returnToReview": "Return to review"
     },
-    "riskBandAria": "Model-estimated risk band: {band}"
+    "riskBandAria": "Model-estimated risk band: {band}",
+    "coughFocus": {
+      "focusLabel": "Detected cough moments",
+      "coughLabel": "cough {n}",
+      "legendLow": "lower energy",
+      "legendHigh": "higher energy",
+      "aria": "Recording waveform with {n} detected coughs",
+      "unavailable": "Waveform preview unavailable for this recording.",
+      "caption": "Illustrative recording summary, not model output."
+    }
   },
   "review": {
     "title": "Review and submit",
@@ -256,9 +265,9 @@
       "bandTitle": "{band} Prisma band",
       "unavailable": "Prisma estimate unavailable",
       "estimateMeaning": "A calibrated model estimate of how compatible this image is with TB. Not a diagnosis, and not a personal probability of having TB.",
-      "limitationsTitle": "Limitations and model details",
+      "limitationsTitle": "About this estimate",
       "figureAlt": "Uploaded chest X-ray",
-      "figureCaption": "Uploaded chest X-ray. Shown for reference; not a clinical explanation.",
+      "figureCaption": "Uploaded chest X-ray and optional model heatmap. Shown for inspection; not a clinical explanation.",
       "uploadedTileLabel": "Uploaded CXR",
       "heatmapTileLabel": "Model heatmap",
       "heatmapAlt": "Model inspection heatmap",

@@ -8,7 +8,7 @@ import { SkipToMain } from "@/components/layout/skip-to-main";
 
 /**
  * FlowLayout — the single shared layout for the step-based capture flow.
- * Single column capped at 32rem (design §5.5). At lg+, pages that pass `wide`
+ * Single column capped at 32rem (design §5.5). From 840px, pages that pass `wide`
  * (review/result) widen to 56rem for the two-column evidence layout (§5.6);
  * capture pages keep the centered column.
  */
@@ -21,7 +21,8 @@ export function FlowLayout({
   wide?: boolean;
   children: React.ReactNode;
 }) {
-  const guardedChildren = step === "gate" ? children : <EligibilityGuard>{children}</EligibilityGuard>;
+  const guardedChildren =
+    step === "gate" ? children : <EligibilityGuard>{children}</EligibilityGuard>;
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
@@ -32,7 +33,7 @@ export function FlowLayout({
         id="main-content"
         className={cn(
           "mx-auto w-full flex-1 px-4 py-6 lg:px-6 lg:py-10",
-          wide ? "max-w-flow lg:max-w-flow-wide" : "max-w-flow",
+          wide ? "max-w-flow min-[840px]:max-w-flow-wide" : "max-w-flow",
         )}
       >
         {guardedChildren}

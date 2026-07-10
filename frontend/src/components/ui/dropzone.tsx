@@ -71,6 +71,7 @@ export function Dropzone({
         <div
           className={cn(
             "flex items-center gap-3 rounded-control border bg-surface px-3 py-3",
+            "peer-focus-visible:border-ring peer-focus-visible:ring-2 peer-focus-visible:ring-ring/50",
             invalid ? "border-destructive" : "border-input",
           )}
         >

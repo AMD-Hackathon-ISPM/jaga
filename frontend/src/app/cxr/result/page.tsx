@@ -11,7 +11,7 @@ export default function CxrResultPage() {
       <Header wide />
       <main
         id="main-content"
-        className="mx-auto w-full max-w-flow flex-1 px-4 py-6 lg:max-w-flow-wide lg:px-6 lg:py-10"
+        className="mx-auto w-full max-w-flow flex-1 px-4 py-6 min-[840px]:max-w-flow-wide lg:px-6 lg:py-10"
       >
         <EligibilityGuard>
           <CxrResultScreen />

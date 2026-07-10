@@ -61,8 +61,17 @@ class MockAudioContext {
   }
 }
 
+let endTrack: () => void;
+
 function installMediaMocks() {
-  const stream = { getTracks: () => [{ stop: () => {} }] } as unknown as MediaStream;
+  let onEnded: (() => void) | null = null;
+  const track = {
+    stop: () => {},
+    addEventListener: (type: string, listener: () => void) => {
+      if (type === "ended") onEnded = listener;
+    },
+  };
+  const stream = { getTracks: () => [track] } as unknown as MediaStream;
   const getUserMedia = vi.fn(async () => stream);
   Object.defineProperty(navigator, "mediaDevices", {
     configurable: true,
@@ -73,6 +82,7 @@ function installMediaMocks() {
   // Keep the sampling loop inert so tests exercise cap/restart logic only.
   vi.stubGlobal("requestAnimationFrame", vi.fn(() => 1));
   vi.stubGlobal("cancelAnimationFrame", vi.fn());
+  endTrack = () => onEnded?.();
   return { getUserMedia };
 }
 
@@ -191,5 +201,21 @@ describe("useCoughRecorder", () => {
     });
 
     expect(onCaptured).not.toHaveBeenCalled();
+  });
+
+  it("discards the take when the microphone track ends", async () => {
+    const onCaptured = vi.fn();
+    const { result } = renderHook(() => useCoughRecorder(onCaptured));
+
+    await act(async () => {
+      await result.current.start();
+    });
+    await act(async () => {
+      endTrack();
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(onCaptured).not.toHaveBeenCalled();
+    expect(result.current.state).toBe("error");
   });
 });

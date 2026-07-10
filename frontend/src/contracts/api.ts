@@ -37,7 +37,7 @@ export const apiErrorSchema = z.object({
     .array(z.object({ field: z.string().min(1), message: z.string().min(1) }))
     .optional(),
   attempt_errors: z
-    .array(z.object({ index: z.number().int().min(1).max(5), reason_code: z.string().min(1) }))
+    .array(z.object({ index: z.number().int().min(1).max(1), reason_code: z.string().min(1) }))
     .optional(),
 });
 
@@ -87,13 +87,15 @@ export const gemaResultSchema = z.object({
   signal: z.literal("gema"),
   contract_version: z.literal("triage-v1"),
   schema_version: z.literal("clinical-v1"),
-  quality: z.array(
-    z.object({
-      index: z.number().int().min(1).max(5),
-      quality: z.enum(["accepted", "retryable", "system_error"]),
-      reason_code: z.string().optional(),
-    }),
-  ),
+  quality: z
+    .array(
+      z.object({
+        index: z.number().int().min(1).max(1),
+        quality: z.enum(["accepted", "retryable", "system_error"]),
+        reason_code: z.string().optional(),
+      }),
+    )
+    .length(1),
   estimate: estimateSchema.nullable(),
   mandatory_next_step: z.string().min(1),
   metadata: z.object({

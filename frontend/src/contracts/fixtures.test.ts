@@ -16,7 +16,7 @@ import {
 describe("synthetic contract fixtures", () => {
   it("parses every fixture through its wire schema", () => {
     expect(serviceStatusSchema.parse(status).capabilities.assistant.ready).toBe(true);
-    expect(gemaResultSchema.parse(gema).signal).toBe("gema");
+    expect(gemaResultSchema.parse(gema).quality).toHaveLength(1);
     expect(cxrResultSchema.parse(cxr).signal).toBe("prisma");
     expect(assistantResponseSchema.parse(assistant).contract_version).toBe("assistant-v1");
     expect(apiErrorSchema.parse(error).code).toBe("MODEL_UNAVAILABLE");

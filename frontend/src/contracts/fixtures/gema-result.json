@@ -4,11 +4,7 @@
   "contract_version": "triage-v1",
   "schema_version": "clinical-v1",
   "quality": [
-    { "index": 1, "quality": "accepted" },
-    { "index": 2, "quality": "accepted" },
-    { "index": 3, "quality": "accepted" },
-    { "index": 4, "quality": "accepted" },
-    { "index": 5, "quality": "accepted" }
+    { "index": 1, "quality": "accepted" }
   ],
   "estimate": {
     "probability": 0.42,

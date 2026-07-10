@@ -119,7 +119,6 @@ export function ClinicalForm() {
             register={register}
             error={errors.age_years}
             inputMode="numeric"
-            placeholder="35"
           />
           <SexField control={control} error={errors.sex_at_birth} />
           <NumberField
@@ -129,7 +128,6 @@ export function ClinicalForm() {
             register={register}
             error={errors.height_cm}
             step="0.1"
-            placeholder="170.0"
           />
           <NumberField
             name="weight_kg"
@@ -138,7 +136,6 @@ export function ClinicalForm() {
             register={register}
             error={errors.weight_kg}
             step="0.1"
-            placeholder="62.5"
           />
         </div>
 
@@ -149,7 +146,6 @@ export function ClinicalForm() {
           register={register}
           error={errors.cough_duration_days}
           inputMode="numeric"
-          placeholder="14"
         />
 
         <div className="grid grid-cols-1 gap-x-3 gap-y-4 min-[480px]:grid-cols-2">
@@ -183,7 +179,6 @@ export function ClinicalForm() {
               error={errors.heart_rate_bpm as RhfFieldError | undefined}
               optional
               inputMode="numeric"
-              placeholder="80"
             />
             <NumberField
               name="temperature_c"
@@ -193,7 +188,6 @@ export function ClinicalForm() {
               error={errors.temperature_c as RhfFieldError | undefined}
               optional
               step="0.1"
-              placeholder="36.6"
             />
           </div>
         </FieldSet>
@@ -276,7 +270,6 @@ function NumberField({
   required = false,
   inputMode = "decimal",
   step,
-  placeholder,
 }: {
   name: FieldName;
   label: string;
@@ -287,7 +280,6 @@ function NumberField({
   required?: boolean;
   inputMode?: "numeric" | "decimal";
   step?: string;
-  placeholder?: string;
 }) {
   const id = String(name);
 
@@ -304,7 +296,6 @@ function NumberField({
         type="number"
         inputMode={inputMode}
         step={step}
-        placeholder={placeholder}
         className={INPUT_CLASS}
         aria-invalid={!!error}
         aria-required={required}

@@ -100,7 +100,9 @@ export function ReviewScreen() {
       setSubmitState("uploading");
       return triageService.submitTriage(
         { clinical: parsedClinical.data, cough: coughRecording.file },
-        { onUploadProgress: (progress) => setSubmitState(progress < 1 ? "uploading" : "processing") },
+        {
+          onUploadProgress: (progress) => setSubmitState(progress < 1 ? "uploading" : "processing"),
+        },
       );
     },
     onSuccess: (result) => {
@@ -124,7 +126,7 @@ export function ReviewScreen() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-x-8">
+      <div className="grid grid-cols-1 gap-4 min-[840px]:grid-cols-[3fr_2fr] min-[840px]:items-start min-[840px]:gap-x-8">
         <section className="rounded-control border border-brand bg-card py-4">
           <h2 className="px-4 text-lg font-semibold text-ink">{t("review.clinicalTitle")}</h2>
           <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-3 px-4 min-[480px]:grid-cols-2">
@@ -153,17 +155,11 @@ export function ReviewScreen() {
         <section className="rounded-control border border-brand bg-card py-4">
           <h2 className="px-4 text-lg font-semibold text-ink">{t("review.coughTitle")}</h2>
           {coughRecording ? (
-            <dl className="mt-3 flex flex-col gap-3 px-4">
+            <dl className="mt-3 grid grid-cols-3 gap-3 px-4">
               <div className="min-w-0">
                 <dt className="text-sm text-ink-muted">{t("review.coughLength")}</dt>
                 <dd className="font-mono text-base tabular-nums text-ink">
                   {formatClock(coughRecording.durationMs)}
-                </dd>
-              </div>
-              <div className="min-w-0">
-                <dt className="text-sm text-ink-muted">{t("review.coughDetected")}</dt>
-                <dd className="font-mono text-base tabular-nums text-ink">
-                  {coughRecording.coughEvents.length}
                 </dd>
               </div>
               <div className="min-w-0">
@@ -177,6 +173,12 @@ export function ReviewScreen() {
                     .replace("{format}", "WebM")}
                 </dd>
               </div>
+              <div className="min-w-0">
+                <dt className="text-sm text-ink-muted">{t("review.coughDetected")}</dt>
+                <dd className="font-mono text-base tabular-nums text-ink">
+                  {coughRecording.coughEvents.length}
+                </dd>
+              </div>
             </dl>
           ) : (
             <p className="mt-3 px-4 text-base text-ink-muted">{t("review.coughMissing")}</p>
@@ -187,7 +189,9 @@ export function ReviewScreen() {
       {mutation.isError && (
         <Alert variant={modelUnavailable ? "warning" : "destructive"}>
           <AlertTitle>
-            {modelUnavailable ? t("review.error.modelUnavailableTitle") : t("review.error.submitFailedTitle")}
+            {modelUnavailable
+              ? t("review.error.modelUnavailableTitle")
+              : t("review.error.submitFailedTitle")}
           </AlertTitle>
           <AlertDescription>
             {modelUnavailable
@@ -197,23 +201,21 @@ export function ReviewScreen() {
         </Alert>
       )}
 
-      <div className="flex gap-3 lg:justify-between">
-        <Button asChild variant="return" className="min-h-11 flex-1 lg:max-w-56">
+      <div className="flex gap-3 min-[840px]:justify-between">
+        <Button asChild variant="return" className="min-h-11 flex-1 min-[840px]:max-w-56">
           <Link href="/coughs">
             <IconChevronLeft data-icon="inline-start" aria-hidden="true" />
             {t("review.return")}
           </Link>
         </Button>
         <Button
-          className="min-h-11 flex-1 whitespace-normal px-3 text-center leading-snug lg:max-w-64"
+          className="min-h-11 flex-1 whitespace-normal px-3 text-center leading-snug min-[840px]:max-w-64"
           disabled={!ready || mutation.isPending || modelUnavailable}
           onClick={() => mutation.mutate()}
         >
           {mutation.isPending && <Spinner />}
           <span>{t("review.submit")}</span>
-          {!mutation.isPending && (
-            <IconChevronRight data-icon="inline-end" aria-hidden="true" />
-          )}
+          {!mutation.isPending && <IconChevronRight data-icon="inline-end" aria-hidden="true" />}
         </Button>
       </div>
     </div>

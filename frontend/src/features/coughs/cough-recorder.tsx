@@ -29,9 +29,11 @@ function formatClock(ms: number): string {
 export function CoughRecorder({
   coughRecording,
   onCaptured,
+  onDiscard,
 }: {
   coughRecording: CoughRecording | null;
   onCaptured: (rec: CoughRecording) => void;
+  onDiscard: () => void;
 }) {
   const t = useT();
   const { state, start, stop, restart, elapsedMs, coughEvents, analyserRef } =
@@ -120,7 +122,15 @@ export function CoughRecorder({
             </p>
           )}
 
-          <Button type="button" variant="return" onClick={restart} className="self-start">
+          <Button
+            type="button"
+            variant="return"
+            onClick={() => {
+              onDiscard();
+              restart();
+            }}
+            className="self-start"
+          >
             {t("coughs.captured.again")}
           </Button>
         </div>
