@@ -188,11 +188,11 @@ services:
       UPLOAD_PATH: ${UPLOAD_PATH}
       MODEL_PATH: ${MODEL_PATH}
       PRISMA_ARTIFACT_ROOT: /app/artifacts
+      PRISMA_THRESHOLD: ${PRISMA_THRESHOLD:-0.5}
+      PRISMA_GRADCAM: ${PRISMA_GRADCAM:-true}
       TRANSFORMERS_CACHE: /models/huggingface
       HF_HOME: /models/huggingface
       TORCH_HOME: /models/torch
-      NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,utility
     volumes:
       - model_cache:/models
       - logs:/var/log/prisma
