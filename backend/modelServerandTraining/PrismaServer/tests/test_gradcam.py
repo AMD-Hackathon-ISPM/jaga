@@ -12,12 +12,17 @@ import cv2
 import numpy as np
 import pytest
 
-from app.gradcam import generateGradcamDataUrl, gradcamMap
+from app.gradcam import HEATMAP_COLORMAP, generateGradcamDataUrl, gradcamMap
 from app.model import checkpointDefault, loadModel, preprocess
 
 BUNDLE_DIR = Path(__file__).resolve().parents[1] / "app" / "models" / "local_clahe"
 
 PNG_PREFIX = "data:image/png;base64,"
+
+
+def test_heatmap_uses_sequential_non_jet_colormap():
+    assert HEATMAP_COLORMAP == cv2.COLORMAP_INFERNO
+    assert HEATMAP_COLORMAP != cv2.COLORMAP_JET
 
 
 @pytest.fixture(scope="module")
