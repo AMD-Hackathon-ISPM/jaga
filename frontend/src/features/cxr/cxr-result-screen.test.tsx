@@ -92,4 +92,39 @@ describe("CxrResultScreen", () => {
     expect(evidenceGrid).toHaveClass("grid-cols-1", "min-[640px]:grid-cols-2");
     expect(container.querySelectorAll(".aspect-\\[4\\/3\\]")).toHaveLength(2);
   });
+
+  it("renders the Grad-CAM overlay when inspection is available", async () => {
+    act(() => {
+      usePrismaStore.setState({
+        result: {
+          ...result,
+          inspection: {
+            available: true,
+            gradcamUrl: "data:image/png;base64,QUJD",
+            label: "Model inspection; not a clinical explanation.",
+          },
+        },
+      });
+    });
+
+    render(<CxrResultScreen />);
+
+    const heatmap = await screen.findByRole("img", { name: "Model inspection heatmap" });
+    expect(heatmap).toHaveAttribute("src", "data:image/png;base64,QUJD");
+    expect(
+      screen.queryByText("Model heatmap unavailable in this prototype"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the unavailable placeholder when inspection is not available", async () => {
+    render(<CxrResultScreen />);
+
+    await screen.findByRole("img", { name: "Uploaded chest X-ray" });
+    expect(
+      screen.getAllByText("Model heatmap unavailable in this prototype").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole("img", { name: "Model inspection heatmap" }),
+    ).not.toBeInTheDocument();
+  });
 });

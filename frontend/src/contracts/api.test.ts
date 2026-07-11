@@ -92,4 +92,32 @@ describe("backend contract schemas", () => {
       }).retryable,
     ).toBe(true);
   });
+
+  it("accepts a CXR inspection whose url is a PNG data URL", () => {
+    const parsed = cxrResultSchema.parse({
+      request_id: "prisma-1",
+      signal: "prisma",
+      contract_version: "cxr-v1",
+      schema_version: "cxr-image-v1",
+      estimate: {
+        probability: 0.42,
+        band: "intermediate",
+        calibrated: true,
+        calibration_status: "densenet121-clahe-v1",
+      },
+      mandatory_next_step: "Refer for radiological review.",
+      metadata: {
+        model_version: "prisma-densenet121-clahe-v1",
+        contract_version: "cxr-v1",
+        cohort: "tb-chest-radiography-clahe",
+        limitations: ["Screening aid only; not a diagnostic test."],
+      },
+      inspection: {
+        available: true,
+        url: "data:image/png;base64,QUJD",
+        label: "Model inspection; not a clinical explanation.",
+      },
+    });
+    expect(parsed.inspection?.url).toMatch(/^data:image\/png;base64,/);
+  });
 });
