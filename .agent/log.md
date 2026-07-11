@@ -3,7 +3,7 @@
 **Document type:** Historical change ledger
 **Audience:** All contributors
 **Status:** Active
-**Updated:** 2026-07-11
+**Updated:** 2026-07-12
 **Canonical for:** Chronology of significant documentation and product decisions
 **Companion documents:** [`context-dump.md`](context-dump.md), [`../AGENT.md`](../AGENT.md)
 
@@ -12,6 +12,8 @@
 Entries are newest first. Older entries preserve what was decided at that time and may be superseded by later entries. Current decisions belong in [`context-dump.md`](context-dump.md) Section 16; rejected decisions belong in Section 17.
 
 ---
+
+- 2026-07-12 — **Corrected the Prisma serving artifact root during the Windows deployment rehearsal.** The Swarm stack overrode Prisma's correct image default with nonexistent `/app/artifacts`, while the committed `local_clahe` bundle is copied to `/app/app/models/local_clahe`; changed `PRISMA_ARTIFACT_ROOT` in `infra/docker-stack.yml` to `/app/app/models`. After rotating the worker, `/health` reports both `artifacts_ready: true` and `quantum_available: true`. This is a deployment-path correction only; model behavior and product scope are unchanged. (Codex)
 
 - 2026-07-11 — **Implemented the signed retryable-quality flow and made swallowed LLM failures diagnosable.** A triage response with `quality: retryable` (server-side YAMNet found no cough) previously navigated to `/result` and rendered a bare "Result unavailable"; per the locked flow (design-guidelines: retryable → review, retry, no stale estimate), `review-screen.tsx` now intercepts it — no result is stored, the user stays on review, and a warning alert explains "No cough detected in the recording" (en+id) with a Record-again button back to `/coughs`. `system_error` and `accepted` paths unchanged; covered by a new vitest test (suite 86/86 green, typecheck clean) and verified in-browser at desktop and 320 px via a fixture-mode Playwright run with a stubbed microphone. Also added `log.Printf` lines in `assistant/handler.go` (before the 502) and `triage/service.go` guidance fallback, so Fireworks failures — like today's diagnosed `DEPLOYMENT_SCALING_UP` (chat scaled to zero) and `txvxdq5w not available` (embeddings deployment gone, blocks triage) — show up in `docker service logs jaga_go-api` instead of vanishing. (Billy, via Claude)
 

@@ -187,7 +187,7 @@ services:
       FEATHERLESS_MODEL: ${FEATHERLESS_MODEL}
       UPLOAD_PATH: ${UPLOAD_PATH}
       MODEL_PATH: ${MODEL_PATH}
-      PRISMA_ARTIFACT_ROOT: /app/artifacts
+      PRISMA_ARTIFACT_ROOT: /app/app/models
       PRISMA_THRESHOLD: ${PRISMA_THRESHOLD:-0.5}
       PRISMA_GRADCAM: ${PRISMA_GRADCAM:-true}
       TRANSFORMERS_CACHE: /models/huggingface
