@@ -64,3 +64,19 @@ def test_predict_is_unchanged_by_gradcam(prismaModel):
     generateGradcamDataUrl(prismaModel.model, image)
     after = prismaModel.predict(image)["probability"]
     assert after == pytest.approx(before, abs=1e-12)
+
+
+def syntheticStructuredPng() -> bytes:
+    image = np.full((1024, 1024), 30, dtype=np.uint8)
+    cv2.ellipse(image, (340, 512), (180, 320), 0, 0, 360, 160, -1)
+    cv2.ellipse(image, (684, 512), (180, 320), 0, 0, 360, 150, -1)
+    image = cv2.GaussianBlur(image, (31, 31), 0)
+    ok, png = cv2.imencode(".png", image)
+    assert ok
+    return png.tobytes()
+
+
+def test_cam_is_not_degenerate_on_structured_image(prismaModel):
+    cam = gradcamMap(prismaModel.model, preprocess(syntheticStructuredPng()))
+    assert float(cam.max()) == pytest.approx(1.0)  # normalized peak present
+    assert np.unique(np.round(cam, 3)).size > 5  # spatial structure, not a flat map

@@ -28,20 +28,22 @@ def gradcamMap(model: TBClassifier, tensor: torch.Tensor) -> np.ndarray:
     """Grad-CAM over the final DenseNet feature map. Returns a 7x7 float map in [0, 1]."""
     model.zero_grad(set_to_none=True)
     with torch.enable_grad():
-        features = model.encoder.features(tensor)  # [1, 1024, 7, 7]
-        features.retain_grad()
-        # Mirrors TBClassifier.embed/forward but with a NON-inplace ReLU:
-        # embed() uses F.relu(..., inplace=True), which would mutate the
-        # retained activation tensor before backward().
-        pooled = torch.flatten(F.adaptive_avg_pool2d(F.relu(features), (1, 1)), 1)
+        # Grad-CAM needs the NON-NEGATIVE activations the head actually
+        # consumes: encoder.features ends in BatchNorm (signed output), and
+        # weighting that directly turns every cell negative -> all-zero CAM.
+        # Mirrors TBClassifier.embed/forward with a NON-inplace ReLU (embed()
+        # uses inplace=True, which would mutate the retained tensor).
+        activations = F.relu(model.encoder.features(tensor))  # [1, 1024, 7, 7]
+        activations.retain_grad()
+        pooled = torch.flatten(F.adaptive_avg_pool2d(activations, (1, 1)), 1)
         embedding = model.embedding_layer(pooled)
         if model.normalizeEmbeddings:
             embedding = F.normalize(embedding, dim=1)
         logit = model.classifier(embedding).squeeze(-1)
         logit.backward()
 
-    weights = features.grad.mean(dim=(2, 3), keepdim=True)  # [1, 1024, 1, 1]
-    cam = F.relu((weights * features).sum(dim=1)).squeeze(0).detach().numpy()
+    weights = activations.grad.mean(dim=(2, 3), keepdim=True)  # [1, 1024, 1, 1]
+    cam = F.relu((weights * activations).sum(dim=1)).squeeze(0).detach().numpy()
     peak = float(cam.max())
     if peak <= 0.0:
         return np.zeros_like(cam)
