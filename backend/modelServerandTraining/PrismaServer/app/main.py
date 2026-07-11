@@ -14,6 +14,7 @@ from pathlib import Path
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 
+from app.gradcam import generateGradcamDataUrl
 from app.model import checkpointDefault, loadModel
 from app.quantum import loadQuantumSummary
 
@@ -24,6 +25,13 @@ SCHEMA_VERSION = "cxr-image-v1"
 MODEL_VERSION = "prisma-densenet121-clahe-v1"
 COHORT = "tb-chest-radiography-clahe"
 THRESHOLD = float(os.getenv("PRISMA_THRESHOLD", "0.5"))
+INSPECTION_LABEL = "Model inspection; not a clinical explanation."
+
+
+def gradcamEnabled() -> bool:
+    # Read per-request so PRISMA_GRADCAM can be toggled without code changes.
+    return os.getenv("PRISMA_GRADCAM", "true").strip().lower() in ("1", "true", "yes")
+
 
 LIMITATIONS = [
     "Screening aid only; not a diagnostic test.",
@@ -99,6 +107,21 @@ def quantum() -> dict[str, object]:
     return loadQuantumSummary(str(bundleDir() / "quantum"))
 
 
+def buildInspection(model, imageBytes: bytes) -> dict[str, object]:
+    """Grad-CAM inspection artifact; must never break a successful classification."""
+    if not gradcamEnabled():
+        return {"available": False, "label": INSPECTION_LABEL}
+    try:
+        return {
+            "available": True,
+            "url": generateGradcamDataUrl(model.model, imageBytes),
+            "label": INSPECTION_LABEL,
+        }
+    except Exception as error:  # noqa: BLE001 - inspection is best-effort by contract
+        print(f"gradcam generation failed: {error}", flush=True)
+        return {"available": False, "label": INSPECTION_LABEL}
+
+
 @app.post("/api/v1/cxr")
 async def analyzeCxr(image: UploadFile = File(...)) -> JSONResponse:
     checkpoint = checkpointDefault(bundleDir())
@@ -146,7 +169,7 @@ async def analyzeCxr(image: UploadFile = File(...)) -> JSONResponse:
             "cohort": COHORT,
             "limitations": LIMITATIONS,
         },
-        "inspection": {"available": False, "label": "Grad-CAM"},
+        "inspection": buildInspection(model, imageBytes),
         "quantum": quantumSummary,
     }
     return JSONResponse(content=result)
