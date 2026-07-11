@@ -2,7 +2,8 @@
 
 **Document type:** Evidence register
 **Audience:** Product, engineering, design, ML, reviewers, and pitch team
-**Status:** Active · pre-development
+**Status:** Active · external facts below remain valid; actual Jaga model results now live in `data-evaluation-plan.md` §7.0/§11, not here
+**Updated:** 2026-07-11
 **Canonical for:** Every external factual, medical, dataset, market, hardware, and hackathon claim
 **Companion documents:** [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`context-dump.md`](context-dump.md)
 
@@ -92,11 +93,13 @@ Do not use these statements in current specifications, README copy, or pitch mat
 
 ## 8. Owner evidence required
 
-> **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
+> **OWNER INPUT REQUIRED — Daffa — originally due 2026-06-29**
 >
 > **Blocks:** completion of `ML-0`, `ML-1`, and the production inference contract
 >
-> **Required output:** confirm accessible Synapse files and variables; record data-use restrictions accepted by the team; provide the pinned ROCm image; document the baseline and candidate model identifiers; define promotion thresholds; and add actual Jaga metrics only after a reproducible run
+> **Status (2026-07-11):** still open. A model is trained and serving (XGBoost on WavLM + demographics for Gema, DenseNet121 CLAHE for Prisma — `project-architecture.md` §15), but none of the required output below is recorded anywhere in the repository: no Synapse file/variable list, no accepted data-use restriction record, no pinned ROCm image reference found in any Dockerfile, no documented model identifier/checkpoint provenance. The two actual results that do exist (Prisma quantum-kernel 98.3% accuracy / 1.00 ROC-AUC; a Rust/Python XGBoost parity check at probability 0.494487) are recorded in `data-evaluation-plan.md` §7.0, since they are Jaga's own results rather than external evidence — do not duplicate them here.
+>
+> **Required output:** confirm accessible Synapse files and variables; record data-use restrictions accepted by the team; provide the pinned ROCm image; document the baseline and candidate model identifiers; define promotion thresholds; and add actual Jaga metrics (in `data-evaluation-plan.md`, not here) only after a reproducible run
 >
 > **Affected documents:** `evidence-register.md`, `data-evaluation-plan.md`, `project-architecture.md`, `implementation-plan.md`
 >

@@ -2,14 +2,14 @@
 
 **Document type:** Design guidelines
 **Audience:** Frontend, design, product, QA, and reviewers
-**Status:** Active · signed visual direction (Billy, 2026-06-28; palette rebranded to white + teal by Billy, 2026-07-09). Implementable.
-**Updated:** 2026-07-10
+**Status:** Active · signed visual direction (Billy, 2026-06-28; palette rebranded to white + teal by Billy, 2026-07-09). Implementable and implemented against a live backend.
+**Updated:** 2026-07-11
 **Canonical for:** Frontend information architecture, visual system, interaction states, microcopy, localization, accessibility, responsive behavior, and motion
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`product-brief.md`](product-brief.md), [`implementation-plan.md`](implementation-plan.md)
 
 ## How to read this document
 
-Sections labelled **Locked** are product and safety constraints and may not be redesigned away. The remaining sections were previously deferred to Billy owner-input blocks; they are now **signed** (2026-06-28) and Kei may implement against them. Exact API error codes and the final clinical field set still depend on Daffa's `ARCH-1` contract (due 2026-06-29) and the `UX-1` string contract; where a spec maps to those, it is marked **(pin on ARCH-1 / UX-1)** and uses placeholders until they sign. Kei may propose changes, but any change to behavior, safety, state, or contract must be accepted here before implementation.
+Sections labelled **Locked** are product and safety constraints and may not be redesigned away. The remaining sections were previously deferred to Billy owner-input blocks; they are now **signed** (2026-06-28) and Kei may implement against them. `POST /api/v1/triage` is now implemented and consumed by the frontend, so most **(pin on ARCH-1)** markers below are resolved in practice; the genuine remaining gaps are the quality-gate reason-code enum and exact HTTP status mapping (`project-architecture.md` §4/§6) and the final EN/ID string review (`UX-1`). Kei may propose changes, but any change to behavior, safety, state, or contract must be accepted here before implementation.
 
 ## 1. Design direction
 

@@ -2,14 +2,14 @@
 
 **Document type:** Project architecture
 **Audience:** Backend, frontend, ML, platform, QA, and technical reviewers
-**Status:** Active · owner contracts required before feature implementation
-**Updated:** 2026-06-30
+**Status:** Active · core pipeline built and integrated; remaining owner blocks are genuine gaps, not the whole system
+**Updated:** 2026-07-11
 **Canonical for:** System boundaries, planned runtime components, shared interfaces, privacy, security, observability, deployment, and technical ownership
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
 ## How to read this document
 
-The PRD defines behavior and safety. This document defines how components will satisfy it after the visible owner-input blocks are completed. Zeddin and Kei must not implement blocked interfaces from inferred or stale fields. Daffa signs backend/AI contracts; Billy signs frontend architecture; all shared contracts must then be synchronized here and in the implementation plan.
+The PRD defines behavior and safety. Sections 1–13 remain the target contract; sections 14–16 record what actually exists in the repository today and where it still diverges from that contract. Where an owner-input block below has been overtaken by shipped code, it is annotated **(overtaken by §14–§16)** rather than deleted, so the gap between the intended contract and the as-built system stays visible. Do not treat "code exists" as "the contract is signed" — read §16 before relying on any of this for a performance or security claim.
 
 ## 1. Architectural principles
 
@@ -79,7 +79,7 @@ frontend/
 └── styles/             # token CSS variables + Tailwind config
 ```
 
-> Open dependencies: the exact `POST /api/v1/triage` schema and error codes pin on Daffa's `ARCH-1` (§6, due 2026-06-29); the paired EN/ID string table pins on `UX-1`.
+> `POST /api/v1/triage` is implemented and consumed by the frontend (§15); the remaining open dependency is the quality-gate reason-code enum and exact HTTP status mapping (§4/§6), plus the paired EN/ID string table (`UX-1`).
 
 ### 3.3 Frontend implementation boundary
 
@@ -97,15 +97,17 @@ Billy owns frontend architecture, UX, accessibility, and review. Kei implements 
 - The two research signals are co-equal `[MVP]` named modules: **Gema** (cough-plus-clinical core) and **Prisma** (digital-CXR). They are trained, served, evaluated, and displayed separately, built in parallel, and are never fused into one score.
 - Health endpoints disclose service/model readiness without exposing secrets or participant information.
 
-> **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
+> **(overtaken by §14–§16) OWNER INPUT REQUIRED — Daffa — originally due 2026-06-29**
 >
 > **Blocks:** `ARCH-1`, `BE-0` through `BE-4`, and all frontend/backend integration
 >
-> **Required output:** choose the backend runtime and dependency versions; define module boundaries; define request size/timeout/concurrency limits; define model loading and warm-up; define the exact API schemas and version negotiation; define security controls; define metadata-only logging/metrics; define health/readiness behavior; provide the planned backend folder structure
+> **Status:** the backend runtime, module boundaries, and API schemas were built rather than formally signed off first — see §16.1 for the resulting divergence. **Still genuinely open:** request size/timeout/concurrency limits, warm-up behavior, and version negotiation are not documented anywhere in code; the multipart upload cap is a single `32 << 20` (32 MiB) constant in `triage/handler.go` with no equivalent documented for `/api/v1/cxr` or `/api/v1/audio/preprocess`.
+>
+> **Required output (remaining):** document request size/timeout/concurrency limits per endpoint; define model loading/warm-up behavior for the two Rust services; define version-negotiation behavior (there is currently none — `contract_version`/`schema_version` fields exist in the frontend proposal but the Go handlers do not check them)
 >
 > **Affected documents:** `project-architecture.md`, `data-evaluation-plan.md`, `implementation-plan.md`, `evidence-register.md` where a factual dependency changes
 >
-> **Completion rule:** replace this block with the signed backend architecture and API contract, then Zeddin may start implementation
+> **Completion rule:** replace this block with the signed limits/versioning behavior and verify the Go handlers enforce it
 
 ### 4.2 Backend implementation boundary
 
@@ -128,19 +130,23 @@ The logical pipeline is fixed even though Daffa must select its implementations:
 11. Return model, preprocessing, calibration, threshold, schema, and limitation versions.
 12. Delete request-scoped input buffers.
 
-> **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
+> **(partly overtaken by §14–§16) OWNER INPUT REQUIRED — Daffa — originally due 2026-06-29**
 >
 > **Blocks:** `ML-1` through `ML-4`, `BE-2`, `BE-3`, and the result contract
 >
-> **Required output:** identify baseline and candidate models; specify sampling/segmentation/normalization; define participant-level aggregation; define the clinical-feature encoding and missing-value representation; define the quality algorithm/reason codes; define calibration and thresholds; define artifact formats and version fields; define inspection method/limitations; define latency and memory budgets
+> **Status:** the pipeline is implemented (§15.2, §15.5) — YAMNet cough gate, WavLM embedding + 12 demographic features, XGBoost TB probability — but the model-selection evidence gate itself was not run: there is no participant-grouped split, no leave-one-country-out evaluation, and no documented promotion decision against a baseline. See `data-evaluation-plan.md` §5 and §10 for the exact gap.
+>
+> **Required output (remaining):** run the signed evidence gate against the shipped XGBoost model (or document why it is exempt for the hackathon submission); define calibration and versioned band thresholds (currently a hardcoded 0.33/0.66 split in `xgboostService`, not a fitted calibration artifact — see §16.2); define latency/memory budgets; define inspection method/limitations for Gema (Prisma already has Grad-CAM/retrieval per §5.3 of the data plan)
 >
 > **Affected documents:** `project-architecture.md`, `data-evaluation-plan.md`, `evidence-register.md`, `implementation-plan.md`
 >
-> **Completion rule:** replace this block with the signed pipeline and link the reproducibility manifest; no inference endpoint is implemented before completion
+> **Completion rule:** replace this block with the signed pipeline evaluation and link the reproducibility manifest, or explicitly accept the uncalibrated fixed-threshold behavior as the submitted state
 
 ## 6. Shared interface contract [MVP]
 
 The contract version is carried in every request and response. The Gema inference operation is fixed as `POST /api/v1/triage`; the Prisma (digital-CXR) operation is a **separate** endpoint (`POST /api/v1/cxr`) that returns its own estimate and never merges with the cough result. `contracts/openapi/jaga-v1.yaml` is the machine-readable frontend integration proposal, including `GET /api/v1/status`, patient intake, the two inference operations, scoped assistant messages, and structured errors. The frontend can switch between explicitly synthetic fixtures and these live paths without component changes. Daffa must review and sign the complete backend contract before live deployment.
+
+> **Known contradiction (§16.1):** `contracts/openapi/jaga-v1.yaml` still specifies `coughs: minItems 5, maxItems 5` for `POST /api/v1/triage`. The shipped Go handler (`triage/handler.go`) and the shipped frontend both use exactly one `cough` file, matching the single-recording capture protocol (PRD-03, design-guidelines §3.1). The OpenAPI file is stale and must be updated to a single `cough` field before it is treated as the signed contract.
 
 | Operation | Required responsibility |
 |---|---|
@@ -150,15 +156,17 @@ The contract version is carried in every request and response. The Gema inferenc
 | `POST /api/v1/cxr` | Prisma: one digital-CXR image in a versioned request; performs validation, inference, and a separate result composition; never fused with `POST /api/v1/triage` |
 | Result | Request ID, quality result, estimate/band/urgency, mandatory referral, model metadata, limitations, and inspection metadata (per signal, kept separate) |
 
-> **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
+> **(largely overtaken by §14–§16) OWNER INPUT REQUIRED — Daffa — originally due 2026-06-29**
 >
 > **Blocks:** `BE-1`, `BE-2`, `FE-2`, `FE-3`, `FE-4`, and `FE-5`
 >
-> **Required output:** define the exact `POST /api/v1/triage` request, response, validation, quality-gate, error, privacy, and model-version contract; provide multipart field names and formats; complete clinical-field schema; units/ranges/requiredness/missing values; audio count/type/size/duration; quality reason-code enum; HTTP status mapping; version fields; representative sanitized examples; and exact health/readiness paths
+> **Status:** `POST /api/v1/triage` is implemented and consumed end to end by the frontend. **Still genuinely open:** the quality-gate reason-code enum in PRD-04 (too quiet / clipped / background noise / no cough / unsupported encoding) is not reflected in the Rust `yamnet` service's response shape — it returns a pass/fail cough-gate signal, not a structured reason code, so `retryable` UI guidance (design-guidelines §3.3) cannot yet map to the PRD's required guidance categories; and the exact HTTP status-code mapping for each failure path is not documented anywhere.
+>
+> **Required output (remaining):** define the quality-gate reason-code enum and wire it from `yamnetService` through `triage/handler.go` to the `gema` result; define the HTTP status mapping for validation, quality-rejection, and system-error responses; reconcile the 5-file vs. 1-file `coughs` field in `contracts/openapi/jaga-v1.yaml` (§16.1)
 >
 > **Affected documents:** `project-architecture.md`, `product-requirements.md`, `implementation-plan.md`, frontend API mapping in `design-guidelines.md`
 >
-> **Completion rule:** replace this block with a machine-validatable `POST /api/v1/triage` contract and sanitized success/rejection/failure examples; Zeddin and Kei sign that their implementations will consume the same schema before integration starts
+> **Completion rule:** replace this block once the reason-code enum and status mapping are implemented and the OpenAPI contract matches the shipped handler
 
 No field named `known_tb_contact` may be introduced unless Daffa documents its training/evaluation basis and the PRD is deliberately revised.
 
@@ -184,11 +192,13 @@ No field named `known_tb_contact` may be introduced unless Daffa documents its t
 - Container runs as a non-root user with a minimal runtime image where platform support permits.
 - Dependency versions and the ROCm base image are pinned.
 
-> **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
+> **OWNER INPUT REQUIRED — Daffa — originally due 2026-06-29**
 >
 > **Blocks:** `ARCH-2`, `BE-4`, and production deployment approval
 >
-> **Required output:** specify authentication/no-auth decision for the public demo; CORS origins; size/rate/concurrency limits; secret names; redaction rules; session timeout; container user; dependency/image pinning; health endpoint exposure; incident/reset procedure
+> **Status:** partially implemented, not signed off. The Go gateway is no-auth (consistent with a public demo) and has a CORS origin allowlist read from `JAGA_ALLOWED_ORIGINS` (defaulting to permitting only `localhost`/`127.0.0.1` if unset — §16.1 flags this default as unsafe for a public deployment). No rate limiting, request-size limit beyond the 32 MiB multipart cap on `/api/v1/triage`, secret-redaction policy, session-timeout enforcement, or non-root container user has been verified in the repository.
+>
+> **Required output (remaining):** confirm `JAGA_ALLOWED_ORIGINS` is set to the real deployed frontend origin (not left on the localhost default) before the public demo goes live; define rate/concurrency limits; define secret names and redaction rules; verify non-root container users in the Dockerfiles; define the incident/reset procedure
 >
 > **Affected documents:** `project-architecture.md`, `implementation-plan.md`, deployment section of `README.md` after scaffolding
 >
@@ -207,11 +217,13 @@ Allowed telemetry is metadata-only:
 
 Prohibited telemetry includes audio, clinical values, raw/derived health estimates, full request IDs in public dashboards, and user-entered text.
 
-> **OWNER INPUT REQUIRED — Daffa — due 2026-06-29**
+> **OWNER INPUT REQUIRED — Daffa — originally due 2026-06-29**
 >
 > **Blocks:** `BE-4` and `QA-3`
 >
-> **Required output:** define metric names/labels, safe request-correlation format, alert thresholds, retention, dashboard access, and the smoke-test evidence required before demo
+> **Status:** still fully open. `backend/backendHandlers` has no metrics/telemetry instrumentation in the repository as of 2026-07-11; the `GET /health` endpoint reports process liveness only, with no readiness signal for the Rust/Prisma dependencies it calls. This is a genuine gap, not a documentation lag.
+>
+> **Required output:** define metric names/labels, safe request-correlation format, alert thresholds, retention, dashboard access, and the smoke-test evidence required before demo; at minimum, add a readiness check that reflects whether `yamnet`, `xgboost`, and the Prisma worker are reachable
 >
 > **Affected documents:** `project-architecture.md`, `implementation-plan.md`
 >
@@ -228,44 +240,46 @@ Prohibited telemetry includes audio, clinical values, raw/derived health estimat
 
 Zeddin owns implementation and deployment after Daffa signs architecture/security contracts. Fransisco owns submission completeness, not runtime operations.
 
-## 11. Repository structure (as-built)
+## 11. Repository structure (as-built, verified 2026-07-11)
 
-This reflects the layout on `backend-train`. Names may still be adjusted in the signed owner sections, but responsibilities must remain separated. The public request orchestrator is the **Go API** (`backend/go`); model serving is the **Prisma Python worker** (`backend/python/PrismaServer`); training/research is isolated in **`PrismaTraining`**. (Supersedes the earlier planned `apps/api/` FastAPI layout; the contract semantics in §4–§6 are unchanged.)
+This reflects the actual current layout, which renamed and reorganized further after the `backend-train` layout recorded lower in this file (§14 predates this rename; kept for history, not re-written). The public request orchestrator is the **Go API** (`backend/backendHandlers`, Go module still named `jaga/backend/go` — a cosmetic leftover, not a functional issue); Gema's acoustic model services are two **Rust** ONNX services under `backend/modelServerandTraining/GemmaServer/rust`; Gema's training artifacts live in `backend/modelServerandTraining/GemmaTraining`; Prisma serving is `backend/modelServerandTraining/PrismaServer`; Prisma training/research is `backend/modelServerandTraining/PrismaTraining`. (Supersedes both the originally planned `apps/api/` FastAPI layout and the intermediate `backend/go` + `backend/python/{PrismaServer,PrismaTraining}` layout described in §14; contract semantics in §4–§6 are unchanged except where §16 flags a divergence.)
 
 ```text
 backend/
-├── go/                  # public Go REST API + orchestration (request orchestrator)
-│   ├── cmd/server/      # entrypoint
-│   └── internal/        # config, handlers, http, memory (Cognee iface), models, routes, validation
-└── python/
-    ├── PrismaServer/    # Prisma serving worker (bundled local_clahe artifacts)
-    └── PrismaTraining/  # research/training: configs, data, models, training, evaluation,
-                         #   retrieval, quantum, scripts, utils (controlled-access data ignored)
-infra/                   # Docker Swarm deployment plane
-├── docker-stack.yml     # nginx, go-api, prisma-worker, postgres, redis, minio
+├── backendHandlers/         # public Go REST API + orchestration (request orchestrator)
+│   ├── cmd/server/          # entrypoint
+│   └── internal/            # assistant, audioPreprocess, cxr, demographics, ids, llm (+ prompts/), response, server, triage
+└── modelServerandTraining/
+    ├── GemmaServer/rust/    # Gema model services: jagaAudio, yamnetService, xgboostService (ONNX via `ort`)
+    ├── GemmaTraining/       # Gema research: dataPrep/mergedata.py, notebooks/trainDetector.ipynb
+    ├── PrismaServer/        # Prisma serving worker (FastAPI; bundled local_clahe artifacts + quantum metrics)
+    └── PrismaTraining/      # Prisma research/training: configs, data, models, training, evaluation,
+                             #   retrieval, quantum, scripts, utils (controlled-access data ignored)
+infra/                       # Docker Swarm deployment plane
+├── docker-stack.yml         # nginx, go-api, prisma-worker, postgres, redis, minio, cognee
 ├── nginx/ postgres/ redis/ minio/ cognee/
-├── healthcheck/         # api / prisma / cognee probes
-└── scripts/             # build, deploy, logs, scale, remove (sh + ps1)
-frontend/                # PWA capture/result client (Next.js; see §3.2) — renamed from apps/web 2026-06-30
-components/              # ClinicalCaptureForm.jsx — provisional reference prototype the frontend primitives were re-skinned from (design §6); kept as the canonical capture pattern, not built/shipped
-design/                  # design tooling: swatch.html (token preview) + contrast.mjs (WCAG ratio verifier, design §4); not application code
+├── healthcheck/             # api / prisma / cognee probes
+└── scripts/                 # build, deploy, logs, scale, remove (sh + ps1)
+frontend/                    # PWA capture/result client (Next.js; see §3.2) — renamed from apps/web 2026-06-30
+contracts/openapi/           # jaga-v1.yaml — frontend integration proposal (stale in one field; see §16.1)
+components/                  # ClinicalCaptureForm.jsx — provisional reference prototype the frontend primitives were re-skinned from (design §6); kept as the canonical capture pattern, not built/shipped
+design/                      # design tooling: swatch.html (token preview) + contrast.mjs (WCAG ratio verifier, design §4); not application code
 ```
 
-**Endpoints (as-built):**
+**Endpoints (as-built, verified against `backend/backendHandlers/internal/server/router.go` and `backend/modelServerandTraining/PrismaServer/app/main.py` on 2026-07-11):**
 
 | Service | Method · Path | Status |
 |---|---|---|
-| Go API | `POST /api/v1/patient/intake` | Live — validate/normalize metadata, no persistence/ML |
-| Go API | `GET /health`, `GET /healthz` | Live — process health |
-| Go API | `GET /api/v1/status`, `GET /v1/status` | Live — service status |
-| Go API | `GET /internal/health/cognee` | Live — semantic-memory availability only |
-| Prisma worker | `GET /health`, `GET /api/v1/status`, `POST /api/v1/cxr`, `GET /api/v1/quantum` | Live — DenseNet121 CLAHE + quantum highlight (§15) |
-| Go API | `POST /api/v1/demographics`, `POST /api/v1/audio/preprocess` | Live — validation + audio DSP (§15) |
-| Go API (Gema orchestrator) | `POST /api/v1/triage` | Live — cough gate + acoustic TB model + Gemma next-step (§15) |
-| Go API (assistant) | `POST /api/v1/assistant/messages` | Live — Gemma guidance chat (§15) |
-| Go API → Prisma | `POST /api/v1/cxr` | Live — proxied to Prisma worker (§15) |
+| Go gateway | `GET /health` | Live — process liveness only, no dependency readiness (§9) |
+| Go gateway | `POST /api/v1/demographics` | Live — validation |
+| Go gateway | `POST /api/v1/audio/preprocess` | Live — audio DSP (§15) |
+| Go gateway (Gema orchestrator) | `POST /api/v1/triage` | Live — cough gate + acoustic TB model + Gemma next-step (§15); takes one `cough` file, not five (§16.1) |
+| Go gateway (assistant) | `POST /api/v1/assistant/messages` | Live — Gemma guidance chat (§15) |
+| Go gateway → Prisma | `POST /api/v1/cxr` | Live — proxied to Prisma worker (§15) |
+| Prisma worker (direct, Python/FastAPI) | `GET /health`, `GET /api/v1/status`, `POST /api/v1/cxr`, `GET /api/v1/quantum` | Live — DenseNet121 CLAHE + quantum highlight (§15) |
+| Go gateway | `POST /api/v1/patient/intake`, `GET /healthz`, `GET /api/v1/status`, `GET /v1/status`, `GET /internal/health/cognee` | **Not present** in `router.go` as of 2026-07-11 — earlier revisions of this document described these as live; they were either superseded by the endpoints above or never carried forward into `backendHandlers`. Do not rely on them without re-verifying. |
 
-> Tests (`tests/contract/`, `tests/integration/`, `tests/privacy/` per the planned schema/integration/privacy split) are not yet scaffolded; add them as the triage contract is signed.
+> Tests (`tests/contract/`, `tests/integration/`, `tests/privacy/` per the planned schema/integration/privacy split) are not scaffolded as of 2026-07-11; the frontend has its own `e2e/` Playwright suite and `src/test/` unit tests instead.
 
 ## 12. Failure policy [MVP]
 
@@ -299,9 +313,9 @@ Architecture is ready for implementation only when:
 
 ---
 
-## 14. Implemented backend runtime (`backend-train`)
+## 14. Implemented backend runtime (`backend-train`, historical)
 
-> **Status:** As-built on the `backend-train` branch. This section records the runtime layout and behavior that exist today; the file/endpoint layout is enumerated in §11. The signed contracts in §4–§9 remain canonical for behavior and safety — code here must reconcile to them as Daffa's `ARCH-1` blocks are signed.
+> **Status:** Historical snapshot of the `backend-train` branch's runtime layout (`backend/go`, `backend/python/PrismaServer`, `backend/python/PrismaTraining`). The repository has since been reorganized to `backend/backendHandlers` and `backend/modelServerandTraining/{GemmaServer,GemmaTraining,PrismaServer,PrismaTraining}` — see §11 for the current, verified layout and endpoint table, and §15–§16 for the current behavior. This section is kept as a record of what existed at that point in time rather than rewritten; do not use its paths for anything except history.
 
 ### 14.1 Runtime split
 
@@ -352,11 +366,12 @@ Docker Swarm with NGINX reverse proxy, replicated `go-api` tasks, and an interna
 
 ## 15. Acoustic triage + model services (as-built)
 
-> **Status:** Implemented. Records the acoustic-triage pipeline, the Gemma
+> **Status:** Implemented and current as of 2026-07-11 (paths verified against `backend/backendHandlers` and `backend/modelServerandTraining`). Records the acoustic-triage pipeline, the Gemma
 > orchestrator/assistant, the Rust model services, and the Prisma CXR + quantum
-> path built on this branch. Behavior reconciles to the signed §4–§6 contracts:
+> path. Behavior reconciles to the signed §4–§6 contracts:
 > signals stay separate, estimates come from calibrated models (never the LLM),
-> and every path fails closed.
+> and every path fails closed. "Calibrated" here means a fixed decision threshold, not
+> a fitted calibration curve — see §16.2 and `data-evaluation-plan.md` §6.
 
 ### 15.1 Service topology
 
@@ -427,3 +442,33 @@ deployment (`/inference/v1/embeddings`, WAV base64 in `input`), then appends the
 12 demographic features (a pure-Rust reimplementation of the ONNX preprocessor,
 verified against it) before the XGBoost tree ensemble. Demographics are validated
 by calling back into the Go API, so validation rules live in one place.
+
+---
+
+## 16. Reconciliation and open contradictions (2026-07-11)
+
+> **Status:** Written from direct inspection of the current repository (not from a status report) on submission day. Use this section as the authoritative list of where the rest of this document — and the shared OpenAPI contract — has drifted from the code, so nobody re-discovers the same gap mid-demo.
+
+### 16.1 CONTRADICTION — cough file count in the shared contract
+
+> **CONTRADICTION — BLOCKS a machine-validated contract, does not block the running demo**
+>
+> **Conflict:** `contracts/openapi/jaga-v1.yaml` requires `coughs: minItems 5, maxItems 5` for `POST /api/v1/triage`. The shipped Go handler (`backend/backendHandlers/internal/triage/handler.go`) reads exactly one multipart field named `cough` (singular). The shipped frontend (`design-guidelines.md` §3.1, log 2026-07-10 "Pass D") sends exactly one WebM recording. All three of PRD-03, the frontend, and the Go handler agree with each other; only the OpenAPI file disagrees.
+>
+> **Canonical documents affected:** `contracts/openapi/jaga-v1.yaml` (needs the code change), `project-architecture.md` §6/§11 (documented here)
+>
+> **Owner / due:** Zeddin, before submission if the OpenAPI file is used for anything beyond internal reference; not a blocker for the live demo since the actual runtime path already agrees end to end
+>
+> **Resolution rule:** update `coughs` to a single required `cough` binary field in the OpenAPI file; do not change the Go handler or frontend, which already reflect the current product decision (PRD-03)
+
+### 16.2 Risk bands are a fixed threshold, not a fitted calibration artifact
+
+The result-composition code (`backend/modelServerandTraining/GemmaServer/rust/xgboostService/src/main.rs`) maps the XGBoost probability to a band using hardcoded cutoffs (`< 0.33` / `< 0.66` / else), not a calibration curve fitted on held-out data as `data-evaluation-plan.md` §6 specifies. This is a legitimate hackathon-scope simplification, but it means every "calibrated estimate" claim in the PRD (§3.6, PRD-06) is currently aspirational for Gema, not delivered. Do not describe the shipped Gema output as calibrated in the pitch, demo narrative, or README without this caveat; see `data-evaluation-plan.md` §6 and §10.
+
+### 16.3 Cognee / semantic memory is not wired into the current Go gateway
+
+Earlier revisions of this document (§14.6) and the context-dump decisions index describe a Cognee semantic-memory layer behind a neutral Go interface. `infra/cognee` and its Docker Swarm service still exist in `infra/docker-stack.yml`, but no Cognee client, interface, or health-check code was found anywhere under `backend/backendHandlers` as of 2026-07-11. Treat Cognee as **infrastructure that is deployed but not integrated** rather than a live feature; do not claim patient-history grounding or semantic-memory-backed explanations in the demo.
+
+### 16.4 Endpoints removed or never carried forward
+
+§11's endpoint table previously listed `POST /api/v1/patient/intake`, `GET /healthz`, `GET /api/v1/status`, `GET /v1/status`, and `GET /internal/health/cognee` as live on the Go gateway. None of them are registered in `backend/backendHandlers/internal/server/router.go` as of 2026-07-11. The current `/api/v1/triage` request carries `clinical` inline in the same multipart submission (per `contracts/openapi/jaga-v1.yaml`), so a separate intake step may simply no longer be part of the flow rather than a missing piece — confirm which before re-adding anything. This document should not be trusted as evidence any of these five endpoints exist without checking `router.go` directly.

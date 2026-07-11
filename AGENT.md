@@ -2,7 +2,8 @@
 
 **Document type:** Repository task router
 **Audience:** All contributors and coding agents
-**Status:** Active · pre-development
+**Status:** Active · submission week — end-to-end system built; hardening/reconciliation in progress
+**Updated:** 2026-07-11
 **Canonical for:** Repository navigation, source precedence, working rules, ownership, and current status
 **Companion documents:** [`.agent/product-requirements.md`](.agent/product-requirements.md), [`.agent/project-architecture.md`](.agent/project-architecture.md), [`.agent/implementation-plan.md`](.agent/implementation-plan.md)
 
@@ -10,9 +11,9 @@
 
 Start here, choose the task row in Section 1, then follow the source precedence in Section 2. Owner blocks are intentional integration gates; do not infer the missing contract. Historical rationale belongs in `.agent/context-dump.md`, not here.
 
-Jaga is a phone-first tuberculosis research prototype for **symptomatic adults aged 18+**. A community health worker records **five guided coughs** and supported clinical inputs; a model trained on AMD produces a calibrated research estimate used only to prioritize follow-up urgency. **Every symptomatic participant is directed to confirmatory evaluation regardless of score. Jaga does not diagnose or rule out tuberculosis.**
+Jaga is a phone-first tuberculosis research prototype for **symptomatic adults aged 18+**. A community health worker records **one guided cough recording (up to 90 seconds, several natural coughs)** and supported clinical inputs; a model trained on AMD produces a calibrated research estimate used only to prioritize follow-up urgency. **Every symptomatic participant is directed to confirmatory evaluation regardless of score. Jaga does not diagnose or rule out tuberculosis.** *(The capture protocol changed from five discrete cough attempts to one guided recording on 2026-07-10 — see `.agent/log.md` and `project-architecture.md` §16.)*
 
-Preparation and prototyping begin **29 June 2026**. The AMD Developer Hackathon ACT II runs **6 July 2026, 15:00 UTC → 11 July 2026, 15:00 UTC** (**22:00 WIB**), and requires a containerized, runnable submission in a public repository.
+Preparation and prototyping began **29 June 2026**. The AMD Developer Hackathon ACT II runs **6 July 2026, 15:00 UTC → 11 July 2026, 15:00 UTC** (**22:00 WIB**) — today, 2026-07-11, is submission day. The frontend, Go gateway, Rust model services (Gema), and Python Prisma worker are built and integrated end to end; see §8 for what remains.
 
 ## 1. Document router
 
@@ -73,8 +74,8 @@ Owner-input blocks are intentional handoffs, not generic placeholders. Every blo
 
 Allowed owners in the current revision:
 
-- **Daffa · due 2026-06-29:** backend/AI architecture, data schemas, inference contract, model pipeline, evaluation gates, serving, security, and observability.
-- **Billy · due 2026-06-30:** frontend architecture, screen/state map, API-to-UI mapping, design system, responsive behavior, accessibility, and motion.
+- **Daffa · originally due 2026-06-29:** backend/AI architecture, data schemas, inference contract, model pipeline, evaluation gates, serving, security, and observability. **Status:** superseded by shipped code rather than a formally signed contract document — see `project-architecture.md` §14–§16 for what the `backend-train` build actually implements, and its remaining open blocks for what is still genuinely undecided (calibration rigor, participant-grouped evaluation, security/observability profile).
+- **Billy · due 2026-06-30:** frontend architecture, screen/state map, API-to-UI mapping, design system, responsive behavior, accessibility, and motion. **Status:** signed and implemented; see `design-guidelines.md`.
 
 Do not use unowned `TODO`, `TBD`, ellipses, or vague instructions such as “handle errors.”
 
@@ -118,8 +119,16 @@ No developer implements a blocked interface before its owner-input block is comp
 
 Idea, name, research framing, cohort boundary, online AMD serving, and two co-equal `[MVP]` signals — cough-plus-clinical (Gema) and isolated digital-CXR (Prisma), never fused — are locked. CODA is controlled-access and Daffa has access; dataset redistribution is prohibited.
 
-- **Daffa:** complete the owner blocks in [`.agent/project-architecture.md`](.agent/project-architecture.md) and [`.agent/data-evaluation-plan.md`](.agent/data-evaluation-plan.md) by 29 June.
-- **Zeddin:** read [`.agent/project-architecture.md`](.agent/project-architecture.md) and start ticket `BE-0` only after Daffa signs the contract block.
-- **Billy:** complete the owner blocks in [`.agent/design-guidelines.md`](.agent/design-guidelines.md) and the frontend section of [`.agent/project-architecture.md`](.agent/project-architecture.md) by 30 June.
-- **Kei:** read [`.agent/product-requirements.md`](.agent/product-requirements.md) and start ticket `FE-0` only after Billy signs the screen/state block.
-- **Fransisco:** validate the milestone and submission checklist in [`.agent/implementation-plan.md`](.agent/implementation-plan.md) against the event page.
+**As of 2026-07-11 (submission day), the full loop is built and integrated**, not just scaffolded: the Next.js frontend (gate → clinical → coughs → review → result, plus a separate CXR upload/result path) talks to a Go gateway (`backend/backendHandlers`) that runs audio preprocessing, calls two Rust ONNX services (YAMNet cough gate + XGBoost TB-probability model, `backend/modelServerandTraining/GemmaServer/rust`) for the Gema result, calls Gemma (Fireworks) for the mandatory-next-step copy and the guidance assistant, and proxies to a Python Prisma worker (`backend/modelServerandTraining/PrismaServer`) for the independent CXR result — which also highlights a PennyLane quantum-kernel-SVM evaluation. All of this deploys as a Docker Swarm stack (`infra/`). See `project-architecture.md` §14–§16 for the as-built detail and `log.md` for the dated build history.
+
+**What is not yet true**, despite the pipeline running end to end:
+
+- The rigorous evaluation protocol in `data-evaluation-plan.md` (participant-grouped splits, leave-one-country-out, fitted calibration curves, run manifests, reproducibility artifacts) was not carried out for the shipped Gema model; risk bands are fixed cutoffs (0.33 / 0.66) on the XGBoost output, not a fitted calibration artifact. Treat any Gema probability as an uncalibrated research prototype output until that gap is closed.
+- `contracts/openapi/jaga-v1.yaml` still specifies 5 cough files for `POST /api/v1/triage`; the actual Go handler and frontend both use exactly one `cough` file. This is a live contradiction — see `project-architecture.md` §16.
+- The Cognee semantic-memory layer described in earlier revisions of this doc set is not wired into `backend/backendHandlers` yet, even though `infra/cognee` exists in the deployment stack.
+
+- **Daffa:** reconcile the remaining owner blocks in [`.agent/project-architecture.md`](.agent/project-architecture.md) and [`.agent/data-evaluation-plan.md`](.agent/data-evaluation-plan.md) against the shipped model (calibration, participant-grouped evaluation, security/observability profile) — these are the genuine gaps, not the whole pipeline.
+- **Zeddin:** resolve the 5-file vs. 1-file cough contract mismatch in `contracts/openapi/jaga-v1.yaml` and close the remaining `project-architecture.md` §16 open items before submission.
+- **Billy:** owner blocks in [`.agent/design-guidelines.md`](.agent/design-guidelines.md) are signed and implemented; remaining work is the final EN/ID string review and any last accessibility polish.
+- **Kei:** frontend routes (`gate`, `clinical`, `coughs`, `review`, `result`, `cxr`, `cxr/result`, `chat`) are implemented; remaining work is bug-fixing against the live backend rather than fixture adapters.
+- **Fransisco:** validate the milestone and submission checklist in [`.agent/implementation-plan.md`](.agent/implementation-plan.md) against the event page and confirm the public deployment URL, video, and slides are ready before 11 July 15:00 UTC.

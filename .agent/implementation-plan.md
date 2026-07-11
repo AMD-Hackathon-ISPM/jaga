@@ -2,13 +2,14 @@
 
 **Document type:** Implementation plan and ticket board
 **Audience:** Whole team
-**Status:** Active · preparation starts 2026-06-29
+**Status:** Active · submission day (2026-07-11) — the P0 pipeline runs end to end; §13–§15 record what actually shipped and §16 lists the tickets that are genuinely still open
+**Updated:** 2026-07-11
 **Canonical for:** Work sequence, ticket ownership, dependencies, milestones, merge order, fallbacks, and submission completeness
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`evidence-register.md`](evidence-register.md)
 
 ## How to read this document
 
-The PRD controls behavior and safety. Architecture/design owner blocks must be completed before their dependent implementation tickets start. Ticket acceptance criteria are mandatory; a checked task without its criteria is not done.
+The PRD controls behavior and safety. Architecture/design owner blocks must be completed before their dependent implementation tickets start. Ticket acceptance criteria are mandatory; a checked task without its criteria is not done. **Sections 1–12 are the original ticket board as planned; they are not rewritten below.** Treat a ticket listed as `[P0]` here as done only if §13–§16 or `project-architecture.md`/`data-evaluation-plan.md` say so — most of the individual ticket sections below still show their original planned/blocked language and have not been individually re-verified against the shipped code in this pass.
 
 ## 1. Timeline and priorities
 
@@ -41,6 +42,8 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 
 **Due:** 29 June
 
+**Status (2026-07-11):** not signed as a decision pack. A model was built and is serving (`data-evaluation-plan.md` §11), but without the participant-grouped split, promotion thresholds, or dataset manifest this ticket calls for. This is the largest genuinely open item in the whole board — see `data-evaluation-plan.md` §10.
+
 **Blocks:** ML-0 through ML-4; any model claim
 
 **Documents:** `evidence-register.md`, `data-evaluation-plan.md`
@@ -62,6 +65,8 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 **Owner:** Daffa
 
 **Due:** 29 June
+
+**Status (2026-07-11):** overtaken by shipped code rather than signed first — `POST /api/v1/triage` and `POST /api/v1/cxr` are implemented and integrated (`project-architecture.md` §14–§15). The exact contract still has a real gap with the code: `contracts/openapi/jaga-v1.yaml` requires 5 cough files, the shipped handler and frontend use 1 (§16.1 of the architecture doc); no HTTP status-code mapping or quality reason-code enum is documented.
 
 **Depends on:** ARCH-0
 
@@ -88,6 +93,8 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 **Owner:** Daffa
 
 **Due:** 29 June
+
+**Status (2026-07-11):** still open. CORS is implemented as an origin allowlist (`JAGA_ALLOWED_ORIGINS`) defaulting to localhost-only if unset — must be confirmed against the real deployed frontend origin before submission (`project-architecture.md` §8). No rate limiting, metrics, or dependency-readiness check exists.
 
 **Depends on:** ARCH-1
 
@@ -228,7 +235,7 @@ The PRD controls behavior and safety. Architecture/design owner blocks must be c
 
 **Depends on:** ARCH-1; UX-0
 
-**Status:** Frontend proposal implemented 2026-07-01 with runtime Zod schemas, sanitized deterministic fixtures, service-factory tests, and `contracts/openapi/jaga-v1.yaml`; backend consumption and `ARCH-1` sign-off remain open.
+**Status:** Frontend proposal implemented 2026-07-01 with runtime Zod schemas, sanitized deterministic fixtures, service-factory tests, and `contracts/openapi/jaga-v1.yaml`. **Update 2026-07-11:** backend consumption is now live (`POST /api/v1/triage`, `POST /api/v1/cxr` are implemented and integrated); `contracts/openapi/jaga-v1.yaml` itself still needs a fix (5→1 cough files, `project-architecture.md` §16.1) before it can be called signed.
 
 **Work**
 
@@ -550,7 +557,7 @@ Use sanitized structured output only; deterministic safety/referral copy remains
 
 **Depends on:** Prisma model artifact and the `POST /api/v1/cxr` contract; built in parallel with the Gema core, not gated behind it
 
-**Status:** Frontend upload, validation, in-memory state, fixture/live adapter, and independent result route implemented 2026-07-01; backend endpoint and model artifact remain open.
+**Status:** Frontend upload, validation, in-memory state, fixture/live adapter, and independent result route implemented 2026-07-01. **Update 2026-07-11:** the backend endpoint and model artifact are now live too — `POST /api/v1/cxr` (Prisma worker, `local_clahe` DenseNet121 + quantum-kernel highlight) is implemented and consumed end to end (`project-architecture.md` §15.4).
 
 Separate pipeline, schema, evaluation, panel, limitations, and metrics. Co-equal MVP signal; never fused with Gema and no photographed-film input.
 
@@ -637,27 +644,32 @@ The project is submission-ready only when every P0 ticket is accepted, all owner
 
 ---
 
-## 13. Current baseline (as-built on `backend-train`)
+## 13. Current baseline (as-built, verified 2026-07-11 — supersedes the `backend-train` snapshot below)
 
-What already exists in the repository today. These are scaffolds/contracts; behavior still pins on the signed owner blocks above.
+What actually exists in the repository today, verified against the code rather than assumed from earlier plans. The `backend-train` folder names (`backend/go`, `backend/python/...`) no longer match; the repo is now `backend/backendHandlers` + `backend/modelServerandTraining/{GemmaServer,GemmaTraining,PrismaServer,PrismaTraining}` (`project-architecture.md` §11).
 
-- [x] Repo split into `backend/go`, `backend/python/PrismaServer`, `backend/python/PrismaTraining`, and `infra`.
+- [x] Repo split into `backend/backendHandlers` (Go gateway) and `backend/modelServerandTraining/{GemmaServer,GemmaTraining,PrismaServer,PrismaTraining}`, plus `infra`.
 - [x] Docker Swarm deployment plane with NGINX, `go-api`, `prisma-worker`, Redis, PostgreSQL, and MinIO.
 - [x] Local image build and stack deploy scripts under `infra/scripts/`.
-- [x] Go patient intake endpoint at `POST /api/v1/patient/intake` (validate/normalize metadata; no persistence or ML yet).
-- [x] Optional Cognee semantic-memory layer behind a neutral Go interface, with a local Cognee service and Featherless-backed generation.
-- [x] Default `local_clahe` serving artifacts bundled into `PrismaServer`.
-- [ ] Final cough + clinical triage endpoint contract still pending (Daffa `ARCH-1`).
+- [x] `POST /api/v1/triage` (Gema: YAMNet cough gate → XGBoost TB probability → Gemma next-step) is implemented and consumed end to end by the frontend — this is the ticket item ARCH-1 originally blocked on, and it shipped.
+- [x] `POST /api/v1/cxr` (Prisma: CLAHE + DenseNet121 + quantum-kernel highlight) is implemented and consumed end to end.
+- [x] `POST /api/v1/assistant/messages` (Gemma guidance chat) is implemented.
+- [ ] `POST /api/v1/patient/intake` is **not** registered in the current Go router (`backend/backendHandlers/internal/server/router.go`) — it existed in an earlier revision of the backend and was not carried forward, or clinical intake now happens inline inside `/api/v1/triage`. Confirm which before assuming it still exists.
+- [ ] Cognee semantic-memory layer is deployed in `infra/docker-stack.yml` but has no corresponding client/interface code in `backend/backendHandlers` — not wired in, despite earlier revisions of this document describing it as built.
+- [x] Default `local_clahe` serving artifacts (incl. quantum-kernel metrics) bundled into `PrismaServer`.
+- [ ] The evidence gate, calibration, and reproducibility artifacts `data-evaluation-plan.md` requires were not produced for the shipped Gema model (see that document's §10–§11).
 
-## 14. API contract notes (as-built)
+## 14. API contract notes (as-built, verified 2026-07-11)
 
-- `POST /api/v1/patient/intake` — validates and normalizes patient metadata.
-- `POST /api/v1/triage` — the main missing contract (Gema; see architecture §6).
-- `POST /api/v1/cxr` — separate Prisma signal (architecture §6), never fused with triage.
-- `GET /health` — stack health endpoint.
-- `GET /internal/health/cognee` — reports semantic-memory availability only.
+- `POST /api/v1/triage` — Gema; one `cough` file + inline `clinical` JSON (not five files — `contracts/openapi/jaga-v1.yaml` disagrees, see architecture §16.1).
+- `POST /api/v1/cxr` — separate Prisma signal (architecture §6), never fused with triage; proxied by the Go gateway to the Prisma worker, which also serves it directly.
+- `POST /api/v1/assistant/messages` — Gemma guidance chat, scoped away from diagnosis/interpretation.
+- `POST /api/v1/demographics`, `POST /api/v1/audio/preprocess` — validation and audio DSP helpers used by the triage flow.
+- `GET /health` — Go gateway liveness only (no dependency readiness).
+- `GET /api/v1/status`, `GET /api/v1/quantum` — served directly by the Prisma worker (Python/FastAPI), not proxied through the Go gateway.
+- `POST /api/v1/patient/intake`, `GET /healthz`, `GET /v1/status`, `GET /internal/health/cognee` — **not present** in the current Go router; do not assume they exist.
 - Featherless integrations treat Featherless as an OpenAI-compatible API surface.
-- Cognee stays optional and never blocks predictions; the normal local path needs no hosted Cognee endpoint or API key.
+- Cognee is deployed in the stack but not integrated into the Go gateway as of 2026-07-11 (see §13).
 
 ## 15. Infrastructure contract
 
@@ -666,5 +678,17 @@ What already exists in the repository today. These are scaffolds/contracts; beha
 - Public service entrypoint: `go-api` behind NGINX.
 - Internal services: `prisma-worker`, `redis`, `postgres`, `minio`.
 - Scale shape: `go-api` horizontally; `prisma-worker` by replica count, one job per worker.
-- Runtime packaging: `PrismaServer` serves; `PrismaTraining` is research/training only.
-- Local memory path: Cognee runs in-stack and relies on Featherless for generation.
+- Runtime packaging: `PrismaServer` serves Prisma; `PrismaTraining` is research/training only. `GemmaServer/rust` (`yamnetService`, `xgboostService`) serves Gema's acoustic models; `GemmaTraining` is research/training only (currently a data-prep script and one notebook, not a full pipeline — `data-evaluation-plan.md` §11).
+- Local memory path: Cognee runs in-stack but is not yet integrated into `backend/backendHandlers` (§13) — do not rely on it for generation grounding until that integration exists.
+
+## 16. Genuinely open items before the 15:00 UTC deadline
+
+Everything else in this document describes the original plan; this list is the honest, current punch list derived from §13–§15 and the companion documents' as-built sections. Ordered by what would most affect the demo or the submission's integrity:
+
+1. **Fix `contracts/openapi/jaga-v1.yaml`'s cough count** (5 → 1) so the published contract matches the shipped code (`project-architecture.md` §16.1). Low effort, removes a visible inconsistency to any judge who reads the repo.
+2. **Confirm `JAGA_ALLOWED_ORIGINS` is set to the real deployed frontend origin**, not left on the localhost default, before the public URL goes live (`project-architecture.md` §8).
+3. **Do not claim a calibrated Gema estimate** in the README, pitch, video, or demo narrative — the shipped bands are a fixed 0.33/0.66 threshold, not a fitted calibration (`data-evaluation-plan.md` §6, §11). PM-1's evidence sign-off must reflect this.
+4. **Decide whether patient intake (`POST /api/v1/patient/intake`) and Cognee integration are cut features or missing work**, and update `README.md`'s feature list accordingly rather than leaving both implied as live.
+5. **Add a minimal dependency-readiness check** to `GET /health` (or a new endpoint) so a demo failure in `yamnet`/`xgboost`/Prisma is visible before it surfaces as a confusing user-facing error.
+
+None of these block the core demo from running; they are integrity/documentation-accuracy items that matter for the Unicorn Track's "completeness" criterion and for not overclaiming evidence.

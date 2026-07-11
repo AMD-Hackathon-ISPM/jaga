@@ -67,8 +67,7 @@ function Get-EnvValue {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Key,
-        [Parameter(Mandatory = $true)]
-        [string]$Default
+        [string]$Default = ''
     )
 
     $value = [Environment]::GetEnvironmentVariable($Key)

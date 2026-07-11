@@ -2,8 +2,8 @@
 
 **Document type:** Product requirements document
 **Audience:** Product, design, frontend, backend, ML, QA, and demo team
-**Status:** Active · pre-development
-**Updated:** 2026-07-10
+**Status:** Active · behavior largely implemented; see `project-architecture.md` §16 for where the shipped backend has not yet closed the gap (quality-gate reason codes, calibrated bands)
+**Updated:** 2026-07-11
 **Canonical for:** User-visible behavior, safety, feature scope, failure states, localization, and acceptance criteria
 **Companion documents:** [`product-brief.md`](product-brief.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
@@ -172,6 +172,8 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 - Every result band displays the same confirmatory-evaluation requirement.
 - Model inspection can be hidden without changing the clinical next step.
 - Technical metadata and limitations remain keyboard-accessible without interrupting the participant-facing result flow.
+
+> **Open gap (2026-07-11):** the shipped Gema pipeline maps its XGBoost probability to a band using a fixed 0.33/0.66 cutoff, not a calibration curve fitted on held-out data (`project-architecture.md` §16.2, `data-evaluation-plan.md` §6). This requirement — "calibrated probability only if the model artifact is actually calibrated" — is not yet met in the strict sense; the "About this estimate" disclosure's calibration-status field must say so rather than imply a fitted calibration exists.
 
 ### 3.7 Localization [MVP] · PRD-07
 

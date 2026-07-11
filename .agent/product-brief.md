@@ -2,7 +2,8 @@
 
 **Document type:** Product brief
 **Audience:** Team, hackathon judges, prospective programme partners, and reviewers
-**Status:** Active · pre-development
+**Status:** Active · pitch thesis and phased scope unchanged; the MVP loop described in §3 is now built and running (see `project-architecture.md` §14–§16 for the as-built system and its open gaps)
+**Updated:** 2026-07-11
 **Canonical for:** Product thesis, target customer, positioning, business hypothesis, phased scope, pitch, and demo narrative
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`evidence-register.md`](evidence-register.md), [`implementation-plan.md`](implementation-plan.md), [`design-guidelines.md`](design-guidelines.md)
 
