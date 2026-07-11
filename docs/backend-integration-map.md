@@ -241,12 +241,12 @@ Real model inspection for cough audio = `inspection.url` from the triage respons
 | State | [`frontend/src/store/prisma.store.ts`](../frontend/src/store/prisma.store.ts) (`result`, `image`) |
 | Tests | [`frontend/src/features/cxr/cxr-result-screen.test.tsx`](../frontend/src/features/cxr/cxr-result-screen.test.tsx) | — |
 
-**Status:** 🔧 Fixture has `inspection.available: false`; no Grad-CAM URL served yet.
+**Status:** ✅ Prisma worker serves a Grad-CAM overlay as an in-memory PNG data URL in `inspection.url`, behind env `PRISMA_GRADCAM` (default on); nothing is persisted to disk and no artifact hosting is needed.
 
 **Backend still needed:**
 
 - Prisma inference endpoint on Python worker (today: health/status only in [`PrismaServer/app/main.py`](../backend/modelServerandTraining/PrismaServer/app/main.py))
-- Grad-CAM image generation + URL hosting
+- ~~Grad-CAM image generation + URL hosting~~ (done — in-memory PNG data URL per request; see status above)
 - Go `CxrInferencer` proxy implementation
 
 ---
@@ -336,7 +336,7 @@ MVP is single-session with no accounts. All auth functions throw “API not conn
 | Cough waveform heatmap | — | N/A | N/A | 🖥️ Client prototype |
 | Gema spectrogram | `inspection.url` | Yes (fallback UI) | No URL served | Needs artifact hosting |
 | CXR upload | `POST /api/v1/cxr` | Yes | No | ⚠️ `MODEL_UNAVAILABLE` |
-| CXR Grad-CAM | `inspection.url` | Yes | No URL served | Needs Grad-CAM + hosting |
+| CXR Grad-CAM | `inspection.url` | Yes | Yes | In-memory PNG data URL, behind `PRISMA_GRADCAM` |
 | Assistant chat | `POST /api/v1/assistant/messages` | Yes | Partial (LLM proxy) | ✅ With Featherless env |
 | Readiness | `GET /api/v1/status` | Service only | Partial | 🚧 Not in UI |
 | Auth | — | Placeholder | None | Out of MVP scope |
@@ -347,7 +347,7 @@ MVP is single-session with no accounts. All auth functions throw “API not conn
 
 1. **5 cough files vs 1** — OpenAPI + Go require `coughs[5]`; frontend sends `cough` × 1; frontend Zod expects `quality.length(1)` but OpenAPI expects 5.
 2. **Quality-rejection UX** — `COUGH_QUALITY_REJECTED` + per-attempt `quality[]` / `attempt_errors` are in the contract but not handled in coughs/review UI.
-3. **Inspection URLs** — Gema (`inspection.url` spectrogram) and Prisma (`inspection.url` Grad-CAM) need workers to generate images and a way to serve them.
+3. **Inspection URLs** — Gema (`inspection.url` spectrogram) needs workers to generate images and a way to serve them; Prisma Grad-CAM is resolved (in-memory PNG data URL in `inspection.url`, no hosting needed).
 4. **Gema worker** — No Python inference server exists yet (only Prisma worker scaffold).
 5. **Readiness gate** — `healthService` exists but no screen calls it before submit.
 

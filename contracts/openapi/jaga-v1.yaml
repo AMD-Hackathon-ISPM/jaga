@@ -264,6 +264,10 @@ components:
         url:
           type: string
           format: uri
+          description: >-
+            Short-lived inspection artifact. For cxr-v1 this is a PNG data URL
+            (Grad-CAM overlay) generated in memory per request and never
+            persisted. Model inspection; not a clinical explanation.
         available:
           type: boolean
         label:
