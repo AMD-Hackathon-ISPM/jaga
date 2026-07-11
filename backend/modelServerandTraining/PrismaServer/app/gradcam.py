@@ -22,6 +22,7 @@ from app.model import TBClassifier, preprocess
 
 MAX_OVERLAY_EDGE = 512  # cap the data-URL payload; heatmap is 7x7 upsampled anyway
 OVERLAY_ALPHA = 0.4
+HEATMAP_COLORMAP = cv2.COLORMAP_INFERNO  # sequential, monotonic-lightness; never rainbow/JET
 
 
 def gradcamMap(model: TBClassifier, tensor: torch.Tensor) -> np.ndarray:
@@ -63,7 +64,9 @@ def overlayDataUrl(imageBytes: bytes, cam: np.ndarray) -> str:
 
     base = cv2.cvtColor(grayscale, cv2.COLOR_GRAY2BGR)
     camResized = cv2.resize(cam, (base.shape[1], base.shape[0]), interpolation=cv2.INTER_LINEAR)
-    heat = cv2.applyColorMap((np.clip(camResized, 0.0, 1.0) * 255).astype(np.uint8), cv2.COLORMAP_JET)
+    heat = cv2.applyColorMap(
+        (np.clip(camResized, 0.0, 1.0) * 255).astype(np.uint8), HEATMAP_COLORMAP
+    )
     blended = cv2.addWeighted(heat, OVERLAY_ALPHA, base, 1.0 - OVERLAY_ALPHA, 0.0)
 
     ok, png = cv2.imencode(".png", blended)
