@@ -144,6 +144,11 @@
       "modelUnavailableBody": "Model triase batuk masih disiapkan, jadi hasil belum dapat dihasilkan. Rekaman Anda tetap tersimpan. Lanjutkan dengan jalur klinis standar.",
       "submitFailedTitle": "Pengiriman gagal",
       "submitFailedBody": "Rekaman masih tersedia. Coba lagi."
+    },
+    "noCough": {
+      "title": "Tidak ada batuk yang terdeteksi dalam rekaman",
+      "body": "Model tidak menemukan batuk dalam rekaman ini, jadi tidak ada estimasi yang dibuat. Rekam batuk yang jelas dan disengaja di tempat yang tenang, lalu kirim ulang.",
+      "recordAgain": "Rekam ulang"
     }
   },
   "clinical": {

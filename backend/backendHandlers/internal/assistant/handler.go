@@ -5,6 +5,7 @@ package assistant
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -54,6 +55,7 @@ func (h Handler) Messages(w http.ResponseWriter, r *http.Request) {
 	systemPrompt := llm.AssistantPrompt + localeContext(request) + outputInstruction
 	reply, err := h.client.Complete(ctx, systemPrompt, toLLMMessages(request.Messages), 0.3)
 	if err != nil {
+		log.Printf("assistant: llm call failed: %v", err)
 		response.WriteJSON(w, http.StatusBadGateway, ErrorBody{Status: "error", Message: "assistant is temporarily unavailable"})
 		return
 	}

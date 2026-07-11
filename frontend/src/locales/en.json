@@ -144,6 +144,11 @@
       "modelUnavailableBody": "The cough triage model is still being prepared, so no result can be produced yet. Your recordings are kept. Continue with the standard clinical pathway.",
       "submitFailedTitle": "Submission failed",
       "submitFailedBody": "The recordings are still available. Try again."
+    },
+    "noCough": {
+      "title": "No cough detected in the recording",
+      "body": "The model did not find a cough in this recording, so no estimate was made. Record a clear, deliberate cough in a quiet place and submit again.",
+      "recordAgain": "Record again"
     }
   },
   "clinical": {

@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { IconChevronLeft, IconChevronRight, IconRefresh } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
@@ -91,12 +92,14 @@ export function ReviewScreen() {
   const setSubmitState = useSessionStore((state) => state.setSubmitState);
   const parsedClinical = clinicalSchema.safeParse(clinical);
   const ready = parsedClinical.success && coughRecording !== null;
+  const [coughRejected, setCoughRejected] = useState(false);
 
   const mutation = useMutation({
     mutationFn: () => {
       if (!parsedClinical.success || !coughRecording) {
         throw new Error("Complete the clinical form and cough recording first.");
       }
+      setCoughRejected(false);
       setSubmitState("uploading");
       return triageService.submitTriage(
         { clinical: parsedClinical.data, cough: coughRecording.file },
@@ -106,6 +109,11 @@ export function ReviewScreen() {
       );
     },
     onSuccess: (result) => {
+      if (result.quality[0]?.quality === "retryable") {
+        setCoughRejected(true);
+        setSubmitState("retryable_error");
+        return;
+      }
       setResult(result);
       setSubmitState("success");
       router.push("/result");
@@ -185,6 +193,22 @@ export function ReviewScreen() {
           )}
         </section>
       </div>
+
+      {coughRejected && (
+        <Alert variant="warning">
+          <AlertTitle>{t("review.noCough.title")}</AlertTitle>
+          <AlertDescription>
+            <p>{t("review.noCough.body")}</p>
+            {/* no-underline: AlertDescription styles bare links; this link is a Button. */}
+            <Button asChild size="sm" variant="return" className="mt-2.5 min-h-11 no-underline!">
+              <Link href="/coughs">
+                <IconRefresh data-icon="inline-start" aria-hidden="true" />
+                {t("review.noCough.recordAgain")}
+              </Link>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {mutation.isError && (
         <Alert variant={modelUnavailable ? "warning" : "destructive"}>

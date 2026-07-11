@@ -3,6 +3,7 @@ package triage
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"strings"
 
 	"jaga/backend/go/internal/audioPreprocess"
@@ -105,10 +106,10 @@ func (s *Service) guidance(quality QualityAttempt, estimate *Estimate, clinical 
 		payload, _ := json.Marshal(signals)
 		ctx := context.Background()
 		reply, err := s.llmClient.Complete(ctx, llm.OrchestratorPrompt, []llm.Message{{Role: "user", Content: string(payload)}}, 0.2)
-		if err == nil {
-			if text := strings.TrimSpace(reply); text != "" {
-				return text
-			}
+		if err != nil {
+			log.Printf("triage: gemma guidance failed, using deterministic copy: %v", err)
+		} else if text := strings.TrimSpace(reply); text != "" {
+			return text
 		}
 	}
 	return fallbackGuidance(quality, estimate)
