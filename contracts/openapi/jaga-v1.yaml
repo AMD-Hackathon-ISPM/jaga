@@ -61,7 +61,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required: [contract_version, schema_version, clinical, coughs]
+              required: [contract_version, schema_version, clinical, cough]
               properties:
                 contract_version:
                   const: triage-v1
@@ -71,17 +71,14 @@ paths:
                   type: string
                   format: binary
                   description: application/json file containing PatientIntake
-                coughs:
-                  type: array
-                  minItems: 5
-                  maxItems: 5
-                  items:
-                    type: string
-                    format: binary
+                cough:
+                  type: string
+                  format: binary
+                  description: audio/webm file containing the single guided cough recording (up to 90 seconds)
             encoding:
               clinical:
                 contentType: application/json
-              coughs:
+              cough:
                 contentType: audio/webm
       responses:
         "200":
@@ -285,8 +282,8 @@ components:
           const: clinical-v1
         quality:
           type: array
-          minItems: 5
-          maxItems: 5
+          minItems: 1
+          maxItems: 1
           items:
             type: object
             required: [index, quality]
@@ -294,7 +291,7 @@ components:
               index:
                 type: integer
                 minimum: 1
-                maximum: 5
+                maximum: 1
               quality:
                 enum: [accepted, retryable, system_error]
               reason_code:
@@ -430,6 +427,6 @@ components:
               index:
                 type: integer
                 minimum: 1
-                maximum: 5
+                maximum: 1
               reason_code:
                 type: string
