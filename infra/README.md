@@ -6,8 +6,10 @@ This directory contains the Docker Swarm deployment layout for JAGA.
 
 - `nginx` is the public entrypoint
 - `web` serves the Next.js frontend behind NGINX
-- `go-api` handles auth, intake, uploads, orchestration, and future Featherless/OpenAI-compatible calls
-- `prisma-worker` handles internal inference workloads only
+- `go-api` handles validation, audio preprocessing, triage orchestration, the Gemma assistant, and Fireworks/Featherless calls
+- `yamnet` is the Rust cough-detection gate (YAMNet via ONNX Runtime, port 8081)
+- `xgboost` is the Rust TB-probability service (XGBoost ONNX + Fireworks WavLM embedding, port 8082)
+- `prisma-worker` handles digital-CXR inference (DenseNet121 + quantum-kernel results)
 - `cognee` provides local semantic memory
 - `redis` backs the inference queue and background jobs
 - `postgres` stores operational data
@@ -26,15 +28,9 @@ All services communicate over the `jaga-network` overlay network using service n
 
 ## Prerequisites
 
-- Docker Engine with Swarm enabled
-- Linux nodes for the stack
-- Built and pushed images for:
-- `GO_API_IMAGE`
-- `PRISMA_WORKER_IMAGE`
-- `WEB_IMAGE`
-- A worker image that exposes `GET /health` on `PRISMA_WORKER_PORT`
-- Application images should include `wget` or an equivalent HTTP probe utility for the in-container health checks
-- If GPU inference is enabled, a Swarm node with NVIDIA drivers and the NVIDIA container runtime stack installed
+- Docker with Swarm available (Docker Desktop on macOS/Windows, Docker Engine on Linux); `deploy.sh` / `deploy.ps1` run `docker swarm init` for you
+- All images build locally via `scripts/build.sh` (POSIX shell) or `scripts/build.ps1` (PowerShell) — a registry is only needed for multi-node Swarm
+- Application images include `wget` or an equivalent HTTP probe utility for the in-container health checks
 - Enough local disk for Cognee local state and Fastembed model cache on first use
 
 ## Environment
@@ -46,7 +42,8 @@ Important values:
 - `GO_API_IMAGE` must point to the published Go backend image
 - `PRISMA_WORKER_IMAGE` must point to the published Prisma worker image
 - `WEB_IMAGE` must point to the published Next.js frontend image
-- `FEATHERLESS_URL` should use the Featherless OpenAI-compatible endpoint base
+- `FIREWORKS_API_KEY` (plus the `FIREWORKS_CHAT_*` / `FIREWORKS_EMBEDDING_*` endpoints) powers triage embeddings and the Gemma assistant — required for the core flow
+- `FEATHERLESS_URL` should use the Featherless OpenAI-compatible endpoint base (Cognee generation)
 - `MODEL_PATH` is mounted into the worker through the `model_cache` volume
 - `COGNEE_ENABLED=true` uses the local in-stack Cognee service by default
 - `COGNEE_LLM_*` default to Featherless for generation
@@ -81,6 +78,10 @@ The default `.env.example` tags everything as local images:
 - `jaga/redis:local`
 - `jaga/minio:local`
 - `jaga/cognee:local`
+- `jaga/yamnet:local`
+- `jaga/xgboost:local`
+
+The two Rust model services build from a shared Dockerfile (`backend/modelServerandTraining/GemmaServer/rust/Dockerfile`) with a `SERVICE` build arg; `build.sh` / `build.ps1` handle this. The ONNX model files they copy are committed in `backend/modelServerandTraining/GemmaServer/models/`, so no extra download is needed.
 
 For a multi-node Swarm, replace those tags with registry-backed image references and push them before deploy.
 
@@ -180,6 +181,8 @@ Built-in service health checks:
 - `web`: `GET /`
 - `go-api`: `GET /health`
 - `cognee`: `GET /health`
+- `yamnet`: `GET /health` (port 8081)
+- `xgboost`: `GET /health` (port 8082)
 - `prisma-worker`: `GET /health`
 - `redis`: `PING`
 - `postgres`: `pg_isready`

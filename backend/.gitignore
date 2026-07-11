@@ -21,3 +21,10 @@
 /modelServerandTraining/GemmaTraining/dataPrep/data/*
 /modelServerandTraining/GemmaServer/models/*
 /modelServerandTraining/GemmaServer/*rar
+
+# Serving weights are committed so a fresh clone runs end-to-end (all files < 100 MB).
+!/modelServerandTraining/GemmaServer/models/
+!/modelServerandTraining/GemmaServer/models/**
+/modelServerandTraining/GemmaServer/models/yamnet/1.tflite
+!/modelServerandTraining/PrismaServer/app/models/local_clahe/checkpoints/best.pt
+.DS_Store

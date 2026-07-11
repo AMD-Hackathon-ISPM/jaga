@@ -11,15 +11,15 @@ The Next.js PWA capture/result client for **Jaga**, an investigational TB *triag
 - **Fixture and live adapters.** `NEXT_PUBLIC_API_MODE=fixture|live` selects deterministic synthetic responses or the configured Go gateway. Production rejects fixture mode.
 - **Backend handoff.** [`../contracts/openapi/jaga-v1.yaml`](../contracts/openapi/jaga-v1.yaml) pins the frontend integration proposal for status, intake, Gema, Prisma, assistant, and structured errors; backend owner sign-off remains required.
 - **No backend or infra changes.** Provider credentials and model calls remain server-side.
-- **Transient patient data.** Clinical values, five WebM cough files, the CXR image, chat, and results remain in memory only.
+- **Transient patient data.** Clinical values, the WebM cough recording, the CXR image, chat, and results remain in memory only.
 - Dependencies installed and the dev server compiles. Run the commands below to start it.
 
 ## How this maps to the existing backend
 
 | Backend reality | Frontend consequence |
 |---|---|
-| Go API, live `POST /api/v1/patient/intake` with exact field validation | `types/patient.ts` mirrors `models/patient.go`; `features/clinical/clinical-schema.ts` (Zod) mirrors `validation/patient.go` bounds |
-| Triage/CXR contracts awaiting backend sign-off (`ARCH-1`) | Zod schemas, synthetic fixtures, OpenAPI, and fixture/live adapters expose the exact proposed handoff without modifying the backend |
+| Go API validates clinical/demographic fields (`POST /api/v1/demographics`) | `types/patient.ts` mirrors the Go models; `features/clinical/clinical-schema.ts` (Zod) mirrors the Go validation bounds |
+| Live triage, CXR, and assistant endpoints (`/api/v1/triage`, `/api/v1/cxr`, `/api/v1/assistant/messages`) | Zod schemas, synthetic fixtures, OpenAPI, and fixture/live adapters expose the same handoff; fixture mode still works offline |
 | Single-session, in-memory, no accounts | Zustand session store with **no `persist`** (never localStorage/IndexedDB); auth is placeholder scaffolding only |
 | Two co-equal, never-fused signals (Gema, Prisma) | Separate routes, stores, services, results, and request contracts |
 | Fireworks/Featherless OpenAI-compatible model | Browser calls only `/api/v1/assistant/messages`; provider base URL, key, model, system prompt, and safety enforcement belong in Go |
