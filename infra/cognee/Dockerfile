@@ -1,3 +1,4 @@
 FROM cognee/cognee:main
 
-RUN pip install --no-cache-dir fastembed
+RUN /app/.venv/bin/python -m ensurepip \
+    && /app/.venv/bin/python -m pip install --no-cache-dir fastembed
