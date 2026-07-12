@@ -44,6 +44,8 @@ class MockMediaRecorder {
   }
 }
 
+// No decodeAudioData: WAV conversion fails in these tests, so captures take
+// the WebM fallback path. The success path is covered by its own test below.
 class MockAudioContext {
   createMediaStreamSource() {
     return { connect: () => {} };
@@ -199,6 +201,66 @@ describe("useCoughRecorder", () => {
     });
 
     expect(onCaptured).not.toHaveBeenCalled();
+  });
+
+  it("captures a 16 kHz mono WAV file when the browser can decode the take", async () => {
+    const rendered = {
+      sampleRate: 16_000,
+      duration: 1,
+      getChannelData: () => new Float32Array(16_000),
+    };
+    vi.stubGlobal(
+      "AudioContext",
+      class extends MockAudioContext {
+        decodeAudioData = async () => rendered;
+      },
+    );
+    vi.stubGlobal(
+      "OfflineAudioContext",
+      class {
+        destination = {};
+        createBufferSource = () => ({ buffer: null, connect: () => {}, start: () => {} });
+        startRendering = async () => rendered;
+      },
+    );
+
+    const onCaptured = vi.fn();
+    const { result } = renderHook(() => useCoughRecorder(onCaptured));
+
+    await act(async () => {
+      await result.current.start();
+    });
+    await act(async () => {
+      result.current.stop();
+      vi.advanceTimersByTime(1); // flush the recorder's async onstop (macrotask)
+    });
+
+    expect(onCaptured).toHaveBeenCalledTimes(1);
+    const rec = onCaptured.mock.calls[0][0] as CoughRecording;
+    expect(rec.file.type).toBe("audio/wav");
+    expect(rec.file.name).toMatch(/^cough-\d+\.wav$/);
+    expect(rec.file.size).toBe(44 + 16_000 * 2);
+  });
+
+  it("falls back to the original WebM file when WAV conversion fails", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const onCaptured = vi.fn();
+    const { result } = renderHook(() => useCoughRecorder(onCaptured));
+
+    await act(async () => {
+      await result.current.start();
+    });
+    await act(async () => {
+      result.current.stop();
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(onCaptured).toHaveBeenCalledTimes(1);
+    const rec = onCaptured.mock.calls[0][0] as CoughRecording;
+    expect(rec.file.type).toBe("audio/webm;codecs=opus");
+    expect(rec.file.name).toMatch(/^cough-\d+\.webm$/);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("discards the take when the microphone track ends", async () => {

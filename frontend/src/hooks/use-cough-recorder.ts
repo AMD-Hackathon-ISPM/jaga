@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CoughRecording } from "@/store/session.store";
+import { convertToWavFile } from "@/lib/audio-wav";
 
 export type RecorderState = "idle" | "requesting" | "recording" | "denied" | "error";
 
@@ -157,17 +158,24 @@ export function useCoughRecorder(onCaptured: (rec: CoughRecording) => void) {
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) chunks.push(event.data);
       };
-      recorder.onstop = () => {
+      recorder.onstop = async () => {
         if (take.discarded) return;
         const blob = new Blob(chunks, { type: mimeType });
         if (blob.size === 0) return;
-        onCapturedRef.current({
-          file: new File([blob], `cough-${Date.now()}.webm`, {
+        // The backend only decodes WAV — convert client-side before upload,
+        // falling back to the raw WebM take if conversion fails.
+        let file: File;
+        try {
+          file = await convertToWavFile(blob);
+        } catch (err) {
+          console.warn("cough-recorder: WAV conversion failed, uploading original WebM", err);
+          file = new File([blob], `cough-${Date.now()}.webm`, {
             type: mimeType,
             lastModified: Date.now(),
-          }),
-          durationMs: take.durationMs,
-        });
+          });
+        }
+        if (take.discarded) return; // discarded while converting
+        onCapturedRef.current({ file, durationMs: take.durationMs });
       };
       recorderRef.current = recorder;
       takeRef.current = take;

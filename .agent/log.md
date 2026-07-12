@@ -6,6 +6,7 @@
 **Updated:** 2026-07-12
 
 - 2026-07-12 — **Replaced the illustrative client loudness count with YAMNet cough-episode output.** YAMNet now returns approximate episode windows and a derived count; the Go gateway validates the count, exposes `detected_coughs`, and renders Daffa's spectrogram with the strongest episode highlighted when processed audio is available. The recording and review screens no longer show a cough count, and the result page retired its local focus figure in favor of the model count plus optional non-causal spectrogram.
+- 2026-07-12 — **Fixed silent cough-analysis failure on browser recordings.** The frontend now converts MediaRecorder WebM/Opus takes to 16 kHz mono 16-bit PCM WAV client-side (`frontend/src/lib/audio-wav.ts`) before upload, falling back to the raw WebM if decoding fails; the Go triage service logs errors from WAV decode, cough detection, and TB prediction instead of silently returning `system_error`/`cough_service_unavailable`.
 **Canonical for:** Chronology of significant documentation and product decisions
 **Companion documents:** [`context-dump.md`](context-dump.md), [`../AGENT.md`](../AGENT.md)
 

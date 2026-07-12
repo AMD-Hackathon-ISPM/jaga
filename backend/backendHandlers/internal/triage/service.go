@@ -59,6 +59,7 @@ func (s *Service) Orchestrate(ctx context.Context, wav []byte, clinical Clinical
 
 	cough, err := s.models.detectCough(ctx, processed)
 	if err != nil {
+		log.Printf("triage: cough detection failed: %v", err)
 		return s.finish(result, systemError("cough_service_unavailable"), nil, clinical, nil, nil)
 	}
 
@@ -69,6 +70,7 @@ func (s *Service) Orchestrate(ctx context.Context, wav []byte, clinical Clinical
 
 	tb, err := s.models.predictTB(ctx, processed, demographicsOf(clinical))
 	if err != nil {
+		log.Printf("triage: tb prediction failed: %v", err)
 		return s.finish(result, systemError("acoustic_model_unavailable"), nil, clinical, &cough, nil)
 	}
 	addCoughEvidence(&result, cough, processedAudio, decoded, spectrogram.Render)
@@ -137,6 +139,7 @@ func systemError(reason string) QualityAttempt {
 func preprocessAudio(wav []byte) (audioPreprocess.Audio, []byte, bool) {
 	audio, err := audioPreprocess.DecodeWAV(wav)
 	if err != nil {
+		log.Printf("triage: audio is not decodable WAV, forwarding as-is: %v", err)
 		return audioPreprocess.Audio{}, wav, false // forward as-is; the model services will surface a decode error
 	}
 	processed := audioPreprocess.Process(audio, audioPreprocess.DefaultOptions())
