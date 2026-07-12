@@ -26,8 +26,9 @@
 !/modelServerandTraining/GemmaServer/models/
 !/modelServerandTraining/GemmaServer/models/**
 /modelServerandTraining/GemmaServer/models/yamnet/1.tflite
-# WavLM int8 embedder is ~355 MB (exceeds GitHub's 100 MB limit) — generate it with
-# quantizenigga/quantize.py or fetch out-of-band; the .gitkeep keeps the dir tracked.
+# WavLM int8 embedder is ~355 MB (exceeds GitHub's 100 MB limit) — download it from
+# Google Drive (see README "Running locally" / the wavlm/.gitkeep note) or regenerate
+# it with the ONNX Runtime dynamic-int8 quantization script; .gitkeep keeps dir tracked.
 /modelServerandTraining/GemmaServer/models/wavlm/*.onnx
 !/modelServerandTraining/PrismaServer/app/models/local_clahe/checkpoints/best.pt
 .DS_Store

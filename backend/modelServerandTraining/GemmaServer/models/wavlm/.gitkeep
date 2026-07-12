@@ -1,3 +1,6 @@
 # Keeps this dir tracked. The 356MB wavlm_large_int8.onnx is gitignored (>100MB,
-# GitHub limit) — generate it with quantizenigga/quantize.py or fetch it out-of-band.
-# If absent, the xgboost service falls back to the Fireworks embedding API.
+# GitHub limit). It is the sole, on-device embedder and is REQUIRED for the Gema
+# triage path — download it here as wavlm_large_int8.onnx (see README "Running
+# locally"):
+#   https://drive.google.com/file/d/1O4uoKIUKnGPzNopkYlcqvO08TeS71-_h/view?usp=sharing
+#   gdown 1O4uoKIUKnGPzNopkYlcqvO08TeS71-_h -O wavlm_large_int8.onnx

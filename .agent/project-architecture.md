@@ -3,7 +3,7 @@
 **Document type:** Project architecture
 **Audience:** Backend, frontend, ML, platform, QA, and technical reviewers
 **Status:** Active · core pipeline built and integrated; remaining owner blocks are genuine gaps, not the whole system
-**Updated:** 2026-07-12
+**Updated:** 2026-07-13
 **Canonical for:** System boundaries, planned runtime components, shared interfaces, privacy, security, observability, deployment, and technical ownership
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
@@ -62,10 +62,10 @@ The MVP has no user account, patient database, case history, queue, background j
 
 ### 3.2 Signed frontend architecture (Billy, 2026-06-28)
 
-- **Libraries:** Next.js (App Router) PWA + React; **Tailwind CSS 4** through `@tailwindcss/postcss`, retaining `tailwind.config.ts` through the `@config` bridge; **shadcn/ui** Radix/Nova preset `b85jYWWKi8` for the five routed surfaces and shared layout. Shadcn semantic variables map to the signed §4 Jaga tokens rather than replacing them. The theme is light-only with no `ThemeProvider`; dark selectors remain class-gated and inactive. No global state library — the step machine is local React state / `useReducer`, all in memory. Audio uses the **Web Audio API + `<canvas>`** for the recorder/waveform (no audio dependency). Motion is CSS-first (transform/opacity); add a small motion library only if a specific transition needs it.
+- **Libraries:** Next.js (App Router) PWA + React; **Tailwind CSS 4** through `@tailwindcss/postcss`, retaining `tailwind.config.ts` through the `@config` bridge; **shadcn/ui** Radix/Nova preset `b85jYWWKi8` for the five routed surfaces and shared layout. Shadcn semantic variables map to the signed §4 Jaga tokens rather than replacing them. The theme is light-only with no `ThemeProvider`; dark selectors remain class-gated and inactive. No global state library — the step machine is local React state / `useReducer`, all in memory. *(As-built correction, 2026-07-13: the shipped frontend does use a small global store — Zustand, `frontend/src/store/session.store.ts` `useSessionStore` — for session state; see the in-memory model bullet below. The in-memory guarantee is unchanged.)* Audio uses the **Web Audio API + `<canvas>`** for the recorder/waveform (no audio dependency). Motion is CSS-first (transform/opacity); add a small motion library only if a specific transition needs it.
 - **Route / screen map and state machine:** defined once in [`design-guidelines.md`](design-guidelines.md) §3 (gate → clinical → coughs → review → processing → result → limitations, with reset/error). Not duplicated here.
 - **API state/error mapping:** `design-guidelines.md` §3.3; exact codes pin on Daffa's `ARCH-1` contract (§6).
-- **In-memory form/audio model:** clinical values + five decoded cough buffers + result + request-id held in React state only; cleared on reset, success acknowledgement, or session timeout (PRD-08). No `localStorage`/`IndexedDB`/service-worker cache/analytics may contain them.
+- **In-memory form/audio model:** clinical values + five decoded cough buffers + result + request-id held in React state only; cleared on reset, success acknowledgement, or session timeout (PRD-08). No `localStorage`/`IndexedDB`/service-worker cache/analytics may contain them. *(As-built, 2026-07-13: this state lives in the memory-only Zustand `useSessionStore` — clinical values, the single cough recording `File`, result, and request-id; no `persist` middleware, cleared on `reset()`. Grep confirms no localStorage/IndexedDB/sessionStorage/service-worker persistence of patient data, so the privacy guarantee in this bullet still holds.)*
 - **Accessibility & responsive:** `design-guidelines.md` §5–§9 (320 px floor, AA contrast evidence, reduced-motion, text alternatives).
 - **Planned folder structure** (under the `frontend/` of §11):
 
@@ -101,7 +101,7 @@ Billy owns frontend architecture, UX, accessibility, and review. Kei implements 
 >
 > **Blocks:** `ARCH-1`, `BE-0` through `BE-4`, and all frontend/backend integration
 >
-> **Status:** the backend runtime, module boundaries, and API schemas were built rather than formally signed off first — see §16.1 for the resulting divergence. **Still genuinely open:** request size/timeout/concurrency limits, warm-up behavior, and version negotiation are not documented anywhere in code; the multipart upload cap is a single `32 << 20` (32 MiB) constant in `triage/handler.go` with no equivalent documented for `/api/v1/cxr` or `/api/v1/audio/preprocess`.
+> **Status:** the backend runtime, module boundaries, and API schemas were built rather than formally signed off first — see §16.1 for the resulting divergence. **Still genuinely open:** request size/timeout/concurrency limits, warm-up behavior, and version negotiation are not documented anywhere in code; the multipart upload cap is a single `32 << 20` (32 MiB) constant in `triage/handler.go` with no equivalent documented for `/api/v1/cxr` or `/api/v1/audio/preprocess`. Re-verified 2026-07-13, with two newly documented facts: the assistant endpoint caps JSON bodies at 64 KiB (`http.MaxBytesReader`), and `cmd/server/main.go` sets server timeouts (ReadHeader 10 s, Read 30 s, Write 30 s, Idle 60 s) — these partially answer the size/timeout ask, but per-endpoint limits remain undocumented for `/api/v1/cxr` and `/api/v1/audio/preprocess`, and no handler validates incoming `contract_version`/`schema_version` (they remain response-only constants `triage-v1`/`clinical-v1`).
 >
 > **Required output (remaining):** document request size/timeout/concurrency limits per endpoint; define model loading/warm-up behavior for the two Rust services; define version-negotiation behavior (there is currently none — `contract_version`/`schema_version` fields exist in the frontend proposal but the Go handlers do not check them)
 >
@@ -146,7 +146,7 @@ The logical pipeline is fixed even though Daffa must select its implementations:
 
 The contract version is carried in every request and response. The Gema inference operation is fixed as `POST /api/v1/triage`; the Prisma (digital-CXR) operation is a **separate** endpoint (`POST /api/v1/cxr`) that returns its own estimate and never merges with the cough result. `contracts/openapi/jaga-v1.yaml` is the machine-readable frontend integration proposal, including `GET /api/v1/status`, patient intake, the two inference operations, scoped assistant messages, and structured errors. The frontend can switch between explicitly synthetic fixtures and these live paths without component changes. Daffa must review and sign the complete backend contract before live deployment.
 
-> **Known contradiction (§16.1):** `contracts/openapi/jaga-v1.yaml` still specifies `coughs: minItems 5, maxItems 5` for `POST /api/v1/triage`. The shipped Go handler (`triage/handler.go`) and the shipped frontend both use exactly one `cough` file, matching the single-recording capture protocol (PRD-03, design-guidelines §3.1). The OpenAPI file is stale and must be updated to a single `cough` field before it is treated as the signed contract.
+> **Resolved contradiction (§16.1, resolved 2026-07-13):** `contracts/openapi/jaga-v1.yaml` previously specified `coughs: minItems 5, maxItems 5` for `POST /api/v1/triage`; it now requires a single binary `cough` field, matching the shipped Go handler (`triage/handler.go`), the shipped frontend, and the single-recording capture protocol (PRD-03, design-guidelines §3.1). One minor staleness remains: the OpenAPI still declares the cough content type as `audio/webm` while the shipped frontend uploads `audio/wav` — see §16.1.
 
 | Operation | Required responsibility |
 |---|---|
@@ -162,7 +162,7 @@ The contract version is carried in every request and response. The Gema inferenc
 >
 > **Status:** `POST /api/v1/triage` is implemented and consumed end to end by the frontend. **Still genuinely open:** the quality-gate reason-code enum in PRD-04 (too quiet / clipped / background noise / no cough / unsupported encoding) is not reflected in the Rust `yamnet` service's response shape — it returns a pass/fail cough-gate signal, not a structured reason code, so `retryable` UI guidance (design-guidelines §3.3) cannot yet map to the PRD's required guidance categories; and the exact HTTP status-code mapping for each failure path is not documented anywhere.
 >
-> **Required output (remaining):** define the quality-gate reason-code enum and wire it from `yamnetService` through `triage/handler.go` to the `gema` result; define the HTTP status mapping for validation, quality-rejection, and system-error responses; reconcile the 5-file vs. 1-file `coughs` field in `contracts/openapi/jaga-v1.yaml` (§16.1)
+> **Required output (remaining):** define the quality-gate reason-code enum and wire it from `yamnetService` through `triage/handler.go` to the `gema` result; define the HTTP status mapping for validation, quality-rejection, and system-error responses. *(The 5-file vs. 1-file `coughs` reconciliation in `contracts/openapi/jaga-v1.yaml` was completed — §16.1, resolved 2026-07-13.)*
 >
 > **Affected documents:** `project-architecture.md`, `product-requirements.md`, `implementation-plan.md`, frontend API mapping in `design-guidelines.md`
 >
@@ -221,7 +221,7 @@ Prohibited telemetry includes audio, clinical values, raw/derived health estimat
 >
 > **Blocks:** `BE-4` and `QA-3`
 >
-> **Status:** still fully open. `backend/backendHandlers` has no metrics/telemetry instrumentation in the repository as of 2026-07-11; the `GET /health` endpoint reports process liveness only, with no readiness signal for the Rust/Prisma dependencies it calls. This is a genuine gap, not a documentation lag.
+> **Status:** still fully open. `backend/backendHandlers` has no metrics/telemetry instrumentation in the repository as of 2026-07-13; the `GET /health` endpoint reports process liveness only, with no readiness signal for the Rust/Prisma dependencies it calls. This is a genuine gap, not a documentation lag.
 >
 > **Required output:** define metric names/labels, safe request-correlation format, alert thresholds, retention, dashboard access, and the smoke-test evidence required before demo; at minimum, add a readiness check that reflects whether `yamnet`, `xgboost`, and the Prisma worker are reachable
 >
@@ -256,28 +256,34 @@ backend/
     └── PrismaTraining/      # Prisma research/training: configs, data, models, training, evaluation,
                              #   retrieval, quantum, scripts, utils (controlled-access data ignored)
 infra/                       # Docker Swarm deployment plane
-├── docker-stack.yml         # nginx, go-api, prisma-worker, postgres, redis, minio, cognee
-├── nginx/ postgres/ redis/ minio/ cognee/
-├── healthcheck/             # api / prisma / cognee probes
+├── docker-stack.yml         # nginx, web (frontend), go-api, prisma-worker, yamnet, xgboost,
+│                            #   redis, postgres, minio (cognee removed — §16.3; verified 2026-07-13)
+├── nginx/ postgres/ redis/ minio/
+├── healthcheck/             # api / prisma probes
 └── scripts/                 # build, deploy, logs, scale, remove (sh + ps1)
+                             # .env.example adds LLM_PROVIDER, FEATHERLESS_*, WAVLM_MODEL_PATH,
+                             #   LOCAL_EMBED_TIMEOUT_SECS, and yamnet/xgboost image tags (2026-07-13);
+                             #   the WavLM model is baked into the xgboost image — the model_cache
+                             #   volume remains prisma-worker only
 frontend/                    # PWA capture/result client (Next.js; see §3.2) — renamed from apps/web 2026-06-30
-contracts/openapi/           # jaga-v1.yaml — frontend integration proposal (stale in one field; see §16.1)
+contracts/openapi/           # jaga-v1.yaml — frontend integration proposal (single-cough contract aligned 2026-07-13;
+                             #   minor audio/webm content-type staleness — §16.1; two unshipped proposal endpoints — §16.4)
 components/                  # ClinicalCaptureForm.jsx — provisional reference prototype the frontend primitives were re-skinned from (design §6); kept as the canonical capture pattern, not built/shipped
 design/                      # design tooling: swatch.html (token preview) + contrast.mjs (WCAG ratio verifier, design §4); not application code
 ```
 
-**Endpoints (as-built, verified against `backend/backendHandlers/internal/server/router.go` and `backend/modelServerandTraining/PrismaServer/app/main.py` on 2026-07-11):**
+**Endpoints (as-built, verified against `backend/backendHandlers/internal/server/router.go` and `backend/modelServerandTraining/PrismaServer/app/main.py` on 2026-07-13 — unchanged since 2026-07-11):**
 
 | Service | Method · Path | Status |
 |---|---|---|
 | Go gateway | `GET /health` | Live — process liveness only, no dependency readiness (§9) |
 | Go gateway | `POST /api/v1/demographics` | Live — validation |
 | Go gateway | `POST /api/v1/audio/preprocess` | Live — audio DSP (§15) |
-| Go gateway (Gema orchestrator) | `POST /api/v1/triage` | Live — cough gate + acoustic TB model + Gemma next-step (§15); takes one `cough` file, not five (§16.1) |
+| Go gateway (Gema orchestrator) | `POST /api/v1/triage` | Live — cough gate + acoustic TB model + Gemma next-step (§15); takes one `cough` file, matching the now-aligned OpenAPI contract (§16.1, resolved) |
 | Go gateway (assistant) | `POST /api/v1/assistant/messages` | Live — Gemma guidance chat (§15) |
 | Go gateway → Prisma | `POST /api/v1/cxr` | Live — proxied to Prisma worker (§15) |
 | Prisma worker (direct, Python/FastAPI) | `GET /health`, `GET /api/v1/status`, `POST /api/v1/cxr`, `GET /api/v1/quantum` | Live — DenseNet121 CLAHE + quantum highlight (§15) |
-| Go gateway | `POST /api/v1/patient/intake`, `GET /healthz`, `GET /api/v1/status`, `GET /v1/status`, `GET /internal/health/cognee` | **Not present** in `router.go` as of 2026-07-11 — earlier revisions of this document described these as live; they were either superseded by the endpoints above or never carried forward into `backendHandlers`. Do not rely on them without re-verifying. |
+| Go gateway | `POST /api/v1/patient/intake`, `GET /healthz`, `GET /api/v1/status`, `GET /v1/status`, `GET /internal/health/cognee` | **Not present** in `router.go` as of 2026-07-13 — earlier revisions of this document described these as live; they were either superseded by the endpoints above or never carried forward into `backendHandlers`. Do not rely on them without re-verifying. |
 
 > Tests (`tests/contract/`, `tests/integration/`, `tests/privacy/` per the planned schema/integration/privacy split) are not scaffolded as of 2026-07-11; the frontend has its own `e2e/` Playwright suite and `src/test/` unit tests instead.
 
@@ -368,7 +374,7 @@ Docker Swarm with NGINX reverse proxy, replicated `go-api` tasks, and an interna
 
 YAMNet's detection response also includes `coughEvents` (`startSec`, `endSec`, `peakScore`) and `coughEventCount`, derived by grouping consecutive model windows at the existing gate threshold. Timing is approximate because the model windows overlap, and event ends are clamped to the decoded recording duration. After accepted YAMNet and XGBoost inference, the gateway trusts `len(coughEvents)`, exposes it as GemaResult `detected_coughs`, and renders the spectrogram with the strongest event highlighted when processed audio is available. Spectrogram failure does not discard the count.
 
-> **Status:** Implemented and current as of 2026-07-11 (paths verified against `backend/backendHandlers` and `backend/modelServerandTraining`). Records the acoustic-triage pipeline, the Gemma
+> **Status:** Implemented and current as of 2026-07-13 (paths verified against `backend/backendHandlers` and `backend/modelServerandTraining`). Records the acoustic-triage pipeline, the Gemma
 > orchestrator/assistant, the Rust model services, and the Prisma CXR + quantum
 > path. Behavior reconciles to the signed §4–§6 contracts:
 > signals stay separate, estimates come from calibrated models (never the LLM),
@@ -389,7 +395,8 @@ Frontend ──► NGINX ──► Go API (gateway, backend/backendHandlers)
         ▼                                             ▼
   yamnet (Rust, :8081)                        xgboost (Rust, :8082)
   YAMNet ONNX cough gate                      demo preprocessor (in-Rust) + XGBoost ONNX
-  class 42 "Cough", frame-sliding             WavLM embedding via Fireworks → 1024
+  class 42 "Cough", frame-sliding             local WavLM int8 ONNX → 1024
+                                              (falls back to Fireworks — §15.5)
                                               + 12 demographic features → 1036 → TB prob
 ```
 
@@ -403,13 +410,21 @@ Frontend ──► NGINX ──► Go API (gateway, backend/backendHandlers)
 ### 15.2 Gema orchestrator (Go + Gemma)
 
 `POST /api/v1/triage` (`cough` WAV + `clinical` JSON) runs: audio preprocessing →
-YAMNet cough gate → XGBoost TB probability → Gemma next-step. Gemma (Fireworks
-chat) acts purely as an **orchestrator/summarizer**: it writes the
+YAMNet cough gate → XGBoost TB probability → Gemma next-step. Gemma — served via
+the configured LLM provider (`LLM_PROVIDER`: Fireworks default, Featherless
+supported; see §15.3) — acts purely as an **orchestrator/summarizer**: it writes the
 `mandatory_next_step` guidance and never invents or restates a probability — the
 numeric estimate is the calibrated XGBoost output. No usable cough ⇒ `retryable`
 with no estimate; any upstream failure ⇒ `system_error`; both fall back to
 deterministic copy so the endpoint always returns a valid `gema` result. The
 orchestrator omniprompt lives at `internal/llm/prompts/orchestrator.md`.
+
+*(Audio format, as-built 2026-07-13: the frontend records WebM — MediaRecorder/Opus —
+and converts it client-side to 16 kHz mono 16-bit PCM WAV
+(`frontend/src/lib/audio-wav.ts`) before uploading it as the single `cough` file,
+falling back to sending the raw WebM only if conversion throws. The Go gateway
+decodes WAV via `audioPreprocess.DecodeWAV`; if decode fails it forwards the bytes
+undecoded (`decoded=false`) and lets the model services surface the error.)*
 
 ### 15.3 Guidance assistant (Go + Gemma)
 
@@ -417,6 +432,18 @@ orchestrator omniprompt lives at `internal/llm/prompts/orchestrator.md`.
 assistant omniprompt (`internal/llm/prompts/assistant.md`) constrains it to
 explaining the process and general TB facts; any request to diagnose, interpret
 an individual result, or advise treatment returns a `safety_redirect`.
+
+*(LLM provider, as-built 2026-07-13: `internal/llm/client.go` `ConfigFromEnv`
+reads `LLM_PROVIDER` — default `"fireworks"`; `"featherless"` selects Featherless
+(base `https://api.featherless.ai/v1`, env
+`FEATHERLESS_URL`/`FEATHERLESS_CHAT_URL`/`FEATHERLESS_CHAT_MODEL`/`FEATHERLESS_API_KEY`).
+Both providers serve Gemma; the Gemma chat template is applied locally and requests
+hit the completions endpoint. This is a startup-time provider switch, not an
+automatic runtime fallback. The assistant response echoes the active provider
+(`assistant/handler.go`); one stale string remains — the 503 misconfiguration
+message still names `FIREWORKS_API_KEY` even under Featherless. `parseReply` is
+robust to preambles/code fences: it extracts the outermost `{...}` and falls back
+to fence-stripped plain text as `answer`.)*
 
 ### 15.4 Prisma CXR (Python) + **quantum highlight**
 
@@ -430,38 +457,51 @@ that is surfaced as a first-class result, not buried in research:
 
 - `GET /api/v1/quantum` returns the quantum evaluation, and every `/api/v1/cxr`
   response embeds a `quantum` block.
-- Method: PCA-reduce the DenseNet embeddings to 4 dimensions (98.9% variance
-  retained) and classify with a **Quantum Kernel SVM** on **PennyLane
+- Method: PCA-reduce the DenseNet embeddings to 4 dimensions (≈99.6% total
+  variance retained; 98.9% in the first component) and classify with a
+  **Quantum Kernel SVM** on **PennyLane
   `lightning.qubit`, 4 qubits**, benchmarked against a classical RBF-SVM baseline.
 - Result: the quantum-kernel SVM reaches **98.3% accuracy / 1.00 ROC-AUC** on the
   held-out split, matching the classical kernel — evidence that the learned CXR
   embedding is quantum-kernel-separable.
 
-### 15.5 WavLM embedding (Rust → Fireworks)
+### 15.5 WavLM embedding (Rust, local-first with Fireworks fallback)
 
-The xgboost service obtains the 1024-dim audio embedding from the Fireworks WavLM
-deployment (`/inference/v1/embeddings`, WAV base64 in `input`), then appends the
-12 demographic features (a pure-Rust reimplementation of the ONNX preprocessor,
-verified against it) before the XGBoost tree ensemble. Demographics are validated
-by calling back into the Go API, so validation rules live in one place.
+*(Updated 2026-07-13; local-first behavior landed in commit 0444c8e, 2026-07-12.)*
+The xgboost service obtains the 1024-dim audio embedding **locally first**: it
+loads an int8 ONNX WavLM (`WAVLM_MODEL_PATH`, default
+`../models/wavlm/wavlm_large_int8.onnx`; at `/app/models/wavlm/` in the Docker
+image — the shared `rust/Dockerfile` now does `COPY models/wavlm ./models/wavlm`,
+so the model is baked into the xgboost image). The 356 MB model file is
+gitignored — only `.gitkeep` is committed — and must be fetched/exported
+out-of-band. Embedding flow: decode WAV to mono 16 kHz → zero-mean/unit-variance
+normalize → ONNX `input_values` → mean-pool `last_hidden_state` → 1024-dim,
+bounded by `LOCAL_EMBED_TIMEOUT_SECS` (default 15). On any failure (model
+missing, decode/embed error, timeout, wrong dims) it falls back to the Fireworks
+WavLM deployment (`/inference/v1/embeddings`, WAV base64 in `input`, model
+`accounts/ezzeddinpratama04/deployments/txvxdq5w`); the predict response reports
+which path ran via `embedding_source`: `"local-wavlm-int8"` or `"fireworks"`.
+
+Unchanged and re-verified 2026-07-13: the service then appends the 12 demographic
+features (a pure-Rust reimplementation of the ONNX preprocessor, verified against
+it) for the 1036-dim XGBoost input, and demographics are validated by calling
+back into the Go API, so validation rules live in one place.
 
 ---
 
-## 16. Reconciliation and open contradictions (2026-07-11)
+## 16. Reconciliation and open contradictions (2026-07-11, re-verified 2026-07-13)
 
-> **Status:** Written from direct inspection of the current repository (not from a status report) on submission day. Use this section as the authoritative list of where the rest of this document — and the shared OpenAPI contract — has drifted from the code, so nobody re-discovers the same gap mid-demo.
+> **Status:** Written from direct inspection of the current repository (not from a status report) on submission day; re-verified against the repository (commits through 3baaf36) on 2026-07-13. Use this section as the authoritative list of where the rest of this document — and the shared OpenAPI contract — has drifted from the code, so nobody re-discovers the same gap mid-demo. Resolved items are updated in place with a dated resolution note, not deleted.
 
-### 16.1 CONTRADICTION — cough file count in the shared contract
+### 16.1 RESOLVED — cough file count in the shared contract (resolved 2026-07-13)
 
-> **CONTRADICTION — BLOCKS a machine-validated contract, does not block the running demo**
+> **RESOLVED 2026-07-13** — *(originally: CONTRADICTION — blocked a machine-validated contract, did not block the running demo)*
 >
-> **Conflict:** `contracts/openapi/jaga-v1.yaml` requires `coughs: minItems 5, maxItems 5` for `POST /api/v1/triage`. The shipped Go handler (`backend/backendHandlers/internal/triage/handler.go`) reads exactly one multipart field named `cough` (singular). The shipped frontend (`design-guidelines.md` §3.1, log 2026-07-10 "Pass D") sends exactly one WebM recording. All three of PRD-03, the frontend, and the Go handler agree with each other; only the OpenAPI file disagrees.
+> **Original conflict:** `contracts/openapi/jaga-v1.yaml` required `coughs: minItems 5, maxItems 5` for `POST /api/v1/triage`, while the shipped Go handler (`backend/backendHandlers/internal/triage/handler.go`) and the shipped frontend both used exactly one `cough` recording, matching PRD-03's single-recording protocol.
 >
-> **Canonical documents affected:** `contracts/openapi/jaga-v1.yaml` (needs the code change), `project-architecture.md` §6/§11 (documented here)
+> **Resolution (per the original resolution rule — the OpenAPI file changed, not the code):** verified against the repo 2026-07-13, `jaga-v1.yaml` now requires a single binary `cough` field (`required: [contract_version, schema_version, clinical, cough]`, yaml lines 64, 74–77), the `quality` array is minItems/maxItems 1, and `GemaResult` gained `detected_coughs` (integer, min 0).
 >
-> **Owner / due:** Zeddin, before submission if the OpenAPI file is used for anything beyond internal reference; not a blocker for the live demo since the actual runtime path already agrees end to end
->
-> **Resolution rule:** update `coughs` to a single required `cough` binary field in the OpenAPI file; do not change the Go handler or frontend, which already reflect the current product decision (PRD-03)
+> **Residual staleness (minor — owner Zeddin, not a blocker):** the OpenAPI still declares the cough content type as `audio/webm`, while the shipped frontend uploads `audio/wav` (client-side WebM→WAV conversion, §15.2 / `frontend/src/lib/audio-wav.ts`).
 
 ### 16.2 Risk bands are a fixed threshold, not a fitted calibration artifact
 

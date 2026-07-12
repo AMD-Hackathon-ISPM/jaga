@@ -4,9 +4,6 @@ pub struct Config {
     pub wavlmModelPath: String,
     pub localEmbedTimeoutSecs: u64,
     pub goBackendUrl: String,
-    pub fireworksUrl: String,
-    pub fireworksApiKey: String,
-    pub fireworksModel: String,
     pub defaultCountry: String,
 }
 
@@ -21,15 +18,6 @@ impl Config {
             wavlmModelPath: envOr("WAVLM_MODEL_PATH", "../models/wavlm/wavlm_large_int8.onnx"),
             localEmbedTimeoutSecs: envOr("LOCAL_EMBED_TIMEOUT_SECS", "15").parse().unwrap_or(15),
             goBackendUrl: envOr("GO_BACKEND_URL", "http://127.0.0.1:8080"),
-            fireworksUrl: envOr(
-                "FIREWORKS_EMBEDDING_URL",
-                "https://api.fireworks.ai/inference/v1/embeddings",
-            ),
-            fireworksApiKey: envOr("FIREWORKS_API_KEY", ""),
-            fireworksModel: envOr(
-                "FIREWORKS_MODEL",
-                "accounts/ezzeddinpratama04/deployments/txvxdq5w",
-            ),
             defaultCountry: envOr("DEFAULT_COUNTRY", "PH"),
         }
     }
