@@ -65,7 +65,7 @@ func (h Handler) Messages(w http.ResponseWriter, r *http.Request) {
 		RequestID:       ids.New("asst"),
 		Reply:           text,
 		Disposition:     disposition,
-		Provider:        "fireworks",
+		Provider:        h.client.Provider(),
 		Model:           h.client.Model(),
 		ContractVersion: contractVersion,
 	})

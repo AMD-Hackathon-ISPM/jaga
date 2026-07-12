@@ -1,10 +1,3 @@
-// Package llm is a thin client for the Fireworks text-completions API, used both
-// by the triage orchestrator and the guidance assistant (both run Gemma).
-//
-// It targets the /completions endpoint (not /chat/completions) and applies
-// Gemma's chat template itself. The deployed Gemma tokenizer has no chat
-// template, so /chat/completions rejects requests ("default chat template is no
-// longer allowed"); formatting the prompt here avoids that entirely.
 package llm
 
 import (
@@ -20,10 +13,15 @@ import (
 	"time"
 )
 
-const defaultChatURL = "https://api.fireworks.ai/inference/v1/chat/completions"
+const (
+	fireworksChatURL   = "https://api.fireworks.ai/inference/v1/chat/completions"
+	fireworksChatModel = "accounts/ezzeddinpratama04/deployments/od9nvbmy"
+)
 
-// Gemma deployment on Fireworks used for orchestration and chat.
-const defaultChatModel = "accounts/ezzeddinpratama04/deployments/od9nvbmy"
+const (
+	featherlessBaseURL   = "https://api.featherless.ai/v1"
+	featherlessChatModel = "google/gemma-4-31B-it"
+)
 
 // Gemma turn delimiters.
 const (
@@ -37,38 +35,52 @@ type Message struct {
 	Content string `json:"content"`
 }
 
-// Client talks to the Fireworks completions endpoint.
 type Client struct {
 	httpClient *http.Client
+	provider   string
 	apiURL     string
 	apiKey     string
 	model      string
 	maxTokens  int
 }
 
-// Config holds the Fireworks completion settings.
 type Config struct {
+	Provider  string
 	APIURL    string
 	APIKey    string
 	Model     string
 	MaxTokens int
 }
 
-// ConfigFromEnv reads Fireworks settings from the environment.
 func ConfigFromEnv() Config {
+	provider := strings.ToLower(strings.TrimSpace(envOr("LLM_PROVIDER", "fireworks")))
+
+	if provider == "featherless" {
+		base := strings.TrimRight(envOr("FEATHERLESS_URL", featherlessBaseURL), "/")
+		return Config{
+			Provider:  "featherless",
+			APIURL:    envOr("FEATHERLESS_CHAT_URL", base+"/chat/completions"),
+			APIKey:    os.Getenv("FEATHERLESS_API_KEY"),
+			Model:     envOr("FEATHERLESS_CHAT_MODEL", featherlessChatModel),
+			MaxTokens: 2048,
+		}
+	}
+
 	return Config{
-		APIURL:    envOr("FIREWORKS_CHAT_URL", defaultChatURL),
+		Provider:  "fireworks",
+		APIURL:    envOr("FIREWORKS_CHAT_URL", fireworksChatURL),
 		APIKey:    os.Getenv("FIREWORKS_API_KEY"),
-		Model:     envOr("FIREWORKS_CHAT_MODEL", defaultChatModel),
+		Model:     envOr("FIREWORKS_CHAT_MODEL", fireworksChatModel),
 		MaxTokens: 2048,
 	}
 }
 
-// NewClient builds a completion client. It is safe for concurrent use. A
-// /chat/completions URL is rewritten to /completions.
 func NewClient(config Config) *Client {
 	if config.MaxTokens <= 0 {
 		config.MaxTokens = 2048
+	}
+	if config.Provider == "" {
+		config.Provider = "fireworks"
 	}
 	url := config.APIURL
 	if strings.Contains(url, "/chat/completions") {
@@ -76,6 +88,7 @@ func NewClient(config Config) *Client {
 	}
 	return &Client{
 		httpClient: &http.Client{Timeout: 30 * time.Second},
+		provider:   config.Provider,
 		apiURL:     url,
 		apiKey:     config.APIKey,
 		model:      config.Model,
@@ -83,11 +96,13 @@ func NewClient(config Config) *Client {
 	}
 }
 
-// Configured reports whether an API key is present.
 func (c *Client) Configured() bool { return c.apiKey != "" }
 
 // Model returns the configured model id (for response metadata).
 func (c *Client) Model() string { return c.model }
+
+// Provider returns the active provider name (for response metadata).
+func (c *Client) Provider() string { return c.provider }
 
 type completionRequest struct {
 	Model       string   `json:"model"`
@@ -107,11 +122,8 @@ type completionResponse struct {
 	} `json:"error"`
 }
 
-// ErrNotConfigured is returned when no API key is set.
-var ErrNotConfigured = errors.New("llm: FIREWORKS_API_KEY is not set")
+var ErrNotConfigured = errors.New("llm: provider API key is not set")
 
-// Complete formats the system prompt plus conversation as a Gemma prompt, sends
-// it to the completions endpoint, and returns the model's reply.
 func (c *Client) Complete(ctx context.Context, systemPrompt string, messages []Message, temperature float64) (string, error) {
 	if !c.Configured() {
 		return "", ErrNotConfigured
@@ -139,7 +151,7 @@ func (c *Client) Complete(ctx context.Context, systemPrompt string, messages []M
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {
-		return "", fmt.Errorf("llm: calling Fireworks: %w", err)
+		return "", fmt.Errorf("llm: calling %s: %w", c.provider, err)
 	}
 	defer response.Body.Close()
 
@@ -148,7 +160,7 @@ func (c *Client) Complete(ctx context.Context, systemPrompt string, messages []M
 		return "", fmt.Errorf("llm: reading response: %w", err)
 	}
 	if response.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("llm: Fireworks returned %d: %s", response.StatusCode, string(body))
+		return "", fmt.Errorf("llm: %s returned %d: %s", c.provider, response.StatusCode, string(body))
 	}
 
 	var decoded completionResponse
@@ -156,10 +168,10 @@ func (c *Client) Complete(ctx context.Context, systemPrompt string, messages []M
 		return "", fmt.Errorf("llm: decoding response: %w", err)
 	}
 	if decoded.Error != nil {
-		return "", fmt.Errorf("llm: Fireworks error: %s", decoded.Error.Message)
+		return "", fmt.Errorf("llm: %s error: %s", c.provider, decoded.Error.Message)
 	}
 	if len(decoded.Choices) == 0 {
-		return "", errors.New("llm: Fireworks returned no choices")
+		return "", fmt.Errorf("llm: %s returned no choices", c.provider)
 	}
 
 	reply := decoded.Choices[0].Text

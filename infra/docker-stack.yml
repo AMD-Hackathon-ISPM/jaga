@@ -97,10 +97,15 @@ services:
       JAGA_BACKEND_JWT_SECRET: ${JWT_SECRET}
       JAGA_BACKEND_UPLOAD_PATH: ${UPLOAD_PATH}
       JAGA_BACKEND_MODEL_PATH: ${MODEL_PATH}
-      # Gemma (Fireworks chat) drives the triage orchestrator and the chat assistant.
+      # Gemma drives the triage orchestrator and the chat assistant. Switch the
+      # provider with LLM_PROVIDER (fireworks | featherless).
+      LLM_PROVIDER: ${LLM_PROVIDER:-fireworks}
       FIREWORKS_API_KEY: ${FIREWORKS_API_KEY}
       FIREWORKS_CHAT_URL: ${FIREWORKS_CHAT_URL}
       FIREWORKS_CHAT_MODEL: ${FIREWORKS_CHAT_MODEL}
+      FEATHERLESS_URL: ${FEATHERLESS_URL}
+      FEATHERLESS_API_KEY: ${FEATHERLESS_API_KEY}
+      FEATHERLESS_CHAT_MODEL: ${FEATHERLESS_CHAT_MODEL}
       # Downstream model services the orchestrator calls.
       YAMNET_URL: http://yamnet:8081
       XGB_URL: http://xgboost:8082
