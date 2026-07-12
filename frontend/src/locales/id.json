@@ -84,14 +84,9 @@
       "returnToReview": "Kembali ke tinjauan"
     },
     "riskBandAria": "Peringkat risiko estimasi model: {band}",
-    "coughFocus": {
-      "focusLabel": "Momen batuk terdeteksi",
-      "coughLabel": "batuk {n}",
-      "legendLow": "energi lebih rendah",
-      "legendHigh": "energi lebih tinggi",
-      "aria": "Bentuk gelombang rekaman dengan {n} batuk terdeteksi",
-      "unavailable": "Pratinjau bentuk gelombang tidak tersedia untuk rekaman ini.",
-      "caption": "Ringkasan rekaman ilustratif, bukan keluaran model."
+    "spectrogram": {
+      "detectedCoughs": "{n} episode batuk terdeteksi — yang terkuat disorot",
+      "timingNote": "Waktu episode bersifat perkiraan, ditentukan dalam jendela model yang saling tumpang tindih."
     }
   },
   "review": {
@@ -102,7 +97,6 @@
     "submit": "Kirim untuk Analisis Gema",
     "notMeasured": "Tidak diukur",
     "coughLength": "Durasi",
-    "coughDetected": "Batuk terdeteksi",
     "coughSize": "Ukuran",
     "coughMeta": "{size} KiB • {format}",
     "coughMissing": "Belum direkam",
@@ -201,18 +195,12 @@
     },
     "hint": "Hingga 1:30",
     "remaining": "tersisa",
-    "detected": {
-      "one": "{n} batuk terdeteksi",
-      "other": "{n} batuk terdeteksi"
-    },
-    "detectedNote": "Deteksi batuk berjalan di perangkat dan bersifat ilustratif, bukan pengukuran klinis.",
     "waveform": {
       "live": "Tingkat input batuk langsung",
       "idle": "Gelombang batuk, tidak aktif"
     },
     "captured": {
       "duration": "Durasi",
-      "coughs": "Batuk terdeteksi",
       "again": "Rekam ulang",
       "tooShort": "Rekaman terlalu pendek. Rekam ulang agar cukup untuk dianalisis."
     },

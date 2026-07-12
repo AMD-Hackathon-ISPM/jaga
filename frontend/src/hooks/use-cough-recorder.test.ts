@@ -132,7 +132,6 @@ describe("useCoughRecorder", () => {
     expect(rec.file.name).toMatch(/^cough-\d+\.webm$/);
     expect(rec.file.size).toBeGreaterThan(0);
     expect(rec.durationMs).toBe(RECORDING_MS);
-    expect(rec.coughEvents).toEqual([]); // sampling loop inert in jsdom
     expect(result.current.state).toBe("idle");
   });
 
@@ -155,7 +154,6 @@ describe("useCoughRecorder", () => {
     const rec = onCaptured.mock.calls[0][0] as CoughRecording;
     expect(rec.file).toBeInstanceOf(File);
     expect(rec.durationMs).toBe(5_000);
-    expect(rec.coughEvents).toEqual([]);
     expect(result.current.state).toBe("idle");
   });
 

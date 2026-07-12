@@ -9,6 +9,7 @@ import (
 	"jaga/backend/go/internal/audioPreprocess"
 	"jaga/backend/go/internal/ids"
 	"jaga/backend/go/internal/llm"
+	"jaga/backend/go/internal/spectrogram"
 )
 
 const (
@@ -54,7 +55,7 @@ func (s *Service) Orchestrate(ctx context.Context, wav []byte, clinical Clinical
 		},
 	}
 
-	processed := preprocessAudio(wav)
+	processedAudio, processed, decoded := preprocessAudio(wav)
 
 	cough, err := s.models.detectCough(ctx, processed)
 	if err != nil {
@@ -70,6 +71,7 @@ func (s *Service) Orchestrate(ctx context.Context, wav []byte, clinical Clinical
 	if err != nil {
 		return s.finish(result, systemError("acoustic_model_unavailable"), nil, clinical, &cough, nil)
 	}
+	addCoughEvidence(&result, cough, processedAudio, decoded, spectrogram.Render)
 
 	estimate := &Estimate{
 		Probability:       tb.TBProbability,
@@ -132,13 +134,40 @@ func systemError(reason string) QualityAttempt {
 	return QualityAttempt{Index: 1, Quality: "system_error", ReasonCode: reason}
 }
 
-func preprocessAudio(wav []byte) []byte {
+func preprocessAudio(wav []byte) (audioPreprocess.Audio, []byte, bool) {
 	audio, err := audioPreprocess.DecodeWAV(wav)
 	if err != nil {
-		return wav // forward as-is; the model services will surface a decode error
+		return audioPreprocess.Audio{}, wav, false // forward as-is; the model services will surface a decode error
 	}
 	processed := audioPreprocess.Process(audio, audioPreprocess.DefaultOptions())
-	return audioPreprocess.EncodeWAV(processed)
+	return processed, audioPreprocess.EncodeWAV(processed), true
+}
+
+func strongestCoughEvent(events []coughEvent) coughEvent {
+	strongest := events[0]
+	for _, event := range events[1:] {
+		if event.PeakScore > strongest.PeakScore {
+			strongest = event
+		}
+	}
+	return strongest
+}
+
+func addCoughEvidence(result *GemaResult, cough coughResult, audio audioPreprocess.Audio, decoded bool, render func(audioPreprocess.Audio, float64, float64) (string, error)) {
+	result.DetectedCoughs = len(cough.Events)
+	if cough.EventCount != len(cough.Events) {
+		log.Printf("triage: yamnet cough event count mismatch: reported=%d actual=%d", cough.EventCount, len(cough.Events))
+	}
+	if !decoded || len(cough.Events) == 0 {
+		return
+	}
+	strongest := strongestCoughEvent(cough.Events)
+	dataURI, err := render(audio, strongest.StartSec, strongest.EndSec)
+	if err != nil {
+		log.Printf("triage: spectrogram render failed: %v", err)
+		return
+	}
+	result.Inspection = &Inspection{Available: true, URL: dataURI, Label: "Model focus on the strongest detected cough episode; not a clinical explanation."}
 }
 
 func demographicsOf(clinical Clinical) map[string]any {

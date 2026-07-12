@@ -3,7 +3,7 @@
 **Document type:** Design guidelines
 **Audience:** Frontend, design, product, QA, and reviewers
 **Status:** Active · signed visual direction (Billy, 2026-06-28; palette rebranded to white + teal by Billy, 2026-07-09). Implementable and implemented against a live backend.
-**Updated:** 2026-07-11
+**Updated:** 2026-07-12
 **Canonical for:** Frontend information architecture, visual system, interaction states, microcopy, localization, accessibility, responsive behavior, and motion
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`product-brief.md`](product-brief.md), [`implementation-plan.md`](implementation-plan.md)
 
@@ -308,7 +308,7 @@ The routed flow uses official shadcn APIs from preset `b85jYWWKi8`: Button for a
 1. Research-prototype warning.
 2. Model-estimated probability/band only when valid.
 3. Mandatory confirmatory-evaluation next step.
-4. Optional illustrative local-recording summary, explicitly not model output.
+4. Model-derived cough-episode count plus optional strongest-episode spectrogram; no client heuristic count appears during recording or review.
 5. Collapsed model/evaluation metadata and limitations.
 6. Optional genuine model-inspection visual.
 

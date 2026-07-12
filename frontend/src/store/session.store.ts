@@ -23,15 +23,10 @@ import type {
  * request for a Zustand store.
  */
 
-/**
- * A single ≤90-second cough recording plus the client-side detection metadata.
- * `coughEvents` are millisecond offsets from the start of the recording where
- * the heuristic detector (illustrative prototype) registered a cough.
- */
+/** A single ≤90-second cough recording held only for the current session. */
 export interface CoughRecording {
   file: File;
   durationMs: number;
-  coughEvents: number[];
 }
 
 interface SessionState {

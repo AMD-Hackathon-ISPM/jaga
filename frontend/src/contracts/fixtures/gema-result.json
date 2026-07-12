@@ -1,6 +1,7 @@
 {
   "request_id": "synthetic-gema-001",
   "signal": "gema",
+  "detected_coughs": 3,
   "contract_version": "triage-v1",
   "schema_version": "clinical-v1",
   "quality": [

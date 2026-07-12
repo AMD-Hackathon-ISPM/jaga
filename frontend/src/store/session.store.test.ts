@@ -5,7 +5,6 @@ function makeRecording(): CoughRecording {
   return {
     file: new File(["audio"], "cough-session.webm", { type: "audio/webm" }),
     durationMs: 42_000,
-    coughEvents: [1200, 4800, 9000],
   };
 }
 
@@ -17,7 +16,7 @@ describe("session store", () => {
     useSessionStore.getState().setCoughRecording(rec);
 
     expect(useSessionStore.getState().coughRecording).toBe(rec);
-    expect(useSessionStore.getState().coughRecording?.coughEvents).toEqual([1200, 4800, 9000]);
+    expect(useSessionStore.getState().coughRecording?.durationMs).toBe(42_000);
   });
 
   it("clears the cough recording when set to null", () => {

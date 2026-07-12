@@ -84,14 +84,9 @@
       "returnToReview": "Return to review"
     },
     "riskBandAria": "Model-estimated risk band: {band}",
-    "coughFocus": {
-      "focusLabel": "Detected cough moments",
-      "coughLabel": "cough {n}",
-      "legendLow": "lower energy",
-      "legendHigh": "higher energy",
-      "aria": "Recording waveform with {n} detected coughs",
-      "unavailable": "Waveform preview unavailable for this recording.",
-      "caption": "Illustrative recording summary, not model output."
+    "spectrogram": {
+      "detectedCoughs": "{n} cough episodes detected — strongest highlighted",
+      "timingNote": "Episode timing is approximate, resolved in overlapping model windows."
     }
   },
   "review": {
@@ -102,7 +97,6 @@
     "submit": "Submit for Gema Analysis",
     "notMeasured": "Not measured",
     "coughLength": "Length",
-    "coughDetected": "Coughs detected",
     "coughSize": "Size",
     "coughMeta": "{size} KiB • {format}",
     "coughMissing": "Not recorded yet",
@@ -201,18 +195,12 @@
     },
     "hint": "Up to 1:30",
     "remaining": "remaining",
-    "detected": {
-      "one": "{n} cough detected",
-      "other": "{n} coughs detected"
-    },
-    "detectedNote": "Cough detection runs on-device and is illustrative, not a clinical measurement.",
     "waveform": {
       "live": "Live cough input level",
       "idle": "Cough waveform, idle"
     },
     "captured": {
       "duration": "Length",
-      "coughs": "Coughs detected",
       "again": "Record again",
       "tooShort": "That recording was too short. Record again so there's enough to analyze."
     },

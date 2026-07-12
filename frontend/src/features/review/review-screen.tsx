@@ -163,7 +163,7 @@ export function ReviewScreen() {
         <section className="rounded-control border border-brand bg-card py-4">
           <h2 className="px-4 text-lg font-semibold text-ink">{t("review.coughTitle")}</h2>
           {coughRecording ? (
-            <dl className="mt-3 grid grid-cols-3 gap-3 px-4">
+            <dl className="mt-3 grid grid-cols-2 gap-3 px-4">
               <div className="min-w-0">
                 <dt className="text-sm text-ink-muted">{t("review.coughLength")}</dt>
                 <dd className="font-mono text-base tabular-nums text-ink">
@@ -179,12 +179,6 @@ export function ReviewScreen() {
                       String(Math.max(1, Math.round(coughRecording.file.size / 1024))),
                     )
                     .replace("{format}", "WebM")}
-                </dd>
-              </div>
-              <div className="min-w-0">
-                <dt className="text-sm text-ink-muted">{t("review.coughDetected")}</dt>
-                <dd className="font-mono text-base tabular-nums text-ink">
-                  {coughRecording.coughEvents.length}
                 </dd>
               </div>
             </dl>

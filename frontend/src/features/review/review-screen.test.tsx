@@ -81,7 +81,6 @@ describe("ReviewScreen", () => {
         coughRecording: {
           file: new File(["audio"], "cough-session.webm", { type: "audio/webm" }),
           durationMs: 90000,
-          coughEvents: [1200, 4800, 9200],
         },
       });
     });
