@@ -25,29 +25,29 @@ Two co-equal, never-fused signals:
 - **Gema (cough + clinical):** the browser records one guided cough. The Go gateway cleans the audio (DC-offset removal, 80 Hz high-pass, silence trim, peak-normalize), a Rust **YAMNet** service gates that the clip really is a cough, a Fireworks **WavLM** embedding plus 12 demographic features feed a Rust **XGBoost** (ONNX Runtime) service, and the calibrated-model probability comes back with a relative urgency band. **Gemma** (Fireworks chat) writes the mandatory-next-step guidance around that number — it never invents or alters the probability, and every failure path falls back to deterministic bilingual copy.
 - **Prisma (digital CXR, separate):** a Python worker reconstructs the `local_clahe` DenseNet121 checkpoint, runs CLAHE preprocessing, and reports its own estimate with its own metrics, alongside a PennyLane quantum-kernel-SVM evaluation (4-qubit `lightning.qubit`, 98.3% accuracy / 1.00 ROC-AUC on PCA-4 DenseNet embeddings). Gema and Prisma scores are never combined.
 
-| Capability             | Behavior                                                                                       |
-| ---------------------- | ---------------------------------------------------------------------------------------------- |
-| Guided capture         | Record a guided cough; the YAMNet gate rejects non-cough audio before inference                 |
-| Clinical inputs        | Collect only variables supported by the approved model contract                                 |
-| Research estimate      | Gema returns the model probability and relative urgency band                                    |
-| Mandatory next step    | Direct every symptomatic participant to confirmatory evaluation                                 |
-| Assistant              | Gemma-backed guidance chat; deterministic copy on any model failure                             |
-| Privacy                | Process inputs transiently without request-body logging or patient-data persistence             |
-| Digital CXR (Prisma)   | Separate estimate with separate metrics; never fused with Gema                                  |
+| Capability           | Behavior                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| Guided capture       | Record a guided cough; the YAMNet gate rejects non-cough audio before inference     |
+| Clinical inputs      | Collect only variables supported by the approved model contract                     |
+| Research estimate    | Gema returns the model probability and relative urgency band                        |
+| Mandatory next step  | Direct every symptomatic participant to confirmatory evaluation                     |
+| Assistant            | Gemma-backed guidance chat; deterministic copy on any model failure                 |
+| Privacy              | Process inputs transiently without request-body logging or patient-data persistence |
+| Digital CXR (Prisma) | Separate estimate with separate metrics; never fused with Gema                      |
 
 ## Stack
 
-| Layer             | Technology                                                                                          |
-| ----------------- | ---------------------------------------------------------------------------------------------------- |
-| Frontend          | Next.js 15 PWA (React 19, Tailwind CSS 4), served in-stack behind NGINX                              |
-| API gateway       | Go (`backend/backendHandlers`) — validation, pure-Go audio DSP, triage orchestration                 |
-| Gema services     | Rust + ONNX Runtime (`backend/modelServerandTraining/GemmaServer/rust`) — `yamnet` gate, `xgboost` probability |
-| LLM / embeddings  | Fireworks (Gemma chat for guidance copy, WavLM embeddings); Featherless powers Cognee generation     |
-| CXR (Prisma)      | Python worker (`backend/modelServerandTraining/PrismaServer`) — DenseNet121 + CLAHE + quantum-kernel SVM |
-| Training          | PyTorch on AMD ROCm / Instinct MI300X (`PrismaTraining`, `GemmaTraining`)                            |
-| Semantic memory   | Cognee (optional; degrades gracefully)                                                               |
-| Storage / data    | PostgreSQL, Redis, MinIO                                                                             |
-| Deployment        | Docker Swarm + NGINX (`infra/`)                                                                      |
+| Layer            | Technology                                                                                                            |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Frontend         | Next.js 15 PWA (React 19, Tailwind CSS 4), served in-stack behind NGINX                                               |
+| API gateway      | Go (`backend/backendHandlers`) — validation, pure-Go audio DSP, triage orchestration                               |
+| Gema services    | Rust + ONNX Runtime (`backend/modelServerandTraining/GemmaServer/rust`) — `yamnet` gate, `xgboost` probability |
+| LLM / embeddings | Fireworks (Gemma chat for guidance copy, WavLM embeddings); Featherless powers Cognee generation                      |
+| CXR (Prisma)     | Python worker (`backend/modelServerandTraining/PrismaServer`) — DenseNet121 + CLAHE + quantum-kernel SVM           |
+| Training         | PyTorch on AMD ROCm / Instinct MI300X (`PrismaTraining`, `GemmaTraining`)                                         |
+| Semantic memory  | Cognee (optional; degrades gracefully)                                                                                |
+| Storage / data   | PostgreSQL, Redis, MinIO                                                                                              |
+| Deployment       | Docker Swarm + NGINX (`infra/`)                                                                                     |
 
 ## Repository structure
 
@@ -127,14 +127,14 @@ The app is served at `http://127.0.0.1/` (port configurable via `NGINX_PUBLISHED
 
 ### API surface (gateway)
 
-| Method | Path                        | Purpose                                        |
-| ------ | --------------------------- | ---------------------------------------------- |
-| GET    | `/health`                   | Gateway health                                 |
-| POST   | `/api/v1/demographics`      | Validate clinical/demographic inputs           |
-| POST   | `/api/v1/audio/preprocess`  | Audio cleanup (DC offset, high-pass, trim)     |
-| POST   | `/api/v1/triage`            | Gema cough + clinical triage                   |
-| POST   | `/api/v1/assistant/messages`| Gemma guidance chat                            |
-| POST   | `/api/v1/cxr`               | Prisma digital-CXR estimate (proxied)          |
+| Method | Path                           | Purpose                                    |
+| ------ | ------------------------------ | ------------------------------------------ |
+| GET    | `/health`                    | Gateway health                             |
+| POST   | `/api/v1/demographics`       | Validate clinical/demographic inputs       |
+| POST   | `/api/v1/audio/preprocess`   | Audio cleanup (DC offset, high-pass, trim) |
+| POST   | `/api/v1/triage`             | Gema cough + clinical triage               |
+| POST   | `/api/v1/assistant/messages` | Gemma guidance chat                        |
+| POST   | `/api/v1/cxr`                | Prisma digital-CXR estimate (proxied)      |
 
 `infra/README.md` documents the full stack topology, scaling, health checks, and routing.
 

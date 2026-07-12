@@ -19,7 +19,6 @@ NGINX_IMAGE="${NGINX_IMAGE:-jaga/nginx:local}"
 POSTGRES_IMAGE="${POSTGRES_IMAGE:-jaga/postgres:local}"
 REDIS_IMAGE="${REDIS_IMAGE:-jaga/redis:local}"
 MINIO_IMAGE="${MINIO_IMAGE:-jaga/minio:local}"
-COGNEE_IMAGE="${COGNEE_IMAGE:-jaga/cognee:local}"
 YAMNET_IMAGE="${YAMNET_IMAGE:-jaga/yamnet:local}"
 XGBOOST_IMAGE="${XGBOOST_IMAGE:-jaga/xgboost:local}"
 
@@ -36,7 +35,6 @@ docker build -t "$NGINX_IMAGE" "$INFRA_DIR/nginx"
 docker build -t "$POSTGRES_IMAGE" "$INFRA_DIR/postgres"
 docker build -t "$REDIS_IMAGE" "$INFRA_DIR/redis"
 docker build -t "$MINIO_IMAGE" "$INFRA_DIR/minio"
-docker build -t "$COGNEE_IMAGE" "$INFRA_DIR/cognee"
 docker build \
   -f "$REPO_ROOT/backend/modelServerandTraining/GemmaServer/rust/Dockerfile" \
   --build-arg SERVICE=yamnetService \

@@ -94,9 +94,6 @@ services:
       JAGA_BACKEND_FEATHERLESS_URL: ${FEATHERLESS_URL}
       JAGA_BACKEND_FEATHERLESS_API_KEY: ${FEATHERLESS_API_KEY}
       JAGA_BACKEND_FEATHERLESS_MODEL: ${FEATHERLESS_MODEL}
-      COGNEE_ENABLED: ${COGNEE_ENABLED}
-      COGNEE_COLLECTION: ${COGNEE_COLLECTION}
-      COGNEE_TIMEOUT: ${COGNEE_TIMEOUT}
       JAGA_BACKEND_JWT_SECRET: ${JWT_SECRET}
       JAGA_BACKEND_UPLOAD_PATH: ${UPLOAD_PATH}
       JAGA_BACKEND_MODEL_PATH: ${MODEL_PATH}
@@ -129,44 +126,6 @@ services:
         limits:
           cpus: '2.00'
           memory: 1G
-
-  cognee:
-    image: ${COGNEE_IMAGE}
-    networks:
-      - jaga-network
-    environment:
-      LLM_PROVIDER: ${COGNEE_LLM_PROVIDER}
-      LLM_MODEL: ${COGNEE_LLM_MODEL}
-      LLM_API_KEY: ${COGNEE_LLM_API_KEY}
-      LLM_ENDPOINT: ${COGNEE_LLM_ENDPOINT}
-      EMBEDDING_PROVIDER: ${COGNEE_EMBEDDING_PROVIDER}
-      EMBEDDING_MODEL: ${COGNEE_EMBEDDING_MODEL}
-      EMBEDDING_API_KEY: ${COGNEE_EMBEDDING_API_KEY}
-      EMBEDDING_ENDPOINT: ${COGNEE_EMBEDDING_ENDPOINT}
-      EMBEDDING_DIMENSIONS: ${COGNEE_EMBEDDING_DIMENSIONS}
-      HUGGINGFACE_TOKENIZER: ${COGNEE_HUGGINGFACE_TOKENIZER}
-      DATA_ROOT_DIRECTORY: /app/cognee/.data_storage
-      SYSTEM_ROOT_DIRECTORY: /app/cognee/.cognee_system
-      COGNEE_SKIP_CONNECTION_TEST: 'true'
-    volumes:
-      - cognee_data:/app/cognee/.data_storage
-      - cognee_system:/app/cognee/.cognee_system
-    healthcheck:
-      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:8000/health >/dev/null || exit 1']
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
-    deploy:
-      <<: *common-deploy
-      replicas: 1
-      resources:
-        reservations:
-          cpus: '0.50'
-          memory: 512M
-        limits:
-          cpus: '2.00'
-          memory: 2G
 
   prisma-worker:
     image: ${PRISMA_WORKER_IMAGE}
@@ -364,8 +323,6 @@ networks:
     attachable: true
 
 volumes:
-  cognee_data:
-  cognee_system:
   postgres_data:
   redis_data:
   minio_data:
