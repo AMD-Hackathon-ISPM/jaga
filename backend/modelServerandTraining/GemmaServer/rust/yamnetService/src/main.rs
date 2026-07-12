@@ -67,7 +67,13 @@ struct DetectResponse {
     cough_score: f32,
     frames_analyzed: usize,
     top_classes: Vec<ClassScoreBody>,
+    cough_events: Vec<CoughEventBody>,
+    cough_event_count: usize,
 }
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct CoughEventBody { start_sec: f32, end_sec: f32, peak_score: f32 }
 
 async fn detect(State(state): State<AppState>, multipart: Multipart) -> Result<Response, ApiError> {
     let audio = readAudioField(multipart).await?;
@@ -75,11 +81,13 @@ async fn detect(State(state): State<AppState>, multipart: Multipart) -> Result<R
         .map_err(|err| ApiError::badRequest(format!("could not decode audio: {err}")))?;
 
     let model = state.model.clone();
-    let result = tokio::task::spawn_blocking(move || model.detect(&samples))
+    let threshold = state.threshold;
+    let result = tokio::task::spawn_blocking(move || model.detect(&samples, threshold))
         .await
         .map_err(|err| ApiError::internal(format!("inference task failed: {err}")))?
         .map_err(|err| ApiError::internal(format!("inference failed: {err}")))?;
 
+    let cough_event_count = result.events.len();
     let body = DetectResponse {
         cough_detected: result.coughScore >= state.threshold,
         cough_score: result.coughScore,
@@ -89,6 +97,8 @@ async fn detect(State(state): State<AppState>, multipart: Multipart) -> Result<R
             .into_iter()
             .map(|item| ClassScoreBody { label: item.label, score: item.score })
             .collect(),
+        cough_events: result.events.into_iter().map(|event| CoughEventBody { start_sec: event.start_sec, end_sec: event.end_sec, peak_score: event.peak_score }).collect(),
+        cough_event_count,
     };
     Ok((StatusCode::OK, Json(body)).into_response())
 }

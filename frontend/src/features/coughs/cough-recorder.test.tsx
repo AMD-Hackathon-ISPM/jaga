@@ -16,7 +16,6 @@ let recorderReturn: {
   stop: typeof stop;
   restart: typeof restart;
   elapsedMs: number;
-  coughEvents: number[];
   analyserRef: { current: AnalyserNode | null };
 };
 
@@ -29,7 +28,6 @@ function makeRecording(overrides: Partial<CoughRecording> = {}): CoughRecording 
   return {
     file: new File(["audio"], "cough-session.webm", { type: "audio/webm" }),
     durationMs: 42_000,
-    coughEvents: [1200, 4800, 9000],
     ...overrides,
   };
 }
@@ -45,7 +43,6 @@ describe("CoughRecorder", () => {
       stop,
       restart,
       elapsedMs: 0,
-      coughEvents: [],
       analyserRef: { current: null },
     };
   });
@@ -63,9 +60,8 @@ describe("CoughRecorder", () => {
       />,
     );
 
-    // Duration formatted mm:ss and the detected-cough count are both surfaced.
+    // Only duration is surfaced before server-side model analysis.
     expect(screen.getByText("0:42")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();
 
     const again = screen.getByRole("button", { name: /record again/i });
     await user.click(again);

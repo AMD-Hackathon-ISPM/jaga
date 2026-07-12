@@ -15,7 +15,6 @@ import { usePrismaStore } from "@/store/prisma.store";
 import { RiskBandTrack } from "./risk-band-track";
 import { NextStepPanel } from "./next-step-panel";
 import { SpectrogramFigure } from "./spectrogram-figure";
-import { CoughFocusFigure } from "./cough-focus-figure";
 import { Reveal } from "./reveal";
 import {
   Accordion,
@@ -69,7 +68,6 @@ export function ResultScreen() {
   const t = useT();
   const router = useRouter();
   const result = useSessionStore((state) => state.result) as TriageResult | null;
-  const coughRecording = useSessionStore((state) => state.coughRecording);
   const resetSession = useSessionStore((state) => state.reset);
   const resetPrisma = usePrismaStore((state) => state.reset);
 
@@ -138,15 +136,16 @@ export function ResultScreen() {
 
         {/* Recording evidence is the secondary visual beat, before technical detail. */}
         <div className="flex min-w-0 flex-col gap-5">
-          {coughRecording ? (
-            <CoughFocusFigure recording={coughRecording} />
-          ) : (
-            result.inspection?.available && (
-              <SpectrogramFigure
-                label={result.inspection.label}
-                src={result.inspection.spectrogramUrl}
-              />
-            )
+          {result.detectedCoughs !== undefined && result.detectedCoughs > 0 && (
+            <div className="rounded-control bg-surface-sunken px-4 py-3">
+              <p className="font-medium text-ink">
+                {t("result.spectrogram.detectedCoughs").replace("{n}", String(result.detectedCoughs))}
+              </p>
+              <p className="mt-1 text-xs text-ink-muted">{t("result.spectrogram.timingNote")}</p>
+            </div>
+          )}
+          {result.inspection?.available && (
+            <SpectrogramFigure label={result.inspection.label} src={result.inspection.spectrogramUrl} />
           )}
         </div>
       </div>

@@ -123,6 +123,7 @@ export const gemaResultSchema = z.object({
     limitations: z.array(z.string().min(1)),
   }),
   inspection: inspectionSchema.optional(),
+  detected_coughs: z.number().int().min(0).optional(),
 });
 
 export const cxrResultSchema = z.object({

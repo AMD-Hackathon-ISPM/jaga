@@ -3,7 +3,7 @@
 **Document type:** Project architecture
 **Audience:** Backend, frontend, ML, platform, QA, and technical reviewers
 **Status:** Active · core pipeline built and integrated; remaining owner blocks are genuine gaps, not the whole system
-**Updated:** 2026-07-11
+**Updated:** 2026-07-12
 **Canonical for:** System boundaries, planned runtime components, shared interfaces, privacy, security, observability, deployment, and technical ownership
 **Companion documents:** [`product-requirements.md`](product-requirements.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
@@ -365,6 +365,8 @@ Docker Swarm with NGINX reverse proxy, replicated `go-api` tasks, and an interna
 ---
 
 ## 15. Acoustic triage + model services (as-built)
+
+YAMNet's detection response also includes `coughEvents` (`startSec`, `endSec`, `peakScore`) and `coughEventCount`, derived by grouping consecutive model windows at the existing gate threshold. Timing is approximate because the model windows overlap, and event ends are clamped to the decoded recording duration. After accepted YAMNet and XGBoost inference, the gateway trusts `len(coughEvents)`, exposes it as GemaResult `detected_coughs`, and renders the spectrogram with the strongest event highlighted when processed audio is available. Spectrogram failure does not discard the count.
 
 > **Status:** Implemented and current as of 2026-07-11 (paths verified against `backend/backendHandlers` and `backend/modelServerandTraining`). Records the acoustic-triage pipeline, the Gemma
 > orchestrator/assistant, the Rust model services, and the Prisma CXR + quantum

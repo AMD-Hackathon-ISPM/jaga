@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createCoughDetector } from "@/lib/cough-detector";
 import type { CoughRecording } from "@/store/session.store";
 
 export type RecorderState = "idle" | "requesting" | "recording" | "denied" | "error";
@@ -30,7 +29,6 @@ interface Take {
   discarded: boolean;
   startMs: number;
   durationMs: number;
-  coughEvents: number[];
 }
 
 /**
@@ -40,15 +38,12 @@ interface Take {
  * `stop()` captures whatever has been recorded so far; `restart()` discards the
  * current take and immediately re-arms a fresh recording ("Record again").
  *
- * While recording, the AnalyserNode's time-domain RMS is sampled each animation
- * frame and fed to a heuristic cough detector; each detection appends a
- * millisecond offset to `coughEvents`. The capture callback receives the full
- * `CoughRecording` (file + durationMs + coughEvents).
+ * The analyser remains active solely to draw the live waveform. Cough episodes
+ * are detected by the server-side model after submission.
  */
 export function useCoughRecorder(onCaptured: (rec: CoughRecording) => void) {
   const [state, setState] = useState<RecorderState>("idle");
   const [elapsedMs, setElapsedMs] = useState(0);
-  const [coughEvents, setCoughEvents] = useState<number[]>([]);
 
   const streamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -146,7 +141,6 @@ export function useCoughRecorder(onCaptured: (rec: CoughRecording) => void) {
           () => {
             if (genRef.current !== gen) return;
             teardown(true);
-            setCoughEvents([]);
             setElapsedMs(0);
             setState("error");
           },
@@ -158,7 +152,7 @@ export function useCoughRecorder(onCaptured: (rec: CoughRecording) => void) {
       const recorder = new MediaRecorder(stream, { mimeType });
 
       // Per-take state, closed over by this recorder's handlers only.
-      const take: Take = { discarded: false, startMs: 0, durationMs: 0, coughEvents: [] };
+      const take: Take = { discarded: false, startMs: 0, durationMs: 0 };
       const chunks: Blob[] = [];
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) chunks.push(event.data);
@@ -173,7 +167,6 @@ export function useCoughRecorder(onCaptured: (rec: CoughRecording) => void) {
             lastModified: Date.now(),
           }),
           durationMs: take.durationMs,
-          coughEvents: take.coughEvents.slice(),
         });
       };
       recorderRef.current = recorder;
@@ -192,29 +185,14 @@ export function useCoughRecorder(onCaptured: (rec: CoughRecording) => void) {
       source.connect(analyser);
       analyserRef.current = analyser;
 
-      const sampleBuf = new Float32Array(analyser.fftSize);
-      const detector = createCoughDetector();
-
-      setCoughEvents([]);
       take.startMs = performance.now();
       setElapsedMs(0);
 
       recorder.start();
 
-      // Sample the AnalyserNode RMS each frame and feed the detector.
+      // Keep an animation frame active while recording for waveform consumers.
       const sample = () => {
         if (genRef.current !== gen) return; // cancelled — never reschedule
-        if (typeof analyser.getFloatTimeDomainData === "function") {
-          analyser.getFloatTimeDomainData(sampleBuf);
-          let sum = 0;
-          for (let i = 0; i < sampleBuf.length; i += 1) sum += sampleBuf[i] * sampleBuf[i];
-          const rms = Math.sqrt(sum / sampleBuf.length);
-          const atMs = performance.now() - take.startMs;
-          if (detector.push(rms, atMs)) {
-            take.coughEvents.push(atMs);
-            setCoughEvents(take.coughEvents.slice());
-          }
-        }
         rafRef.current = requestAnimationFrame(sample);
       };
       rafRef.current = requestAnimationFrame(sample);
@@ -246,7 +224,6 @@ export function useCoughRecorder(onCaptured: (rec: CoughRecording) => void) {
   /** Discard the current take (no capture) and immediately re-arm recording. */
   const restart = useCallback(() => {
     teardown(true);
-    setCoughEvents([]);
     setElapsedMs(0);
     setState("idle");
     return start();
@@ -260,5 +237,5 @@ export function useCoughRecorder(onCaptured: (rec: CoughRecording) => void) {
     [teardown],
   );
 
-  return { state, start, stop, restart, elapsedMs, coughEvents, analyserRef };
+  return { state, start, stop, restart, elapsedMs, analyserRef };
 }

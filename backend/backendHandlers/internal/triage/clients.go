@@ -29,6 +29,14 @@ func newModelClients(yamnetURL, xgbURL string) *modelClients {
 type coughResult struct {
 	CoughDetected bool    `json:"coughDetected"`
 	CoughScore    float64 `json:"coughScore"`
+	Events        []coughEvent `json:"coughEvents"`
+	EventCount    int          `json:"coughEventCount"`
+}
+
+type coughEvent struct {
+	StartSec  float64 `json:"startSec"`
+	EndSec    float64 `json:"endSec"`
+	PeakScore float64 `json:"peakScore"`
 }
 
 type tbResult struct {

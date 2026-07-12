@@ -31,6 +31,7 @@ function mapGemaResult(result: GemaWireResult): TriageResult {
       cohort: result.metadata.cohort,
       limitations: result.metadata.limitations,
     },
+    detectedCoughs: result.detected_coughs,
     inspection: result.inspection
       ? {
           spectrogramUrl: result.inspection.url,

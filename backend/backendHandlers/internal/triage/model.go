@@ -59,6 +59,7 @@ type GemaResult struct {
 	MandatoryNextStep string           `json:"mandatory_next_step"`
 	Metadata          Metadata         `json:"metadata"`
 	Inspection        *Inspection      `json:"inspection,omitempty"`
+	DetectedCoughs    int              `json:"detected_coughs"`
 }
 
 // ErrorBody is a simple error envelope.

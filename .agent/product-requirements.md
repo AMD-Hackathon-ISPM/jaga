@@ -3,7 +3,7 @@
 **Document type:** Product requirements document
 **Audience:** Product, design, frontend, backend, ML, QA, and demo team
 **Status:** Active · behavior largely implemented; see `project-architecture.md` §16 for where the shipped backend has not yet closed the gap (quality-gate reason codes, calibrated bands)
-**Updated:** 2026-07-11
+**Updated:** 2026-07-12
 **Canonical for:** User-visible behavior, safety, feature scope, failure states, localization, and acceptance criteria
 **Companion documents:** [`product-brief.md`](product-brief.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`design-guidelines.md`](design-guidelines.md), [`implementation-plan.md`](implementation-plan.md), [`evidence-register.md`](evidence-register.md)
 
@@ -87,11 +87,10 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 **Behavior**
 
 - Ask for one guided recording of up to 90 seconds in which the participant coughs naturally several times.
-- Show positioning guidance, remaining recording time, and a live detected-cough count.
+- Show positioning guidance, remaining recording time, and the live waveform; do not show a cough count before model analysis.
 - Request microphone permission only when capture begins.
 - Allow the user to stop early or let the recording stop automatically at 90 seconds. “Record again” discards the whole capture and restarts from zero; there is no pause flow.
-- Briefly pulse the live waveform orange when the detector registers a cough; when reduced motion is requested, update the count without the pulse.
-- Label client-side cough detection as an illustrative prototype energy heuristic, not model output, model evidence, or server-side quality acceptance.
+- Perform no client-side cough detection; cough episodes are detected only by the server-side model after submission.
 - Do not claim the phone capture reproduces CODA's controlled clinic setup.
 
 **Failure states**
@@ -156,7 +155,7 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 3. Relative band labelled **Lower**, **Intermediate**, or **Higher model-estimated risk**, not Low/Elevated/High clinical risk.
 4. Follow-up urgency derived from the signed model contract.
 5. Mandatory confirmatory-evaluation instruction for every band.
-6. Optional local-recording summary labelled as illustrative and explicitly not model output.
+6. Model-derived cough-episode count and, when rendering succeeds, a spectrogram with the strongest approximate episode highlighted; label the artifact as model focus, not an explanation.
 7. One collapsed “About this estimate” disclosure containing signal type, model version, evaluation cohort, calibration status, contract version, and limitations.
 8. Optional genuine attention/saliency labelled “model inspection; not a clinical explanation.”
 9. Supported contributing inputs without causal wording.

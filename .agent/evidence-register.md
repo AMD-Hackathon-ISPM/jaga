@@ -3,7 +3,7 @@
 **Document type:** Evidence register
 **Audience:** Product, engineering, design, ML, reviewers, and pitch team
 **Status:** Active · external facts below remain valid; actual Jaga model results now live in `data-evaluation-plan.md` §7.0/§11, not here
-**Updated:** 2026-07-11
+**Updated:** 2026-07-12
 **Canonical for:** Every external factual, medical, dataset, market, hardware, and hackathon claim
 **Companion documents:** [`product-brief.md`](product-brief.md), [`product-requirements.md`](product-requirements.md), [`project-architecture.md`](project-architecture.md), [`data-evaluation-plan.md`](data-evaluation-plan.md), [`context-dump.md`](context-dump.md)
 
@@ -48,7 +48,7 @@ Source for WHO-01 through WHO-03: [WHO 2025 target product profiles for tubercul
 | CODA-09 | The documented CODA training variables are sex, age, height, weight, reported cough duration, prior TB diagnosis and type, haemoptysis, heart rate, temperature, weight loss, smoking in the last week, fever, and night sweats. | [CODA dataset paper](https://www.nature.com/articles/s41597-024-03972-z) | 2026-06-28 | Availability does not mean every variable must be predictive; Daffa must declare the exact signed subset and missing-value representation. Known TB contact is not in this documented list. |
 | CODA-10 | A 2026 reproducible baseline (Selisios, *Sensors*) trained Logistic Regression and CatBoost on the CODA solicited set (9,772 cough samples from 1,105 adults), comparing cough-audio-only against fused audio-plus-clinical models under cougher-disjoint nested (10×5) cross-validation, with isotonic probability calibration and conformal-prediction uncertainty quantification. | [Selisios 2026 · Sensors 26(4):1223](https://www.mdpi.com/1424-8220/26/4/1223) · DOI [10.3390/s26041223](https://doi.org/10.3390/s26041223) | 2026-06-28 | This is the published fused baseline Jaga mirrors. The paper encodes clinical inputs as continuous (age, height, weight, cough duration, heart rate, temperature) plus 0/1 binaries (sex and yes/no symptoms), reports no missing values in the solicited set, and z-score standardizes on training folds only. It does **not** state a one-hot "prior TB type" expansion or a "16-feature" vector count; Daffa must confirm the exact feature vector against the CODA data dictionary and his training code before that wording is used. Quote exact fused metrics only from the paper's results tables; cross-reference CODA-07 for the published fused AUROC range (0.78–0.83). Do not assert a fused AUROC not taken from the paper. |
 
-**Prototype visualization boundary:** The live detected-cough count and the result-page focus strip are derived client-side from an energy heuristic and the local recording. They are not model evidence or model output. The focus figure must remain visibly labelled “Illustrative prototype visualization — not model output.”
+**Prototype visualization boundary:** The client energy-heuristic count and local focus strip have been removed. Cough episodes shown on the result page are YAMNet model output, grouped from overlapping windows at the gate threshold; timing is approximate. The highlighted spectrogram indicates where the model focused and is not causal reasoning or a clinical explanation.
 
 ## 4. Hardware and model references
 

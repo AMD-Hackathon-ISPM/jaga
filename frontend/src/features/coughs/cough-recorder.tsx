@@ -18,13 +18,8 @@ function formatClock(ms: number): string {
 /**
  * Single-session cough recorder card. Three live faces, one calm frame:
  *  · prompt   — idle / requesting / denied / error: mic button + status.
- *  · recording — remaining-time countdown, live waveform with a warm detection
- *    pulse, running "N coughs detected" count, stop button.
- *  · captured  — summary (length + detected count) and "Record again".
- *
- * The heuristic cough count is interaction feedback, labelled on-screen as
- * illustrative (safety invariant: client-side detection is never presented as
- * a clinical measurement). Continue lives in the parent screen.
+ *  · recording — remaining-time countdown, live waveform, stop button.
+ *  · captured  — recording length and "Record again".
  */
 export function CoughRecorder({
   coughRecording,
@@ -36,19 +31,13 @@ export function CoughRecorder({
   onDiscard: () => void;
 }) {
   const t = useT();
-  const { state, start, stop, restart, elapsedMs, coughEvents, analyserRef } =
+  const { state, start, stop, restart, elapsedMs, analyserRef } =
     useCoughRecorder(onCaptured);
 
   const recording = state === "recording";
   const requesting = state === "requesting";
   const failed = state === "denied" || state === "error";
   const captured = !recording && !requesting && !failed && coughRecording !== null;
-
-  const detectedText = (count: number) =>
-    t(count === 1 ? "coughs.detected.one" : "coughs.detected.other").replace(
-      "{n}",
-      String(count),
-    );
 
   return (
     <div className="rounded-frame border border-border-subtle bg-surface p-6">
@@ -65,29 +54,9 @@ export function CoughRecorder({
             <span className="mt-1 text-xs text-ink-muted">{t("coughs.remaining")}</span>
           </div>
 
-          {/* Live waveform with a brief warm pulse at each detection. Full-bleed
-              within the card padding. */}
+          {/* Live waveform, full-bleed within the card padding. */}
           <div className="relative -mx-6 overflow-hidden">
             <CoughWaveform analyserRef={analyserRef} active={recording} />
-            {coughEvents.length > 0 && (
-              <span
-                key={coughEvents.length}
-                aria-hidden="true"
-                className="cough-pulse pointer-events-none absolute inset-0"
-              />
-            )}
-          </div>
-
-          <div className="flex flex-col items-center gap-1.5">
-            <span
-              aria-live="polite"
-              className="inline-flex items-center rounded-full bg-focus-ramp-1 px-3 py-1 text-sm font-medium text-focus-ramp-5"
-            >
-              {detectedText(coughEvents.length)}
-            </span>
-            <span className="max-w-[34ch] text-center text-xs text-ink-muted">
-              {t("coughs.detectedNote")}
-            </span>
           </div>
 
           <RecordButton
@@ -99,22 +68,14 @@ export function CoughRecorder({
         </div>
       ) : captured && coughRecording ? (
         <div className="flex flex-col gap-5">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <div className="flex flex-col rounded-control bg-surface-sunken px-4 py-3">
               <span className="text-xs text-ink-muted">{t("coughs.captured.duration")}</span>
               <span className="mt-0.5 font-mono text-2xl font-semibold tabular-nums text-ink">
                 {formatClock(coughRecording.durationMs)}
               </span>
             </div>
-            <div className="flex flex-col rounded-control bg-surface-sunken px-4 py-3">
-              <span className="text-xs text-ink-muted">{t("coughs.captured.coughs")}</span>
-              <span className="mt-0.5 font-mono text-2xl font-semibold tabular-nums text-focus-ramp-5">
-                {coughRecording.coughEvents.length}
-              </span>
-            </div>
           </div>
-
-          <p className="text-xs text-ink-muted">{t("coughs.detectedNote")}</p>
 
           {coughRecording.durationMs <= 2000 && (
             <p className="text-sm text-error" role="status">

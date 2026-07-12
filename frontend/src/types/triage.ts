@@ -52,6 +52,7 @@ export interface TriageResult {
   /** Always present, identical across bands (design §8 locked hierarchy). */
   mandatoryNextStep: string;
   metadata: ModelMetadata;
+  detectedCoughs?: number;
   /** Optional non-causal inspection artifact reference. */
   inspection?: {
     spectrogramUrl?: string;
