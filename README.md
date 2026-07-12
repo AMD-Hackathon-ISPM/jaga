@@ -6,17 +6,9 @@
 
 <p align="center">
   <a href=".agent/product-brief.md">Product Brief</a> ·
-  <a href=".agent/product-requirements.md">Requirements</a> ·
   <a href=".agent/project-architecture.md">Architecture</a> ·
-  <a href=".agent/data-evaluation-plan.md">Data &amp; Evaluation</a> ·
-  <a href=".agent/evidence-register.md">Evidence</a> ·
   <a href=".agent/design-guidelines.md">Design</a> ·
   <a href="AGENT.md">Agent Guide</a>
-</p>
-
-<p align="center">
-  <b>Live demo:</b> <a href="https://daffatrg.me">daffatrg.me</a> ·
-  <b>Architecture diagram:</b> <a href="docs/architecture.md">docs/architecture.md</a>
 </p>
 
 ---
@@ -52,20 +44,19 @@ Two co-equal, never-fused signals:
 | Privacy              | Process inputs transiently without request-body logging or patient-data persistence |
 | Digital CXR (Prisma) | Separate estimate with separate metrics; never fused with Gema                      |
 
-## Stack
+## Tech stack
 
-| Layer            | Technology                                                                                                            |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Frontend         | Next.js 15 PWA (React 19, Tailwind CSS 4), served in-stack behind NGINX                                               |
-| API gateway      | Go (`backend/backendHandlers`) — validation, pure-Go audio DSP, triage orchestration                               |
-| Gema services    | Rust + ONNX Runtime (`backend/modelServerandTraining/GemmaServer/rust`) — `yamnet` gate, `xgboost` probability |
-| Audio embeddings | Local WavLM Large int8 ONNX (`GemmaServer/rust/xgboostService`) — fully on-device, no external call |
-| LLM (chat)       | Gemma for guidance/orchestration via Fireworks or Featherless (`LLM_PROVIDER`)                            |
-| CXR (Prisma)     | Python worker (`backend/modelServerandTraining/PrismaServer`) — DenseNet121 + CLAHE + quantum-kernel SVM           |
-| Training         | PyTorch on AMD ROCm / Instinct MI300X (`PrismaTraining`, `GemmaTraining`)                                         |
-| Semantic memory  | Cognee (optional; degrades gracefully)                                                                                |
-| Storage / data   | PostgreSQL, Redis, MinIO                                                                                              |
-| Deployment       | Docker Swarm + NGINX (`infra/`) — Swarm chosen for high availability, since the app targets hospital/clinic settings |
+Six layers, real-time processing, powered by multimodal AI and AMD accelerated computing.
+
+| Layer                    | Technology                                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| **Frontend**             | Next.js 15 · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui · Zustand · TanStack Query (PWA, served behind NGINX) |
+| **Backend & gateway**    | Go (API gateway) · Rust + Axum (model microservices) · Python + FastAPI (CXR worker) · NGINX (reverse proxy)        |
+| **Audio DSP pipeline**   | Go DSP (DC-offset, 80 Hz high-pass, silence trim, peak-normalize) → Rust + `hound` (mono downmix, 16 kHz resample)  |
+| **AI / ML**              | PyTorch (training) · ONNX Runtime (serving) · YAMNet (cough gate) · WavLM Large int8 (local embeddings) · XGBoost (Gema) · DenseNet121 + CLAHE + PennyLane quantum-kernel SVM (Prisma) · Gemma via Fireworks/Featherless (guidance chat only) |
+| **Data & storage**       | PostgreSQL · Redis · MinIO                                                                                          |
+| **Infra & quality**      | Docker Swarm (HA orchestration) · Vitest · Playwright · Zod                                                          |
+| **Training accelerator** | AMD Instinct MI300X via AMD Developer Cloud (ROCm PyTorch) — see below                                              |
 
 ## AMD & approved compute usage
 
@@ -76,21 +67,44 @@ Two co-equal, never-fused signals:
 
 ```text
 jaga/
-├── AGENT.md                  # canonical agent entry point / doc router
-├── README.md
-├── .agent/                   # product, architecture, evidence, decision docs
+├── AGENT.md                          # Agent entry point / doc router (start here)
+├── README.md                         # This file
+├── .agent/                           # Agent-facing specification documents
+│   ├── product-brief.md              #   Product vision, market, business model
+│   ├── product-requirements.md       #   PRD: roles, features, acceptance, safety
+│   ├── project-architecture.md       #   System architecture, data flow, diagram
+│   ├── design-guidelines.md          #   Brand, color, type, motion, components
+│   ├── data-evaluation-plan.md       #   Dataset, splits, metrics, evidence gates
+│   ├── evidence-register.md          #   Single source of truth for all cited facts
+│   └── context-dump.md               #   Full decision history and rationale
+├── frontend/                         # Next.js 15 PWA (React 19, TypeScript)
+│   └── src/
+│       ├── app/                      #   Route views: clinical, coughs, review, result, cxr, chat
+│       ├── components/               #   UI, layout, and common components
+│       ├── features/                 #   Feature modules (capture, triage, assistant)
+│       ├── services/ · store/ · hooks/  #  API clients, Zustand stores, hooks
+│       ├── locales/                  #   Bilingual (EN/ID) copy
+│       └── styles/                   #   Design tokens, global CSS
 ├── backend/
-│   ├── backendHandlers/      # Go API gateway (cmd/server, internal/...)
+│   ├── backendHandlers/              # Go API gateway
+│   │   ├── cmd/server/               #   Entry point
+│   │   └── internal/                 #   audioPreprocess, triage, cxr, demographics,
+│   │                                 #   assistant, llm, spectrogram, server (router)
 │   └── modelServerandTraining/
-│       ├── GemmaServer/      # Rust yamnet + xgboost services, ONNX models
-│       ├── GemmaTraining/    # cough-model training notebook & data prep
-│       ├── PrismaServer/     # Python CXR worker (DenseNet121 + quantum)
-│       └── PrismaTraining/   # PyTorch CXR research framework
-├── contracts/openapi/        # OpenAPI contract
-├── docs/                     # architecture diagram, backend integration map
-├── frontend/                 # Next.js PWA
-├── infra/                    # Docker Swarm stack, NGINX, scripts (sh + ps1)
-└── run.ps1                   # Windows one-shot: build + deploy + frontend dev
+│       ├── GemmaServer/              # Gema serving (cough + clinical)
+│       │   ├── rust/                 #   yamnetService · xgboostService · jagaAudio (Axum + ONNX)
+│       │   └── models/               #   YAMNet + XGBoost ONNX (WavLM downloaded, see below)
+│       ├── GemmaTraining/            # Cough-model training (notebooks, data prep)
+│       ├── PrismaServer/             # Python CXR worker (FastAPI)
+│       │   └── app/                  #   main.py, model.py, gradcam.py, quantum.py
+│       └── PrismaTraining/           # PyTorch CXR research framework (ROCm/MI300X)
+├── contracts/openapi/                # OpenAPI contract (jaga-v1.yaml)
+├── infra/                            # Docker Swarm stack, NGINX, scripts (.sh + .ps1)
+│   ├── docker-stack.yml              #   Service topology
+│   ├── scripts/                      #   build · deploy · logs · remove · scale
+│   └── healthcheck/                  #   Manual health probes
+├── docs/                             # Backend integration map, submission assets
+└── run.ps1                           # Windows one-shot: build + deploy + frontend dev
 ```
 
 Model weights ship in the repository (all under GitHub's file-size limit): `GemmaServer/models/` (YAMNet + XGBoost ONNX) and `PrismaServer/app/models/local_clahe/checkpoints/best.pt` (DenseNet121, 83 MB). The one exception is the **WavLM int8 embedder** (356 MB, over GitHub's 100 MB limit) — since embeddings run fully on-device, this file is **required**: download it from [Google Drive](https://drive.google.com/file/d/1O4uoKIUKnGPzNopkYlcqvO08TeS71-_h/view?usp=sharing) into `GemmaServer/models/wavlm/wavlm_large_int8.onnx` (see below) before starting the stack.
@@ -109,7 +123,7 @@ Model weights ship in the repository (all under GitHub's file-size limit): `Gemm
   ```
 
 - **API key** in `infra/.env` (for the Gemma guidance chat only — models run locally):
-  - `FEATHERLESS_API_KEY` — the zero-deploy path for the assistant (Gemma chat, `LLM_PROVIDER=featherless`); also powers Cognee generation.
+  - `FEATHERLESS_API_KEY` — the zero-deploy path for the assistant (Gemma chat, `LLM_PROVIDER=featherless`).
   - `FIREWORKS_API_KEY` — alternative: Gemma chat via your own on-demand Fireworks deployment (`LLM_PROVIDER=fireworks`).
 - Everything else (YAMNet, XGBoost, DenseNet121 weights) is already in the repo.
 
@@ -170,34 +184,72 @@ The app is served at `http://127.0.0.1/` (port configurable via `NGINX_PUBLISHED
 
 `infra/README.md` documents the full stack topology, scaling, health checks, and routing.
 
-## Hackathon
+## Market & business model
 
-Jaga targets the **Unicorn Track** of AMD Developer Hackathon ACT II (6 July 2026, 15:00 UTC → 11 July 2026, 15:00 UTC). Judging covers creativity and originality, completeness, meaningful use of AMD platforms, and product/market potential.
+**Segment, target, position.** Jaga serves hospitals, primary-care clinics, and high-risk symptomatic individuals in resource-limited settings. The buyers are hospital administrators looking to optimize scarce testing resources, and the reach extends to impoverished or geographically isolated people who need a free, instant risk assessment. Jaga is positioned to reach symptomatic people early and prioritize who to send for confirmatory TB testing first — not as a definitive diagnostic tool.
 
-Submission-guideline notes (all tracks):
+**Market sizing.**
 
-- **No hardcoded or cached answers.** Every estimate is live inference: YAMNet gate → WavLM embedding → XGBoost for Gema; DenseNet121 forward pass for Prisma. The LLM writes copy only — the probability always comes from the model.
-- **Image size.** Verify locally with `docker images | grep jaga`; all images must stay under the 10 GB cap.
-- **Architecture.** Images built on an amd64 host (Windows/Linux) are `linux/amd64` natively. On Apple Silicon, local builds are arm64 — build the published/judged images on an amd64 machine, or use `docker buildx build --platform linux/amd64`.
-- **Test locally before submitting** — submissions are rate-limited. The verify steps above are the pre-submit smoke test.
+| Tier | Size | Definition |
+| ---- | ---- | ---------- |
+| TAM  | $22B | Global funding target for TB prevention, diagnosis, and treatment |
+| SAM  | $5.9B | Available TB funding in low- and middle-income countries (LMICs) |
+| SOM  | $590M | Indonesia B2B/B2C screening market — 3-year target |
 
-## Market
+**Business model.**
 
-**Global:** TB's high-burden belt — India, Indonesia, the Philippines, Pakistan, China, and sub-Saharan Africa — all face the same lab, radiologist, and internet-access gap Jaga is built for.
+| Tier | Price | For |
+| ---- | ----- | --- |
+| Public Screening | Free (ad-supported) | Individuals doing self-screening |
+| Clinic License | $99–$199 / month | Clinics — unlimited triage |
+| API & Enterprise | Roadmap | Programs, integrations, national deployments |
 
-**Beachhead:** community health workers doing active TB case-finding in Indonesia, the world's #2 burden country, where the team has ground truth and proximity.
+## Team — Singkong
 
-**Expansion path:** district TB programs and clinics → NGO mobile screening camps → broader respiratory screening on the same platform.
+<!--
+  Replace USERNAME with each member's GitHub handle. GitHub serves the avatar
+  automatically at https://github.com/<handle>.png — no image files needed.
+-->
 
-**Business model:** free tier for community health workers, then per-program / per-screen cloud licensing for national TB programs and NGOs.
-
-## Team
-
-- **Daffa:** backend/AI architecture, data, model, and evaluation
-- **Zeddin:** backend implementation, integration, containers, and deployment
-- **Billy:** frontend/design architecture, accessibility, and final polish
-- **Kei:** frontend implementation
-- **Fransisco:** PM, evidence-to-pitch consistency, presentation, and video
+<table>
+  <tr>
+    <td align="center" width="20%">
+      <a href="https://github.com/USERNAME">
+        <img src="https://github.com/USERNAME.png" width="110" style="border-radius:8px" alt="Paulus Billy"/><br/>
+        <b>Paulus Billy</b>
+      </a><br/>
+      Design Engineer
+    </td>
+    <td align="center" width="20%">
+      <a href="https://github.com/USERNAME">
+        <img src="https://github.com/USERNAME.png" width="110" style="border-radius:8px" alt="Daffa Tarigan"/><br/>
+        <b>Daffa Tarigan</b>
+      </a><br/>
+      AI &amp; Infrastructure
+    </td>
+    <td align="center" width="20%">
+      <a href="https://github.com/USERNAME">
+        <img src="https://github.com/USERNAME.png" width="110" style="border-radius:8px" alt="Keisha Putri Theanny"/><br/>
+        <b>Keisha Putri Theanny</b>
+      </a><br/>
+      Front-End
+    </td>
+    <td align="center" width="20%">
+      <a href="https://github.com/USERNAME">
+        <img src="https://github.com/USERNAME.png" width="110" style="border-radius:8px" alt="Mohammad Ezzeddin Pratama"/><br/>
+        <b>Mohammad Ezzeddin Pratama</b>
+      </a><br/>
+      Back-End
+    </td>
+    <td align="center" width="20%">
+      <a href="https://github.com/USERNAME">
+        <img src="https://github.com/USERNAME.png" width="110" style="border-radius:8px" alt="Kevin Fransisco"/><br/>
+        <b>Kevin Fransisco</b>
+      </a><br/>
+      Product Manager
+    </td>
+  </tr>
+</table>
 
 ## License and medical disclaimer
 

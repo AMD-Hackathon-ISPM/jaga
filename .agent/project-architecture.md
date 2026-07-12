@@ -50,6 +50,62 @@ PWA result
 
 The MVP has no user account, patient database, case history, queue, background job, EHR integration, or analytics warehouse.
 
+### 2.1 Backend request flow (detailed)
+
+Four zones; two independent AI pathways (Gema, Prisma) whose estimates are **never fused**. Solid arrows are the live internal request flow; dashed arrows are external API calls or evaluation metadata.
+
+```mermaid
+flowchart TB
+    subgraph Z1["Zone 1 — Gateway & Infrastructure"]
+        direction LR
+        NGINX["NGINX Gateway<br/>reverse proxy, request routing"] --> SWARM["Docker Swarm<br/>orchestration, health checks,<br/>rolling updates"] --> GO["Go API Gateway<br/>validation, preprocessing,<br/>orchestration"]
+    end
+
+    subgraph Z2["Zone 2 — Audio Preprocessing Pipeline"]
+        direction LR
+        REC(["One guided<br/>cough recording"]) --> DSP["Go DSP — Stage 1<br/>WAV decode · DC-offset removal ·<br/>80 Hz high-pass · silence trim ·<br/>peak normalization<br/><i>backendHandlers/internal/audioPreprocess/dsp.go</i>"]
+        DSP --> RS["Rust jagaAudio — Stage 2<br/>WAV decode · mono downmix ·<br/>16 kHz linear resampling<br/><i>GemmaServer/rust/jagaAudio</i>"]
+    end
+
+    subgraph Z3["Zone 3 — Independent AI Inference Pathways"]
+        subgraph PRISMA["A: Prisma (digital CXR)"]
+            DN["DenseNet121 + CLAHE<br/>local Python inference<br/>separate CXR estimate +<br/>optional Grad-CAM heatmap"]
+            QK["Quantum research evaluation<br/>PCA-4 DenseNet embeddings ·<br/>4-qubit PennyLane quantum-kernel SVM<br/>98.3% acc · 1.00 ROC-AUC<br/><i>not live inference</i>"]
+        end
+        subgraph GEMA["B: Gema (cough + clinical)"]
+            YAM["YAMNet (local Rust ONNX)<br/>detects cough events, applies the<br/>recording-quality gate, extracts the<br/>cough segment (start/end)"]
+            WAV["WavLM Large (local, on-device)<br/>dynamic-int8 ONNX embeddings ·<br/>no external embedding call"]
+            XGB["XGBoost classifier<br/>WavLM embedding + supported<br/>clinical inputs (CODA<br/>controlled-access dataset)"]
+            EST(["Separate Gema<br/>research estimate"])
+            YAM -->|accepted cough| WAV --> XGB --> EST
+        end
+        subgraph GEMMA["C: Gemma (guidance layer)"]
+            CHAT["Guidance & assistant<br/>Fireworks or Featherless ·<br/>bounded next-step wording +<br/>educational chat"]
+            GUARD["LLM never calculates or<br/>changes model estimates"]
+        end
+        RESULT["Research result + required next step<br/>Gema and Prisma estimates remain separate ·<br/>confirmatory evaluation remains essential"]
+        DN -.->|CXR estimate<br/>metadata only| RESULT
+        EST -.->|Gema estimate<br/>metadata only| RESULT
+        RESULT <-.-> CHAT
+    end
+
+    subgraph Z4["Zone 4 — External Providers & Deployed Services"]
+        EXT["External model provider<br/>Fireworks or Featherless:<br/>Gemma guidance chat only"]
+        DATA["PostgreSQL · Redis · MinIO<br/>deployed infrastructure; not on the<br/>current public inference request path"]
+    end
+
+    GO --> DSP
+    RS -->|accepted cough recording| YAM
+    CHAT -.-> EXT
+```
+
+Diagram notes:
+
+- **Privacy:** demo inputs are processed transiently and are not retained.
+- **Efficiency:** the YAMNet gate passes only the detected cough segment to WavLM, and WavLM runs fully as a local int8 ONNX model in Rust — no external embedding call. Fireworks/Featherless is used only for the Gemma guidance chat.
+- **Safety:** the LLM writes guidance copy around the model output; probabilities always come from the classical models. Every LLM failure path falls back to deterministic bilingual copy.
+- **Training:** both models were trained on AMD Instinct MI300X (AMD Developer Cloud, ROCm PyTorch) — see §14.3 and the README's "AMD & approved compute usage" section.
+
 ## 3. Frontend architecture [MVP]
 
 ### 3.1 Locked constraints
@@ -268,9 +324,10 @@ infra/                       # Docker Swarm deployment plane
 frontend/                    # PWA capture/result client (Next.js; see §3.2) — renamed from apps/web 2026-06-30
 contracts/openapi/           # jaga-v1.yaml — frontend integration proposal (single-cough contract aligned 2026-07-13;
                              #   minor audio/webm content-type staleness — §16.1; two unshipped proposal endpoints — §16.4)
-components/                  # ClinicalCaptureForm.jsx — provisional reference prototype the frontend primitives were re-skinned from (design §6); kept as the canonical capture pattern, not built/shipped
 design/                      # design tooling: swatch.html (token preview) + contrast.mjs (WCAG ratio verifier, design §4); not application code
 ```
+
+> **Removed 2026-07-13:** the leftover `apps/web/` stub (superseded by `frontend/` at the 2026-06-30 rename; nothing built from it) and the root `components/ClinicalCaptureForm.jsx` provisional prototype (never imported) were deleted to keep the tree unambiguous for reviewers. `design/` is retained as standalone accessibility tooling.
 
 **Endpoints (as-built, verified against `backend/backendHandlers/internal/server/router.go` and `backend/modelServerandTraining/PrismaServer/app/main.py` on 2026-07-13 — unchanged since 2026-07-11):**
 
@@ -396,7 +453,7 @@ Frontend ──► NGINX ──► Go API (gateway, backend/backendHandlers)
   yamnet (Rust, :8081)                        xgboost (Rust, :8082)
   YAMNet ONNX cough gate                      demo preprocessor (in-Rust) + XGBoost ONNX
   class 42 "Cough", frame-sliding             local WavLM int8 ONNX → 1024
-                                              (falls back to Fireworks — §15.5)
+                                              (on-device only, no fallback — §15.5)
                                               + 12 demographic features → 1036 → TB prob
 ```
 
@@ -465,22 +522,24 @@ that is surfaced as a first-class result, not buried in research:
   held-out split, matching the classical kernel — evidence that the learned CXR
   embedding is quantum-kernel-separable.
 
-### 15.5 WavLM embedding (Rust, local-first with Fireworks fallback)
+### 15.5 WavLM embedding (Rust, local on-device only)
 
-*(Updated 2026-07-13; local-first behavior landed in commit 0444c8e, 2026-07-12.)*
-The xgboost service obtains the 1024-dim audio embedding **locally first**: it
-loads an int8 ONNX WavLM (`WAVLM_MODEL_PATH`, default
+*(Updated 2026-07-13; local-first behavior landed in commit 0444c8e, 2026-07-12;
+the external Fireworks embedding fallback was removed 2026-07-13.)*
+The xgboost service obtains the 1024-dim audio embedding **entirely on-device**:
+it loads an int8 ONNX WavLM (`WAVLM_MODEL_PATH`, default
 `../models/wavlm/wavlm_large_int8.onnx`; at `/app/models/wavlm/` in the Docker
 image — the shared `rust/Dockerfile` now does `COPY models/wavlm ./models/wavlm`,
 so the model is baked into the xgboost image). The 356 MB model file is
-gitignored — only `.gitkeep` is committed — and must be fetched/exported
-out-of-band. Embedding flow: decode WAV to mono 16 kHz → zero-mean/unit-variance
-normalize → ONNX `input_values` → mean-pool `last_hidden_state` → 1024-dim,
-bounded by `LOCAL_EMBED_TIMEOUT_SECS` (default 15). On any failure (model
-missing, decode/embed error, timeout, wrong dims) it falls back to the Fireworks
-WavLM deployment (`/inference/v1/embeddings`, WAV base64 in `input`, model
-`accounts/ezzeddinpratama04/deployments/txvxdq5w`); the predict response reports
-which path ran via `embedding_source`: `"local-wavlm-int8"` or `"fireworks"`.
+gitignored — only `.gitkeep` is committed — and must be downloaded from Google
+Drive (see README "Running locally"). The model is **required**: if it is missing
+the service fails fast at startup with a clear "download the model" message.
+Embedding flow: decode WAV to mono 16 kHz → zero-mean/unit-variance normalize →
+ONNX `input_values` → mean-pool `last_hidden_state` → 1024-dim, bounded by
+`LOCAL_EMBED_TIMEOUT_SECS` (default 15). On any failure (decode/embed error,
+timeout, wrong dims) the request returns a clear error — there is no external
+fallback; audio never leaves the service. The predict response reports
+`embedding_source: "local-wavlm-int8"`.
 
 Unchanged and re-verified 2026-07-13: the service then appends the 12 demographic
 features (a pure-Rust reimplementation of the ONNX preprocessor, verified against
