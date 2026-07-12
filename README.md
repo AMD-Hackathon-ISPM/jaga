@@ -206,46 +206,39 @@ The app is served at `http://127.0.0.1/` (port configurable via `NGINX_PUBLISHED
 
 ## Team — Singkong
 
-<!--
-  Replace USERNAME with each member's GitHub handle. GitHub serves the avatar
-  automatically at https://github.com/<handle>.png — no image files needed.
--->
-
 <table>
   <tr>
     <td align="center" width="20%">
-      <a href="https://github.com/USERNAME">
-        <img src="https://github.com/USERNAME.png" width="110" style="border-radius:8px" alt="Paulus Billy"/><br/>
+      <a href="https://github.com/PaulusBilly">
+        <img src="https://github.com/PaulusBilly.png" width="110" style="border-radius:8px" alt="Paulus Billy"/><br/>
         <b>Paulus Billy</b>
       </a><br/>
       Design Engineer
     </td>
     <td align="center" width="20%">
-      <a href="https://github.com/USERNAME">
-        <img src="https://github.com/USERNAME.png" width="110" style="border-radius:8px" alt="Daffa Tarigan"/><br/>
+      <a href="https://github.com/DaBabyOx">
+        <img src="https://github.com/DaBabyOx.png" width="110" style="border-radius:8px" alt="Daffa Tarigan"/><br/>
         <b>Daffa Tarigan</b>
       </a><br/>
       AI &amp; Infrastructure
     </td>
     <td align="center" width="20%">
-      <a href="https://github.com/USERNAME">
-        <img src="https://github.com/USERNAME.png" width="110" style="border-radius:8px" alt="Keisha Putri Theanny"/><br/>
+      <a href="https://github.com/keishaputri-k">
+        <img src="https://github.com/keishaputri-k.png" width="110" style="border-radius:8px" alt="Keisha Putri Theanny"/><br/>
         <b>Keisha Putri Theanny</b>
       </a><br/>
       Front-End
     </td>
     <td align="center" width="20%">
-      <a href="https://github.com/USERNAME">
-        <img src="https://github.com/USERNAME.png" width="110" style="border-radius:8px" alt="Mohammad Ezzeddin Pratama"/><br/>
+      <a href="https://github.com/ezzeddinp">
+        <img src="https://github.com/ezzeddinp.png" width="110" style="border-radius:8px" alt="Mohammad Ezzeddin Pratama"/><br/>
         <b>Mohammad Ezzeddin Pratama</b>
       </a><br/>
       Back-End
     </td>
     <td align="center" width="20%">
-      <a href="https://github.com/USERNAME">
-        <img src="https://github.com/USERNAME.png" width="110" style="border-radius:8px" alt="Kevin Fransisco"/><br/>
-        <b>Kevin Fransisco</b>
-      </a><br/>
+      <img src="https://ui-avatars.com/api/?name=Kevin+Fransisco&size=110&background=024F46&color=ffffeb" width="110" style="border-radius:8px" alt="Kevin Fransisco"/><br/>
+      <b>Kevin Fransisco</b><br/>
       Product Manager
     </td>
   </tr>
