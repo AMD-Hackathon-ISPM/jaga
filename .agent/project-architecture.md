@@ -74,7 +74,7 @@ flowchart TB
         end
         subgraph GEMA["B: Gema (cough + clinical)"]
             YAM["YAMNet (local Rust ONNX)<br/>detects cough events, applies the<br/>recording-quality gate, extracts the<br/>cough segment (start/end)"]
-            WAV["WavLM Large (local, on-device)<br/>dynamic-int8 ONNX embeddings ·<br/>no external embedding call"]
+            WAV["WavLM Large (local-first)<br/>dynamic-int8 ONNX embeddings ·<br/>Fireworks fallback on miss/error/timeout"]
             XGB["XGBoost classifier<br/>WavLM embedding + supported<br/>clinical inputs (CODA<br/>controlled-access dataset)"]
             EST(["Separate Gema<br/>research estimate"])
             YAM -->|accepted cough| WAV --> XGB --> EST
@@ -90,19 +90,20 @@ flowchart TB
     end
 
     subgraph Z4["Zone 4 — External Providers & Deployed Services"]
-        EXT["External model provider<br/>Fireworks or Featherless:<br/>Gemma guidance chat only"]
+        EXT["External model providers<br/>Fireworks: WavLM embedding fallback ·<br/>Fireworks or Featherless: Gemma guidance chat"]
         DATA["PostgreSQL · Redis · MinIO<br/>deployed infrastructure; not on the<br/>current public inference request path"]
     end
 
     GO --> DSP
     RS -->|accepted cough recording| YAM
+    WAV -.->|fallback only| EXT
     CHAT -.-> EXT
 ```
 
 Diagram notes:
 
 - **Privacy:** demo inputs are processed transiently and are not retained.
-- **Efficiency:** the YAMNet gate passes only the detected cough segment to WavLM, and WavLM runs fully as a local int8 ONNX model in Rust — no external embedding call. Fireworks/Featherless is used only for the Gemma guidance chat.
+- **Efficiency:** the YAMNet gate passes only the detected cough segment to WavLM, and WavLM runs local-first as an int8 ONNX model in Rust; the Fireworks embedding API is a fallback used only when the local model is missing, errors, or times out (§15.5). Fireworks/Featherless also serves the Gemma guidance chat.
 - **Safety:** the LLM writes guidance copy around the model output; probabilities always come from the classical models. Every LLM failure path falls back to deterministic bilingual copy.
 - **Training:** both models were trained on AMD Instinct MI300X (AMD Developer Cloud, ROCm PyTorch) — see §14.3 and the README's "AMD & approved compute usage" section.
 
@@ -453,7 +454,7 @@ Frontend ──► NGINX ──► Go API (gateway, backend/backendHandlers)
   yamnet (Rust, :8081)                        xgboost (Rust, :8082)
   YAMNet ONNX cough gate                      demo preprocessor (in-Rust) + XGBoost ONNX
   class 42 "Cough", frame-sliding             local WavLM int8 ONNX → 1024
-                                              (on-device only, no fallback — §15.5)
+                                              (falls back to Fireworks — §15.5)
                                               + 12 demographic features → 1036 → TB prob
 ```
 
@@ -522,24 +523,28 @@ that is surfaced as a first-class result, not buried in research:
   held-out split, matching the classical kernel — evidence that the learned CXR
   embedding is quantum-kernel-separable.
 
-### 15.5 WavLM embedding (Rust, local on-device only)
+### 15.5 WavLM embedding (Rust, local-first with Fireworks fallback)
 
-*(Updated 2026-07-13; local-first behavior landed in commit 0444c8e, 2026-07-12;
-the external Fireworks embedding fallback was removed 2026-07-13.)*
-The xgboost service obtains the 1024-dim audio embedding **entirely on-device**:
-it loads an int8 ONNX WavLM (`WAVLM_MODEL_PATH`, default
+*(Updated 2026-07-13; local-first behavior landed in commit 0444c8e, 2026-07-12.
+The Fireworks embedding fallback was removed 2026-07-13 then restored the same day
+for graceful degradation; the baked-in private deployment default was dropped —
+set `FIREWORKS_MODEL` to enable it.)*
+The xgboost service obtains the 1024-dim audio embedding **locally first**: it
+loads an int8 ONNX WavLM (`WAVLM_MODEL_PATH`, default
 `../models/wavlm/wavlm_large_int8.onnx`; at `/app/models/wavlm/` in the Docker
-image — the shared `rust/Dockerfile` now does `COPY models/wavlm ./models/wavlm`,
-so the model is baked into the xgboost image). The 356 MB model file is
-gitignored — only `.gitkeep` is committed — and must be downloaded from Google
-Drive (see README "Running locally"). The model is **required**: if it is missing
-the service fails fast at startup with a clear "download the model" message.
-Embedding flow: decode WAV to mono 16 kHz → zero-mean/unit-variance normalize →
-ONNX `input_values` → mean-pool `last_hidden_state` → 1024-dim, bounded by
-`LOCAL_EMBED_TIMEOUT_SECS` (default 15). On any failure (decode/embed error,
-timeout, wrong dims) the request returns a clear error — there is no external
-fallback; audio never leaves the service. The predict response reports
-`embedding_source: "local-wavlm-int8"`.
+image — the shared `rust/Dockerfile` does `COPY models/wavlm ./models/wavlm`, so
+the model is baked into the xgboost image). The 356 MB model file is gitignored —
+only `.gitkeep` is committed — and is downloaded from Google Drive (see README
+"Running locally"). Embedding flow: decode WAV to mono 16 kHz →
+zero-mean/unit-variance normalize → ONNX `input_values` → mean-pool
+`last_hidden_state` → 1024-dim, bounded by `LOCAL_EMBED_TIMEOUT_SECS` (default 15).
+On any failure (model missing, decode/embed error, timeout, wrong dims) it falls
+back to a Fireworks WavLM embedding deployment (`FIREWORKS_EMBEDDING_URL`,
+`FIREWORKS_MODEL` — no default; leave blank to disable). The predict response
+reports which path ran via `embedding_source`: `"local-wavlm-int8"` or
+`"fireworks"`. **Note:** on the fallback path the cough audio is sent to Fireworks,
+so the "fully on-device / audio never leaves the service" property holds only when
+the local model is present.
 
 Unchanged and re-verified 2026-07-13: the service then appends the 12 demographic
 features (a pure-Rust reimplementation of the ONNX preprocessor, verified against

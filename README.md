@@ -31,7 +31,7 @@ Jaga explores whether cough acoustics plus routinely available clinical informat
 
 Two co-equal, never-fused signals:
 
-- **Gema (cough + clinical):** the browser records one guided cough. The Go gateway cleans the audio (DC-offset removal, 80 Hz high-pass, silence trim, peak-normalize), then a Rust pipeline resamples to 16 kHz mono and a Rust **YAMNet** (ONNX) service gates that the clip really is a cough — extracting just the detected cough segment (start/end) so only that slice is embedded, keeping compute cheap. A **local WavLM Large** (dynamic-int8 ONNX, runs in-process in Rust) produces the embedding entirely on-device. The embedding plus 12 demographic features feed a Rust **XGBoost** (ONNX Runtime) service, and the calibrated-model probability comes back with a relative urgency band. **Gemma** (Fireworks chat) writes the mandatory-next-step guidance around that number — it never invents or alters the probability, and every failure path falls back to deterministic bilingual copy.
+- **Gema (cough + clinical):** the browser records one guided cough. The Go gateway cleans the audio (DC-offset removal, 80 Hz high-pass, silence trim, peak-normalize), then a Rust pipeline resamples to 16 kHz mono and a Rust **YAMNet** (ONNX) service gates that the clip really is a cough — extracting just the detected cough segment (start/end) so only that slice is embedded, keeping compute cheap. A **local WavLM Large** (dynamic-int8 ONNX, runs in-process in Rust) produces the embedding on-device, with graceful degradation to the Fireworks embedding API if the local model is missing, errors, or exceeds the timeout. The embedding plus 12 demographic features feed a Rust **XGBoost** (ONNX Runtime) service, and the calibrated-model probability comes back with a relative urgency band. **Gemma** (Fireworks chat) writes the mandatory-next-step guidance around that number — it never invents or alters the probability, and every failure path falls back to deterministic bilingual copy.
 - **Prisma (digital CXR, separate):** a Python worker reconstructs the `local_clahe` DenseNet121 checkpoint, runs CLAHE preprocessing, and reports its own estimate with its own metrics plus an optional **Grad-CAM heatmap** for model inspection, alongside a PennyLane quantum-kernel-SVM evaluation (4-qubit `lightning.qubit`, 98.3% accuracy / 1.00 ROC-AUC on PCA-4 DenseNet embeddings). Gema and Prisma scores are never combined.
 
 | Capability           | Behavior                                                                            |
@@ -53,7 +53,7 @@ Six layers, real-time processing, powered by multimodal AI and AMD accelerated c
 | **Frontend**             | Next.js 15 · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui · Zustand · TanStack Query (PWA, served behind NGINX) |
 | **Backend & gateway**    | Go (API gateway) · Rust + Axum (model microservices) · Python + FastAPI (CXR worker) · NGINX (reverse proxy)        |
 | **Audio DSP pipeline**   | Go DSP (DC-offset, 80 Hz high-pass, silence trim, peak-normalize) → Rust + `hound` (mono downmix, 16 kHz resample)  |
-| **AI / ML**              | PyTorch (training) · ONNX Runtime (serving) · YAMNet (cough gate) · WavLM Large int8 (local embeddings) · XGBoost (Gema) · DenseNet121 + CLAHE + PennyLane quantum-kernel SVM (Prisma) · Gemma via Fireworks/Featherless (guidance chat only) |
+| **AI / ML**              | PyTorch (training) · ONNX Runtime (serving) · YAMNet (cough gate) · WavLM Large int8 (local embeddings, Fireworks fallback) · XGBoost (Gema) · DenseNet121 + CLAHE + PennyLane quantum-kernel SVM (Prisma) · Gemma via Fireworks/Featherless (guidance chat) |
 | **Data & storage**       | PostgreSQL · Redis · MinIO                                                                                          |
 | **Infra & quality**      | Docker Swarm (HA orchestration) · Vitest · Playwright · Zod                                                          |
 | **Training accelerator** | AMD Instinct MI300X via AMD Developer Cloud (ROCm PyTorch) — see below                                              |
@@ -61,7 +61,7 @@ Six layers, real-time processing, powered by multimodal AI and AMD accelerated c
 ## AMD & approved compute usage
 
 - **Training — AMD Instinct MI300X (AMD Developer Cloud).** Both models were trained on the AMD Developer Cloud Jupyter environment (8-hour/day MI300X sessions) with ROCm PyTorch: the **Gema cough detector/classifier** (`GemmaTraining/` — YAMNet-gated WavLM embeddings + XGBoost on CODA TB data) and the **Prisma CXR model** (`PrismaTraining/` — DenseNet121 + CLAHE, plus the PennyLane quantum-kernel-SVM evaluation). The trained artifacts ship in this repo and are what the services load at inference time.
-- **Inference — fully local models, Fireworks only for chat.** YAMNet, WavLM int8, and XGBoost run locally in Rust/ONNX Runtime; DenseNet121 runs locally in Python. No model estimate touches an external API — WavLM embeddings are produced entirely on-device. **Fireworks** is used only for the **Gemma** guidance/orchestration chat that wraps the model output. Gemma on Fireworks is on-demand-deployment only — our hackathon-credit deployment was retired when the $50 allowance ran out, so the live demo currently serves the same Gemma family via **Featherless** (`LLM_PROVIDER=featherless`); the Fireworks code path is intact and works with any account's own deployment.
+- **Inference — local-first, with graceful degradation.** YAMNet, WavLM int8, and XGBoost run locally in Rust/ONNX Runtime; DenseNet121 runs locally in Python. With the WavLM model in place, embeddings are produced entirely on-device; if it is missing, errors, or times out, the service degrades gracefully to a Fireworks embedding deployment so triage still works (the response reports which path ran via `embedding_source`). **Fireworks/Featherless** also serves the **Gemma** guidance/orchestration chat that wraps the model output. Gemma on Fireworks is on-demand-deployment only — our hackathon-credit deployment was retired when the $50 allowance ran out, so the live demo currently serves the same Gemma family via **Featherless** (`LLM_PROVIDER=featherless`); the Fireworks code path is intact and works with any account's own deployment.
 
 ## Repository structure
 
@@ -107,14 +107,14 @@ jaga/
 └── run.ps1                           # Windows one-shot: build + deploy + frontend dev
 ```
 
-Model weights ship in the repository (all under GitHub's file-size limit): `GemmaServer/models/` (YAMNet + XGBoost ONNX) and `PrismaServer/app/models/local_clahe/checkpoints/best.pt` (DenseNet121, 83 MB). The one exception is the **WavLM int8 embedder** (356 MB, over GitHub's 100 MB limit) — since embeddings run fully on-device, this file is **required**: download it from [Google Drive](https://drive.google.com/file/d/1O4uoKIUKnGPzNopkYlcqvO08TeS71-_h/view?usp=sharing) into `GemmaServer/models/wavlm/wavlm_large_int8.onnx` (see below) before starting the stack.
+Model weights ship in the repository (all under GitHub's file-size limit): `GemmaServer/models/` (YAMNet + XGBoost ONNX) and `PrismaServer/app/models/local_clahe/checkpoints/best.pt` (DenseNet121, 83 MB). The one exception is the **WavLM int8 embedder** (356 MB, over GitHub's 100 MB limit) — download it from [Google Drive](https://drive.google.com/file/d/1O4uoKIUKnGPzNopkYlcqvO08TeS71-_h/view?usp=sharing) into `GemmaServer/models/wavlm/wavlm_large_int8.onnx` (see below) so embeddings run fully on-device. Without it, the service degrades to the Fireworks embedding fallback (requires `FIREWORKS_API_KEY` + `FIREWORKS_MODEL`).
 
 ## Running locally
 
 ### Prerequisites
 
 - **Docker** with Swarm available (Docker Desktop on macOS/Windows, Docker Engine on Linux). The deploy script runs `docker swarm init` for you on first use.
-- **WavLM weights** (required — the local, on-device embedder). Download `wavlm_large_int8.onnx` (356 MB) from [Google Drive](https://drive.google.com/file/d/1O4uoKIUKnGPzNopkYlcqvO08TeS71-_h/view?usp=sharing) into `backend/modelServerandTraining/GemmaServer/models/wavlm/`. Because the file is large, use `gdown` (handles Drive's confirmation page that plain `curl` cannot):
+- **WavLM weights** (recommended — the local, on-device embedder; skip it only if you'll rely on the Fireworks embedding fallback). Download `wavlm_large_int8.onnx` (356 MB) from [Google Drive](https://drive.google.com/file/d/1O4uoKIUKnGPzNopkYlcqvO08TeS71-_h/view?usp=sharing) into `backend/modelServerandTraining/GemmaServer/models/wavlm/`. Because the file is large, use `gdown` (handles Drive's confirmation page that plain `curl` cannot):
 
   ```bash
   pip install gdown
@@ -124,7 +124,7 @@ Model weights ship in the repository (all under GitHub's file-size limit): `Gemm
 
 - **API key** in `infra/.env` (for the Gemma guidance chat only — models run locally):
   - `FEATHERLESS_API_KEY` — the zero-deploy path for the assistant (Gemma chat, `LLM_PROVIDER=featherless`).
-  - `FIREWORKS_API_KEY` — alternative: Gemma chat via your own on-demand Fireworks deployment (`LLM_PROVIDER=fireworks`).
+  - `FIREWORKS_API_KEY` — optional: Gemma chat via your own on-demand Fireworks deployment (`LLM_PROVIDER=fireworks`), and/or the WavLM embedding fallback (also set `FIREWORKS_MODEL`) if you skip the local model download above.
 - Everything else (YAMNet, XGBoost, DenseNet121 weights) is already in the repo.
 
 ### Linux / macOS (or Windows via WSL)

@@ -1,5 +1,5 @@
-//! Local WavLM Large (int8 ONNX) audio embedder — the sole embedding source.
-//! Audio is embedded entirely on-device; there is no external fallback.
+//! Local WavLM Large (int8 ONNX) audio embedder, used as the primary embedding
+//! source with the Fireworks API as the online fallback.
 //!
 //! Reproduces the exact recipe the training embeddings were built with (verified
 //! to match the reference parquet at cosine 1.0 in fp32): normalize the 16 kHz
