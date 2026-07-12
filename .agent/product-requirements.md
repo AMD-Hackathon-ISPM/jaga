@@ -90,8 +90,7 @@ Programme dashboards, accounts, and longitudinal records are `[V1]`.
 - Show positioning guidance, remaining recording time, and the live waveform; do not show a cough count before model analysis.
 - Request microphone permission only when capture begins.
 - Allow the user to stop early or let the recording stop automatically at 90 seconds. “Record again” discards the whole capture and restarts from zero; there is no pause flow.
-- Briefly pulse the live waveform orange when the detector registers a cough; when reduced motion is requested, update the count without the pulse.
-- Label client-side cough detection as an illustrative prototype energy heuristic, not model output, model evidence, or server-side quality acceptance.
+- Perform no client-side cough detection; cough episodes are detected only by the server-side model after submission.
 - Do not claim the phone capture reproduces CODA's controlled clinic setup.
 
 **Failure states**
