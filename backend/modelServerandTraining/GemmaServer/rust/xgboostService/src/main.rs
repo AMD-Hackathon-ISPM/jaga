@@ -5,8 +5,10 @@ mod demographics;
 mod fireworks;
 mod model;
 mod preprocessor;
+mod wavlm;
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::{
     extract::{Multipart, State},
@@ -23,10 +25,13 @@ use demographics::{DemographicsData, DemographicsInput};
 use fireworks::FireworksClient;
 use model::{XgbModel, EMBEDDING_LEN, FEATURE_LEN};
 use preprocessor::demographicFeatures;
+use wavlm::WavLmModel;
 
 #[derive(Clone)]
 struct AppState {
     model: Arc<XgbModel>,
+    wavlm: Option<Arc<WavLmModel>>,
+    localTimeout: Duration,
     httpClient: Client,
     fireworks: FireworksClient,
     goBackendUrl: String,
@@ -47,17 +52,34 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("loading XGBoost model from {}", config.xgbModelPath);
     let model = Arc::new(XgbModel::load(&config.xgbModelPath)?);
 
+    // Local WavLM is the primary embedder; loading it is optional (falls back to
+    // Fireworks if the model is missing).
+    let wavlm = match WavLmModel::load(&config.wavlmModelPath) {
+        Ok(model) => {
+            tracing::info!("loaded local WavLM from {}", config.wavlmModelPath);
+            Some(Arc::new(model))
+        }
+        Err(err) => {
+            tracing::warn!(
+                "local WavLM unavailable ({err}); will use Fireworks only for embeddings"
+            );
+            None
+        }
+    };
+
     let fireworks = FireworksClient::new(
         config.fireworksUrl.clone(),
         config.fireworksApiKey.clone(),
         config.fireworksModel.clone(),
     );
-    if !fireworks.isConfigured() {
-        tracing::warn!("Fireworks embedding endpoint is not configured; /predict will error until FIREWORKS_* are set");
+    if wavlm.is_none() && !fireworks.isConfigured() {
+        tracing::warn!("neither local WavLM nor Fireworks is available; /predict will error");
     }
 
     let state = AppState {
         model,
+        wavlm,
+        localTimeout: Duration::from_secs(config.localEmbedTimeoutSecs),
         httpClient: Client::new(),
         fireworks,
         goBackendUrl: config.goBackendUrl.clone(),
@@ -95,6 +117,7 @@ struct DemographicsRequest {
 struct PredictResponse {
     tb_probability: f32,
     risk_band: String,
+    embedding_source: String,
     demographics: DemographicsData,
 }
 
@@ -117,17 +140,7 @@ async fn predict(State(state): State<AppState>, multipart: Multipart) -> Result<
     .await
     .map_err(|err| ApiError::badRequest(err.to_string()))?;
 
-    let embedding = state
-        .fireworks
-        .embed(audio)
-        .await
-        .map_err(|err| ApiError::badGateway(err.to_string()))?;
-    if embedding.len() != EMBEDDING_LEN {
-        return Err(ApiError::badGateway(format!(
-            "expected a {EMBEDDING_LEN}-dim embedding from Fireworks, got {}",
-            embedding.len()
-        )));
-    }
+    let (embedding, embeddingSource) = embedAudio(&state, audio).await?;
 
     let country = request.country.unwrap_or_else(|| state.defaultCountry.clone());
     let demoFeatures = demographicFeatures(
@@ -151,9 +164,57 @@ async fn predict(State(state): State<AppState>, multipart: Multipart) -> Result<
     let body = PredictResponse {
         tb_probability: probability,
         risk_band: riskBand(probability).to_string(),
+        embedding_source: embeddingSource.to_string(),
         demographics: validated,
     };
     Ok((StatusCode::OK, Json(body)).into_response())
+}
+
+/// Embeds the audio locally with WavLM first, bounded by the configured timeout,
+/// and falls back to the Fireworks API if the local model is missing, errors, or
+/// runs past the timeout. Returns the embedding and which source produced it.
+async fn embedAudio(state: &AppState, audio: Vec<u8>) -> Result<(Vec<f32>, &'static str), ApiError> {
+    if let Some(model) = &state.wavlm {
+        match jagaAudio::decodeToMono16k(&audio) {
+            Ok(samples) => {
+                let model = model.clone();
+                let task = tokio::task::spawn_blocking(move || model.embed(&samples));
+                match tokio::time::timeout(state.localTimeout, task).await {
+                    Ok(Ok(Ok(embedding))) if embedding.len() == EMBEDDING_LEN => {
+                        return Ok((embedding, "local-wavlm-int8"));
+                    }
+                    Ok(Ok(Ok(embedding))) => tracing::warn!(
+                        "local WavLM returned {} dims, falling back to Fireworks",
+                        embedding.len()
+                    ),
+                    Ok(Ok(Err(err))) => {
+                        tracing::warn!("local WavLM failed ({err}), falling back to Fireworks")
+                    }
+                    Ok(Err(err)) => {
+                        tracing::warn!("local WavLM task panicked ({err}), falling back to Fireworks")
+                    }
+                    Err(_) => tracing::warn!(
+                        "local WavLM exceeded {:?}, falling back to Fireworks",
+                        state.localTimeout
+                    ),
+                }
+            }
+            Err(err) => tracing::warn!("could not decode audio for local WavLM ({err}); trying Fireworks"),
+        }
+    }
+
+    let embedding = state
+        .fireworks
+        .embed(audio)
+        .await
+        .map_err(|err| ApiError::badGateway(err.to_string()))?;
+    if embedding.len() != EMBEDDING_LEN {
+        return Err(ApiError::badGateway(format!(
+            "expected a {EMBEDDING_LEN}-dim embedding from Fireworks, got {}",
+            embedding.len()
+        )));
+    }
+    Ok((embedding, "fireworks"))
 }
 
 fn riskBand(probability: f32) -> &'static str {

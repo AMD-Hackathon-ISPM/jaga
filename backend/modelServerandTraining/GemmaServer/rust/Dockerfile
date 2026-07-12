@@ -35,6 +35,7 @@ WORKDIR /app
 COPY --from=builder /tmp/service /usr/local/bin/service
 COPY models/yamnet ./models/yamnet
 COPY models/xgboostAndDemoPreprocessor ./models/xgboostAndDemoPreprocessor
+COPY models/wavlm ./models/wavlm
 
 ENV ORT_DYLIB_PATH=/usr/local/lib/libonnxruntime.so
 ENTRYPOINT ["/usr/local/bin/service"]

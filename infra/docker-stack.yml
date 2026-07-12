@@ -208,6 +208,10 @@ services:
     environment:
       XGB_ADDR: 0.0.0.0:8082
       XGB_MODEL_PATH: /app/models/xgboostAndDemoPreprocessor/tb_xgb_demo.onnx
+      # Local WavLM int8 is the primary embedder; Fireworks is the online fallback
+      # if it errors or runs past LOCAL_EMBED_TIMEOUT_SECS.
+      WAVLM_MODEL_PATH: /app/models/wavlm/wavlm_large_int8.onnx
+      LOCAL_EMBED_TIMEOUT_SECS: ${LOCAL_EMBED_TIMEOUT_SECS:-15}
       GO_BACKEND_URL: http://go-api:8080
       DEFAULT_COUNTRY: ${DEFAULT_COUNTRY:-PH}
       FIREWORKS_EMBEDDING_URL: ${FIREWORKS_EMBEDDING_URL}
@@ -226,10 +230,10 @@ services:
       resources:
         reservations:
           cpus: '0.50'
-          memory: 512M
+          memory: 1G
         limits:
           cpus: '2.00'
-          memory: 2G
+          memory: 3G
 
   redis:
     image: ${REDIS_IMAGE}
