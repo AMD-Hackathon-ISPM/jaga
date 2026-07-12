@@ -99,19 +99,26 @@ type replyEnvelope struct {
 // parseReply extracts the disposition + reply from Gemma's JSON output, falling
 // back to a plain answer if the model did not return valid JSON.
 func parseReply(raw string) (string, string) {
-	trimmed := strings.TrimSpace(raw)
-	trimmed = strings.TrimPrefix(trimmed, "```json")
-	trimmed = strings.TrimPrefix(trimmed, "```")
-	trimmed = strings.TrimSuffix(trimmed, "```")
-	trimmed = strings.TrimSpace(trimmed)
-
-	var envelope replyEnvelope
-	if err := json.Unmarshal([]byte(trimmed), &envelope); err == nil && envelope.Reply != "" {
-		disposition := envelope.Disposition
-		if disposition != "safety_redirect" {
-			disposition = "answer"
+	// Extract the JSON object from anywhere in the output. Some models add a
+	// preamble (e.g. "thought") or code fences around it, so scanning for the
+	// outermost { ... } is more robust than trimming known wrappers.
+	if start := strings.Index(raw, "{"); start >= 0 {
+		if end := strings.LastIndex(raw, "}"); end > start {
+			var envelope replyEnvelope
+			if err := json.Unmarshal([]byte(raw[start:end+1]), &envelope); err == nil && envelope.Reply != "" {
+				disposition := envelope.Disposition
+				if disposition != "safety_redirect" {
+					disposition = "answer"
+				}
+				return disposition, envelope.Reply
+			}
 		}
-		return disposition, envelope.Reply
 	}
-	return "answer", raw
+
+	// Fallback: strip any code fences and return the cleaned text as an answer.
+	cleaned := strings.TrimSpace(raw)
+	cleaned = strings.TrimPrefix(cleaned, "```json")
+	cleaned = strings.TrimPrefix(cleaned, "```")
+	cleaned = strings.TrimSuffix(cleaned, "```")
+	return "answer", strings.TrimSpace(cleaned)
 }

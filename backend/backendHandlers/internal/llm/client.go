@@ -23,7 +23,6 @@ const (
 	featherlessChatModel = "google/gemma-4-31B-it"
 )
 
-// Gemma turn delimiters.
 const (
 	turnStart = "<start_of_turn>"
 	turnEnd   = "<end_of_turn>"
